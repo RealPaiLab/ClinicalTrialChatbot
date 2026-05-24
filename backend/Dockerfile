@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-COPY pyproject.toml .python-version ./
+COPY pyproject.toml uv.lock .python-version ./
 
 RUN uv sync --no-dev --no-install-project --frozen
 
