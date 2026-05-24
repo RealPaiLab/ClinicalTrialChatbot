@@ -22,3 +22,12 @@ repos:
       - id: ruff
         args: ["--fix"]
       - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: frontend-lint-staged
+        name: Frontend lint-staged
+        language: system
+        entry: bash -c 'cd frontend && pnpm exec lint-staged'
+        pass_filenames: false
+        files: ^frontend/
