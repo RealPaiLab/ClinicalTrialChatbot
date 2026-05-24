@@ -1,0 +1,10 @@
+[project]
+name = "clinical-trials-chatbot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi>=0.136.3",
+    "uvicorn[standard]>=0.47.0",
+]
