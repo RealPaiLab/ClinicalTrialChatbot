@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ARRAY, ForeignKey, Index, Text, UniqueConstraint
+from sqlalchemy import ARRAY, ForeignKey, Index, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,19 +23,17 @@ class TrialSite(Base):
             "cancer_type_names",
             postgresql_using="gin",
         ),
-        UniqueConstraint(
-            "trial_id", "location_id", name="uq_trial_sites_trial_location"
-        ),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     trial_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("trials.id", ondelete="CASCADE"), nullable=False
+        UUID(as_uuid=True),
+        ForeignKey("trials.id", ondelete="CASCADE"),
+        primary_key=True,
     )
     location_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("locations.id", ondelete="CASCADE"),
-        nullable=False,
+        primary_key=True,
     )
     state: Mapped[str | None] = mapped_column(Text, nullable=True)
     cancer_type_names: Mapped[list[str]] = mapped_column(

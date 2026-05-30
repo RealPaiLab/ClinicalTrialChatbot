@@ -1,8 +1,8 @@
 """add data schema
 
-Revision ID: 725bb62afe7f
+Revision ID: a90b558a91dc
 Revises: 26b6068ec3fe
-Create Date: 2026-05-30 21:06:24.110429
+Create Date: 2026-05-30 21:24:31.520744
 
 """
 from collections.abc import Sequence
@@ -13,7 +13,7 @@ from alembic import op
 
 
 # revision identifiers, used by Alembic.
-revision: str = '725bb62afe7f'
+revision: str = 'a90b558a91dc'
 down_revision: str | None = '26b6068ec3fe'
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -63,15 +63,13 @@ def upgrade() -> None:
     op.create_index('ix_trials_phases_gin', 'trials', ['phases'], unique=False, postgresql_using='gin')
     op.create_index('ix_trials_treatment_type_names_gin', 'trials', ['treatment_type_names'], unique=False, postgresql_using='gin')
     op.create_table('trial_sites',
-    sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('trial_id', sa.UUID(), nullable=False),
     sa.Column('location_id', sa.UUID(), nullable=False),
     sa.Column('state', sa.Text(), nullable=True),
     sa.Column('cancer_type_names', sa.ARRAY(sa.Text()), server_default='{}', nullable=False),
     sa.ForeignKeyConstraint(['location_id'], ['locations.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['trial_id'], ['trials.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('trial_id', 'location_id', name='uq_trial_sites_trial_location')
+    sa.PrimaryKeyConstraint('trial_id', 'location_id')
     )
     op.create_index('ix_trial_sites_cancer_type_names_gin', 'trial_sites', ['cancer_type_names'], unique=False, postgresql_using='gin')
     op.create_index('ix_trial_sites_state', 'trial_sites', ['state'], unique=False)
