@@ -13,6 +13,7 @@ from rich.progress import (
     BarColumn,
     MofNCompleteColumn,
     Progress,
+    TaskID,
     TextColumn,
     TimeElapsedColumn,
 )
@@ -38,7 +39,7 @@ async def fetch_page(
     page: int,
     page_size: int,
     progress: Progress,
-    task_id: int,
+    task_id: TaskID,
 ) -> list[dict]:  # type: ignore[type-arg]
     async with sem:
         r = await client.get(
