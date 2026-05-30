@@ -25,6 +25,7 @@ packages = ["core", "models", "schemas", "repository", "services", "routes", "sc
 [tool.ruff]
 target-version = "py314"
 line-length = 88
+exclude = ["alembic/versions/*"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
