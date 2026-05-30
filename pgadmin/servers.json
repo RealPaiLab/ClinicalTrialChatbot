@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "CTC Local",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "ctc_db",
+      "Username": "ctc",
+      "SSLMode": "prefer"
+    }
+  }
+}

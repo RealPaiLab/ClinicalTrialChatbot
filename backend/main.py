@@ -1,11 +1,35 @@
-from fastapi import FastAPI
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 
-app = FastAPI()
+from fastapi import FastAPI
+from sqlalchemy import text
+
+from core.database import engine, read_engine
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    # Startup: verify DB connectivity
+    async with engine.connect() as conn:
+        await conn.execute(text("SELECT 1"))
+    yield
+    # Shutdown: dispose both connection pools
+    await engine.dispose()
+    await read_engine.dispose()
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 @app.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+async def health() -> dict[str, str]:
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+        db_status = "ok"
+    except Exception:
+        db_status = "unreachable"
+    return {"status": "ok", "database": db_status}
 
 
 if __name__ == "__main__":
