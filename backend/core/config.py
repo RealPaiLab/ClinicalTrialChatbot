@@ -18,6 +18,11 @@ class Settings(BaseSettings):
     postgres_host: str = "localhost"
     postgres_port: int = 5432
 
+    llm_provider: str = "ollama"
+    llm_model: str = "qwen3"
+    ollama_base_url: str = "http://localhost:11434/v1"
+    openai_api_key: str | None = None
+
     @computed_field  # type: ignore[prop-decorator]
     @property
     def database_url(self) -> str:
