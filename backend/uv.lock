@@ -261,6 +261,15 @@ wheels = [
 ]
 
 [[package]]
+name = "backoff"
+version = "2.2.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/47/d7/5bbeb12c44d7c4f2fb5b56abce497eb5ed9f34d85701de869acedd602619/backoff-2.2.1.tar.gz", hash = "sha256:03f829f5bb1923180821643f8753b0502c3b682293992485b0eef2807afa5cba", size = 17001, upload-time = "2022-10-05T19:19:32.061Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/df/73/b6e24bd22e6720ca8ee9a85a0c4a2971af8497d8f3193fa05390cbd46e09/backoff-2.2.1-py3-none-any.whl", hash = "sha256:63579f9a0628e06278f7e47b7d7d5b6ce20dc65c5e96a6f3ca99a6adca0396e8", size = 15148, upload-time = "2022-10-05T19:19:30.546Z" },
+]
+
+[[package]]
 name = "beartype"
 version = "0.22.9"
 source = { registry = "https://pypi.org/simple" }
@@ -431,6 +440,7 @@ dependencies = [
     { name = "alembic" },
     { name = "asyncpg" },
     { name = "fastapi" },
+    { name = "langfuse" },
     { name = "pgvector" },
     { name = "pydantic" },
     { name = "pydantic-ai" },
@@ -455,6 +465,7 @@ requires-dist = [
     { name = "alembic", specifier = ">=1.18.4" },
     { name = "asyncpg", specifier = ">=0.31.0" },
     { name = "fastapi", specifier = ">=0.136.3" },
+    { name = "langfuse", specifier = ">=4.7.1" },
     { name = "pgvector", specifier = ">=0.4.2" },
     { name = "pydantic", specifier = ">=2.13.4" },
     { name = "pydantic-ai", specifier = ">=1.104.0" },
@@ -1305,6 +1316,25 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/43/4b/674af6ef2f97d56f0ab5153bf0bfa28ccb6c3ed4d1babf4305449668807b/keyring-25.7.0.tar.gz", hash = "sha256:fe01bd85eb3f8fb3dd0405defdeac9a5b4f6f0439edbb3149577f244a2e8245b", size = 63516, upload-time = "2025-11-16T16:26:09.482Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/81/db/e655086b7f3a705df045bf0933bdd9c2f79bb3c97bfef1384598bb79a217/keyring-25.7.0-py3-none-any.whl", hash = "sha256:be4a0b195f149690c166e850609a477c532ddbfbaed96a404d4e43f8d5e2689f", size = 39160, upload-time = "2025-11-16T16:26:08.402Z" },
+]
+
+[[package]]
+name = "langfuse"
+version = "4.7.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "backoff" },
+    { name = "httpx" },
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-exporter-otlp-proto-http" },
+    { name = "opentelemetry-sdk" },
+    { name = "packaging" },
+    { name = "pydantic" },
+    { name = "wrapt" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/2c/74/a6f1a99893ee6d1a69439ae7eb92f8fe8806103492dc26531d5942dbd3bf/langfuse-4.7.1.tar.gz", hash = "sha256:f9e262eceedb353b191c1da1f8452d1e8ebf52297ca20e160cda0206608e3a40", size = 320620, upload-time = "2026-05-29T18:06:22.435Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9f/9a/bd3368f46b6c72ee2068b80536826b02ae86df53eff1c79941344503098f/langfuse-4.7.1-py3-none-any.whl", hash = "sha256:a4e59c81ad5e5b16a65d3849f4923ebc3ad6e67ec803ada83d50c0cb66149490", size = 562571, upload-time = "2026-05-29T18:06:20.517Z" },
 ]
 
 [[package]]
