@@ -1,9 +1,12 @@
 import os
 
+from dotenv import load_dotenv
 from langfuse import Langfuse, get_client
 from pydantic_ai import Agent, InstrumentationSettings
 
 from core.logger import get_logger
+
+load_dotenv()
 
 logger = get_logger(__name__)
 
@@ -11,7 +14,6 @@ logger = get_logger(__name__)
 def setup_langfuse(environment: str) -> bool:
     """Initialise Langfuse tracing and instrument all pydantic-ai agents."""
     os.environ["LANGFUSE_TRACING_ENVIRONMENT"] = environment
-
     langfuse = get_client()
     try:
         connected = langfuse.auth_check()
