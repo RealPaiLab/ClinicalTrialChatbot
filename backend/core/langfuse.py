@@ -1,0 +1,37 @@
+import os
+
+from langfuse import Langfuse, get_client
+from pydantic_ai import Agent, InstrumentationSettings
+
+from core.logger import get_logger
+
+logger = get_logger(__name__)
+
+
+def setup_langfuse(environment: str) -> bool:
+    """Initialise Langfuse tracing and instrument all pydantic-ai agents."""
+    os.environ["LANGFUSE_TRACING_ENVIRONMENT"] = environment
+
+    langfuse = get_client()
+    try:
+        connected = langfuse.auth_check()
+        Agent.instrument_all(instrument=InstrumentationSettings(include_content=True))
+        if connected:
+            logger.info("Langfuse client is authenticated and ready!")
+        else:
+            logger.warning(
+                "Langfuse authentication failed. "
+                "Please check your credentials and host."
+            )
+        return connected
+    except Exception as ex:
+        logger.warning(
+            "Langfuse authentication failed. "
+            f"Please check your credentials and host. {ex}"
+        )
+        return False
+
+
+def get_langfuse_client() -> Langfuse:
+    """FastAPI dependency that returns the shared Langfuse client."""
+    return get_client()
