@@ -17,9 +17,10 @@ from schemas.trial import TrialFilter
 
 
 def _contains(column: ColumnOperators, term: str) -> ColumnElement[bool]:
-    """Case-insensitive substring match with LIKE wildcards escaped."""
+    """Case- and accent-insensitive substring match (LIKE wildcards escaped)."""
     escaped = term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-    return cast(ColumnElement[bool], column.ilike(f"%{escaped}%", escape="\\"))
+    pattern = func.unaccent(f"%{escaped}%")
+    return cast(ColumnElement[bool], func.unaccent(column).ilike(pattern, escape="\\"))
 
 
 def _cancer_type_filter(value: str) -> ColumnElement[bool]:
