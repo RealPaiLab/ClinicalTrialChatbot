@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
 from core.config import get_settings
 from models.trial import Trial
 from models.trial_site import TrialSite
@@ -38,29 +40,32 @@ def _to_citation(trial: Trial) -> TrialCitation:
 class TrialSearchService:
     """Search facade over TrialRepository"""
 
-    def __init__(self, trial_repository: TrialRepository) -> None:
-        self._trial_repository = trial_repository
+    def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
+        self._session_factory = session_factory
         self._default_limit = get_settings().search_default_limit
 
     async def search(
         self, flt: TrialFilter, *, limit: int | None = None
     ) -> list[TrialCitation]:
         """Structured search by cancer type, location, status, and phase."""
-        trials = await self._trial_repository.filter_trials(
-            flt, limit=limit or self._default_limit
-        )
-        return [_to_citation(t) for t in trials]
+        async with self._session_factory() as session:
+            trials = await TrialRepository(session).filter_trials(
+                flt, limit=limit or self._default_limit
+            )
+            return [_to_citation(t) for t in trials]
 
     async def keyword_search(
         self, query: str, *, limit: int | None = None
     ) -> list[TrialCitation]:
         """Substring search for vague or symptom-based queries."""
-        trials = await self._trial_repository.keyword_search(
-            query, limit=limit or self._default_limit
-        )
-        return [_to_citation(t) for t in trials]
+        async with self._session_factory() as session:
+            trials = await TrialRepository(session).keyword_search(
+                query, limit=limit or self._default_limit
+            )
+            return [_to_citation(t) for t in trials]
 
     async def get_by_ncts(self, nct_numbers: list[str]) -> list[TrialCitation]:
         """Fetch full details for trials by NCT number."""
-        trials = await self._trial_repository.get_by_ncts(nct_numbers)
-        return [_to_citation(t) for t in trials]
+        async with self._session_factory() as session:
+            trials = await TrialRepository(session).get_by_ncts(nct_numbers)
+            return [_to_citation(t) for t in trials]
