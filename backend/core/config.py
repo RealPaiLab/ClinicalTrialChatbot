@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     conversation_ttl_seconds: int = 3600
 
-    search_default_limit: int = 20
+    search_default_limit: int = 10
 
     @computed_field  # type: ignore[prop-decorator]
     @property
