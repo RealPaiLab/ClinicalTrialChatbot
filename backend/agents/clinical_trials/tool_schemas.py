@@ -49,6 +49,7 @@ class TrialSearchHit(BaseModel):
 
     nct_number: str | None = None
     title: str | None = None
+    cancer_types: list[str] = Field(default_factory=list)
     phases: list[str] = Field(default_factory=list)
     cities: list[str] = Field(default_factory=list)
     provinces: list[str] = Field(default_factory=list)

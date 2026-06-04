@@ -26,6 +26,9 @@ def _record(
             TrialSearchHit(
                 nct_number=c.nct_number,
                 title=c.short_title_en or c.official_title_en,
+                cancer_types=sorted(
+                    {ct for s in c.sites for ct in s.cancer_type_names}
+                ),
                 phases=c.phases,
                 cities=sorted({s.city for s in c.sites if s.city}),
                 provinces=sorted({s.province for s in c.sites if s.province}),
