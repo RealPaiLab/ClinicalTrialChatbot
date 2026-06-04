@@ -18,7 +18,7 @@ from core.llm import get_llm
 
 
 @lru_cache
-def get_agent() -> Agent[AgentDeps, AgentResponse]:
+def get_clinical_trials_agent() -> Agent[AgentDeps, AgentResponse]:
     """Build the cached clinical-trials agent."""
     agent = Agent(
         get_llm(),
