@@ -28,3 +28,12 @@ class TrialCitation(BaseModel):
     description_en: str | None = None
     phases: list[str] = Field(default_factory=list)
     sites: list[TrialSiteInfo] = Field(default_factory=list)
+
+
+class TrialFilter(BaseModel):
+    """Structured-search filters"""
+
+    cancer_types: list[str] = Field(default_factory=list)
+    locations: list[str] = Field(default_factory=list)
+    statuses: list[str] = Field(default_factory=list)
+    phases: list[str] = Field(default_factory=list)
