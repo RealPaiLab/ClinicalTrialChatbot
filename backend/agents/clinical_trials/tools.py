@@ -1,11 +1,8 @@
-"""Agent tools for searching clinical trials.
-
-Tools record every fetched trial into ``ctx.deps.fetched_trials`` and return a
-compact ``TrialSearchHit`` summary so the model can decide what to cite.
-"""
+"""Agent tools for searching clinical trials."""
 
 from __future__ import annotations
 
+from langfuse import observe
 from pydantic_ai import RunContext
 
 from agents.clinical_trials.dependencies import AgentDeps
@@ -38,6 +35,7 @@ def _record(
     return hits
 
 
+@observe
 async def search_trials(
     ctx: RunContext[AgentDeps], args: SearchTrialsInput
 ) -> list[TrialSearchHit]:
@@ -55,6 +53,7 @@ async def search_trials(
     return _record(ctx, await ctx.deps.trial_search.search(flt))
 
 
+@observe
 async def keyword_search_trials(
     ctx: RunContext[AgentDeps], args: KeywordSearchInput
 ) -> list[TrialSearchHit]:
@@ -66,6 +65,7 @@ async def keyword_search_trials(
     return _record(ctx, await ctx.deps.trial_search.keyword_search(args.query))
 
 
+@observe
 async def get_trial_details(
     ctx: RunContext[AgentDeps], args: GetTrialDetailsInput
 ) -> list[TrialCitation]:
