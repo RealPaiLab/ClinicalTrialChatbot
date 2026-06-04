@@ -8,7 +8,7 @@ from agents.clinical_trials.agent import get_clinical_trials_agent
 from agents.clinical_trials.dependencies import AgentDeps
 from agents.clinical_trials.output import AgentResponse
 from core.database import ReadOnlySessionFactory
-from core.langfuse import get_langfuse_client
+from core.langfuse import get_langfuse_client, trace_id_from_session
 from schemas.chat import ChatResult
 from services.conversation_service import ConversationService
 from services.trial_search_service import TrialSearchService
@@ -45,7 +45,10 @@ class ChatService:
         with (
             propagate_attributes(session_id=session_id),
             self._langfuse.start_as_current_observation(
-                name="chat-turn", as_type="span", input=user_message
+                trace_context={"trace_id": trace_id_from_session(session_id)},
+                name="chat-turn",
+                as_type="span",
+                input=user_message,
             ) as span,
         ):
             async with self._agent.run_stream(

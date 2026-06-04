@@ -37,3 +37,8 @@ def setup_langfuse(environment: str) -> bool:
 def get_langfuse_client() -> Langfuse:
     """FastAPI dependency that returns the shared Langfuse client."""
     return get_client()
+
+
+def trace_id_from_session(session_id: str) -> str:
+    """Deterministic trace id for a session, so all its turns share one trace."""
+    return get_client().create_trace_id(seed=session_id)
