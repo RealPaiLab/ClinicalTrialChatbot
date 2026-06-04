@@ -60,7 +60,7 @@ class TrialSearchService:
         )
         return [_to_citation(t) for t in trials]
 
-    async def get_by_nct(self, nct_number: str) -> TrialCitation | None:
-        """Fetch full details for one trial by NCT number."""
-        trial = await self._trial_repository.get_by_nct(nct_number)
-        return _to_citation(trial) if trial else None
+    async def get_by_ncts(self, nct_numbers: list[str]) -> list[TrialCitation]:
+        """Fetch full details for trials by NCT number."""
+        trials = await self._trial_repository.get_by_ncts(nct_numbers)
+        return [_to_citation(t) for t in trials]

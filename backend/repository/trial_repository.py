@@ -108,8 +108,10 @@ class TrialRepository:
         )
         return await self._run(stmt)
 
-    async def get_by_nct(self, nct_number: str) -> Trial | None:
-        """Fetch a single trial by its NCT number."""
-        stmt = self._base_select().where(Trial.nct_number == nct_number)
-        result = await self._session.execute(stmt)
-        return result.scalars().unique().one_or_none()
+    async def get_by_ncts(self, nct_numbers: list[str]) -> list[Trial]:
+        """Fetch trials by their NCT numbers."""
+        if not nct_numbers:
+            return []
+        return await self._run(
+            self._base_select().where(Trial.nct_number.in_(nct_numbers))
+        )
