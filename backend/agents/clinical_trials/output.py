@@ -23,5 +23,10 @@ class AgentResponse(BaseModel):
     )
     follow_up_questions: list[str] = Field(
         default_factory=list,
-        description="A few natural follow-up questions to keep helping the patient.",
+        description=(
+            "2-4 short suggested replies the patient can tap to continue, written "
+            "in the patient's own voice as quick prompts (e.g. 'Only recruiting "
+            "trials', 'Trials in Ontario', 'Tell me about the first one'). These "
+            "are options for the patient to send next, NOT questions you ask them."
+        ),
     )
