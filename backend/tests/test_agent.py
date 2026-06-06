@@ -37,3 +37,22 @@ async def test_agent_registers_expected_tools() -> None:
     assert params is not None
     names = sorted(t.name for t in params.function_tools)
     assert names == ["get_trial_details", "keyword_search_trials", "search_trials"]
+
+
+async def test_agent_hides_tools_when_budget_exhausted() -> None:
+    deps = AgentDeps(trial_search=StubTrialSearch(), tool_calls=99)
+    agent = get_clinical_trials_agent()
+    model = make_test_model(
+        output={
+            "message": "no matches",
+            "used_nct_numbers": [],
+            "follow_up_questions": [],
+        }
+    )
+    with agent.override(model=model):
+        result = await agent.run("breast cancer trials in quebec", deps=deps)
+
+    params = model.last_model_request_parameters
+    assert params is not None
+    assert [t.name for t in params.function_tools] == []
+    assert isinstance(result.output, AgentResponse)

@@ -3,6 +3,7 @@ import os
 os.environ.setdefault("LANGFUSE_TRACING_ENABLED", "False")
 os.environ.setdefault("LANGFUSE_PUBLIC_KEY", "pk-test")
 os.environ.setdefault("LANGFUSE_SECRET_KEY", "sk-test")
+os.environ["RESTRICT_TO_PROVINCE"] = ""
 
 import pytest  # noqa: E402
 from pydantic_ai.models.test import TestModel  # noqa: E402

@@ -1,3 +1,6 @@
+import pytest
+from pydantic_ai import ModelRetry
+
 from agents.clinical_trials.dependencies import AgentDeps
 from agents.clinical_trials.tool_schemas import (
     GetTrialDetailsInput,
@@ -38,6 +41,29 @@ async def test_keyword_search_records_fetched() -> None:
 
     assert hits[0].nct_number == "NCT-2"
     assert "NCT-2" in deps.fetched_trials
+
+
+async def test_duplicate_call_is_rejected_and_still_counts() -> None:
+    deps = AgentDeps(trial_search=StubTrialSearch(results=[make_citation("NCT-1")]))
+    ctx = make_run_context(deps)
+
+    await search_trials(ctx, SearchTrialsInput(reasoning="a", cancer_types=["breast"]))
+    with pytest.raises(ModelRetry):
+        await search_trials(
+            ctx, SearchTrialsInput(reasoning="b", cancer_types=["breast"])
+        )
+
+    assert deps.tool_calls == 2
+
+
+async def test_different_filters_are_not_treated_as_duplicates() -> None:
+    deps = AgentDeps(trial_search=StubTrialSearch(results=[make_citation("NCT-1")]))
+    ctx = make_run_context(deps)
+
+    await search_trials(ctx, SearchTrialsInput(reasoning="a", cancer_types=["breast"]))
+    await search_trials(ctx, SearchTrialsInput(reasoning="a", cancer_types=["lung"]))
+
+    assert deps.tool_calls == 2
 
 
 async def test_get_trial_details_returns_found_only() -> None:
