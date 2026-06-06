@@ -6,6 +6,7 @@ from langfuse import observe
 from pydantic_ai import RunContext
 
 from agents.clinical_trials.dependencies import AgentDeps
+from agents.clinical_trials.guards import guarded
 from agents.clinical_trials.tool_schemas import (
     GetTrialDetailsInput,
     KeywordSearchInput,
@@ -39,6 +40,7 @@ def _record(
 
 
 @observe
+@guarded
 async def search_trials(
     ctx: RunContext[AgentDeps], args: SearchTrialsInput
 ) -> list[TrialSearchHit]:
@@ -57,6 +59,7 @@ async def search_trials(
 
 
 @observe
+@guarded
 async def keyword_search_trials(
     ctx: RunContext[AgentDeps], args: KeywordSearchInput
 ) -> list[TrialSearchHit]:
@@ -69,6 +72,7 @@ async def keyword_search_trials(
 
 
 @observe
+@guarded
 async def get_trial_details(
     ctx: RunContext[AgentDeps], args: GetTrialDetailsInput
 ) -> list[TrialCitation]:
