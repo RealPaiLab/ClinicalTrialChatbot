@@ -4,12 +4,11 @@ from logging.config import fileConfig
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.pool import NullPool
 
+# Import models package so all model modules are registered with Base.metadata.
+# Add new model modules to models/__init__.py
+import models  # noqa: F401
 from alembic import context
-
-# Import Base so autogenerate can see all registered models.
-# Add new model module imports here as models are created, e.g.:
-#   from models import trial, session  # noqa: F401
-from models.base import Base  # noqa: F401
+from models.base import Base
 
 config = context.config
 
