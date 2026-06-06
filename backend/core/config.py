@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434/v1"
     openai_api_key: str | None = None
 
+    environment: str = "development"
+    langfuse_public_key: str | None = None
+    langfuse_secret_key: str | None = None
+    langfuse_host: str = "http://localhost:3000"
+
     @computed_field  # type: ignore[prop-decorator]
     @property
     def database_url(self) -> str:
