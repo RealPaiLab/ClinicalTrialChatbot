@@ -48,8 +48,18 @@ def _site_matches_cancer(site: TrialSite, cancer_types: list[str]) -> bool:
     return any(_fold(term) in haystack for term in cancer_types)
 
 
+def _site_in_province(site: TrialSite, province: str | None) -> bool:
+    if not province:
+        return True
+    prov = site.location.province
+    return prov is not None and _fold(province) in _fold(prov)
+
+
 def _to_citation(
-    trial: Trial, locations: list[str], cancer_types: list[str]
+    trial: Trial,
+    locations: list[str],
+    cancer_types: list[str],
+    restrict_province: str | None = None,
 ) -> TrialCitation:
     """Map an ORM trial to a citation, keeping only sites matching the filters."""
     sites = [
@@ -57,6 +67,7 @@ def _to_citation(
         for s in trial.sites
         if _site_matches_location(s, locations)
         and _site_matches_cancer(s, cancer_types)
+        and _site_in_province(s, restrict_province)
     ]
     return TrialCitation(
         nct_number=trial.nct_number,
@@ -74,20 +85,30 @@ class TrialSearchService:
 
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self._session_factory = session_factory
-        self._default_limit = get_settings().search_default_limit
+        settings = get_settings()
+        self._default_limit = settings.search_default_limit
+        self._restrict_province = (settings.restrict_to_province or "").strip() or None
+
+    def _repository(self, session: AsyncSession) -> TrialRepository:
+        return TrialRepository(session, restrict_to_province=self._restrict_province)
 
     async def search(
         self, flt: TrialFilter, *, limit: int | None = None
     ) -> list[TrialCitation]:
         """Structured search; returns only sites matching the filters."""
         async with self._session_factory() as session:
-            trials = await TrialRepository(session).filter_trials(
+            trials = await self._repository(session).filter_trials(
                 flt, limit=limit or self._default_limit
             )
             citations = [
-                _to_citation(t, flt.locations, flt.cancer_types) for t in trials
+                _to_citation(
+                    t, flt.locations, flt.cancer_types, self._restrict_province
+                )
+                for t in trials
             ]
-        site_filtered = bool(flt.locations or flt.cancer_types)
+        site_filtered = bool(
+            flt.locations or flt.cancer_types or self._restrict_province
+        )
         return [c for c in citations if c.sites or not site_filtered]
 
     async def keyword_search(
@@ -95,13 +116,13 @@ class TrialSearchService:
     ) -> list[TrialCitation]:
         """Substring search for vague or symptom-based queries."""
         async with self._session_factory() as session:
-            trials = await TrialRepository(session).keyword_search(
+            trials = await self._repository(session).keyword_search(
                 query, limit=limit or self._default_limit
             )
-            return [_to_citation(t, [], []) for t in trials]
+            return [_to_citation(t, [], [], self._restrict_province) for t in trials]
 
     async def get_by_ncts(self, nct_numbers: list[str]) -> list[TrialCitation]:
         """Fetch full details for trials by NCT number."""
         async with self._session_factory() as session:
-            trials = await TrialRepository(session).get_by_ncts(nct_numbers)
-            return [_to_citation(t, [], []) for t in trials]
+            trials = await self._repository(session).get_by_ncts(nct_numbers)
+            return [_to_citation(t, [], [], self._restrict_province) for t in trials]

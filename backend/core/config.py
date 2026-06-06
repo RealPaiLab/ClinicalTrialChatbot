@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     conversation_ttl_seconds: int = 3600
 
     search_default_limit: int = 10
+    restrict_to_province: str | None = None
+
+    agent_tool_calls_limit: int = 6
 
     @computed_field  # type: ignore[prop-decorator]
     @property

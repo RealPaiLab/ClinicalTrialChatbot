@@ -48,6 +48,18 @@ def _location_filter(value: str) -> ColumnElement[bool]:
     )
 
 
+def _province_restriction(province: str) -> ColumnElement[bool]:
+    return (
+        select(TrialSite.trial_id)
+        .join(Location, TrialSite.location_id == Location.id)
+        .where(
+            TrialSite.trial_id == Trial.id,
+            _contains(Location.province, province),
+        )
+        .exists()
+    )
+
+
 def _status_filter(value: str) -> ColumnElement[bool]:
     return (
         select(TrialSite.trial_id)
@@ -71,13 +83,19 @@ _FILTER_BUILDERS: dict[str, Callable[[str], ColumnElement[bool]]] = {
 class TrialRepository:
     """Reads trials from PostgreSQL. Returns ORM rows with sites + location loaded."""
 
-    def __init__(self, session: AsyncSession) -> None:
+    def __init__(
+        self, session: AsyncSession, *, restrict_to_province: str | None = None
+    ) -> None:
         self._session = session
+        self._restrict_to_province = restrict_to_province
 
     def _base_select(self) -> Select[tuple[Trial]]:
-        return select(Trial).options(
+        stmt = select(Trial).options(
             selectinload(Trial.sites).selectinload(TrialSite.location)
         )
+        if self._restrict_to_province:
+            stmt = stmt.where(_province_restriction(self._restrict_to_province))
+        return stmt
 
     async def _run(self, stmt: Select[tuple[Trial]]) -> list[Trial]:
         result = await self._session.execute(stmt)
