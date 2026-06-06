@@ -28,3 +28,5 @@ class AgentDeps:
 
     trial_search: TrialSearch
     fetched_trials: dict[str, TrialCitation] = field(default_factory=dict)
+    tool_calls: int = 0
+    seen_calls: set[str] = field(default_factory=set)
