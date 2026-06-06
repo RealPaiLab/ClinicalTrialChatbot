@@ -26,7 +26,12 @@ class TrialCitation(BaseModel):
     short_title_en: str | None = None
     official_title_en: str | None = None
     description_en: str | None = None
+    inclusion_criteria_en: str | None = None
+    exclusion_criteria_en: str | None = None
     phases: list[str] = Field(default_factory=list)
+    treatment_type_names: list[str] = Field(default_factory=list)
+    intervention_names: list[str] = Field(default_factory=list)
+    treatment_lines: list[str] = Field(default_factory=list)
     sites: list[TrialSiteInfo] = Field(default_factory=list)
 
 

@@ -75,7 +75,12 @@ def _to_citation(
         short_title_en=trial.short_title_en,
         official_title_en=trial.official_title_en,
         description_en=trial.description_en,
-        phases=list(trial.phases),
+        inclusion_criteria_en=trial.inclusion_criteria_en,
+        exclusion_criteria_en=trial.exclusion_criteria_en,
+        phases=list(trial.phases or []),
+        treatment_type_names=list(trial.treatment_type_names or []),
+        intervention_names=list(trial.intervention_names or []),
+        treatment_lines=list(trial.treatment_lines or []),
         sites=[_to_site_info(s) for s in sites],
     )
 
