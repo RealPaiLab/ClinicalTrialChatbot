@@ -8,11 +8,13 @@ from pydantic_ai import RunContext
 from agents.clinical_trials.dependencies import AgentDeps
 from agents.clinical_trials.guards import guarded
 from agents.clinical_trials.tool_schemas import (
+    DefineTermInput,
     GetTrialDetailsInput,
     KeywordSearchInput,
     SearchTrialsInput,
     TrialSearchHit,
 )
+from schemas.glossary import GlossaryDefinition
 from schemas.trial import TrialCitation, TrialFilter
 
 
@@ -86,3 +88,19 @@ async def get_trial_details(
         if citation.nct_number:
             ctx.deps.fetched_trials[citation.nct_number] = citation
     return citations
+
+
+@observe
+@guarded
+async def define_term(
+    ctx: RunContext[AgentDeps], args: DefineTermInput
+) -> list[GlossaryDefinition]:
+    """Look up a plain-language definition of a medical or clinical-trial term.
+
+    Use this when you meet a technical term and want an authoritative lay
+    definition before explaining it to the patient, instead of guessing. Pick the
+    `source` dictionary that fits the term (cancer terms, genetics, or drugs).
+    Returns the single closest match (or nothing). If it does not match the term
+    you meant, call again with a more specific term or a different source.
+    """
+    return await ctx.deps.glossary.define(args.term, args.source)

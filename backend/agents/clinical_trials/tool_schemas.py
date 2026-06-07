@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
+from schemas.glossary import GlossarySource
+
 
 class ToolInput(BaseModel):
     """Base input shared by every tool."""
@@ -41,6 +43,24 @@ class KeywordSearchInput(ToolInput):
 class GetTrialDetailsInput(ToolInput):
     nct_numbers: list[str] = Field(
         description='NCT numbers to fetch full details for, e.g. ["NCT01234567"].'
+    )
+
+
+class DefineTermInput(ToolInput):
+    term: str = Field(
+        description=(
+            "A single medical, genetic, or drug term to define in plain language, "
+            'e.g. "metastatic", "allele", or "Gleevec".'
+        )
+    )
+    source: GlossarySource = Field(
+        default=GlossarySource.CANCER_TERMS,
+        description=(
+            "Which NCI dictionary to search, chosen from the term: 'cancer_terms' "
+            "for general cancer and clinical-trial terms (default), 'genetics' for "
+            "genetic or inherited-risk terms, 'drugs' for medication or drug names "
+            "(including brand names)."
+        ),
     )
 
 
