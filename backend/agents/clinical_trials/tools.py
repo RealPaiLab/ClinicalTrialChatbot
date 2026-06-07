@@ -10,8 +10,7 @@ from agents.clinical_trials.guards import guarded
 from agents.clinical_trials.tool_schemas import (
     DefineTermInput,
     GetTrialDetailsInput,
-    KeywordSearchInput,
-    SearchTrialsInput,
+    SyntacticSearchInput,
     TrialSearchHit,
 )
 from schemas.glossary import GlossaryDefinition
@@ -43,13 +42,15 @@ def _record(
 
 @observe
 @guarded
-async def search_trials(
-    ctx: RunContext[AgentDeps], args: SearchTrialsInput
+async def syntactic_search(
+    ctx: RunContext[AgentDeps], args: SyntacticSearchInput
 ) -> list[TrialSearchHit]:
-    """Structured search for clinical trials; use for clear, specific requests.
+    """Search clinical trials by structured filters, optionally narrowed by free text.
 
     Values within one field are OR'd and fields are AND'd, so you may pass several
-    cancer types, locations, or phases at once.
+    cancer types, locations, or phases at once. Add `query` only for symptom or
+    treatment wording the filters cannot express (e.g. "immunotherapy after
+    surgery"); it searches only within trials that already match the filters.
     """
     flt = TrialFilter(
         cancer_types=args.cancer_types,
@@ -57,20 +58,10 @@ async def search_trials(
         statuses=args.statuses,
         phases=args.phases,
     )
-    return _record(ctx, await ctx.deps.trial_search.search(flt))
-
-
-@observe
-@guarded
-async def keyword_search_trials(
-    ctx: RunContext[AgentDeps], args: KeywordSearchInput
-) -> list[TrialSearchHit]:
-    """Free-text trial search; use when the request is vague or symptom-based.
-
-    Prefer this when the request does not map to a specific cancer type
-    (e.g. "advanced solid tumors", "immunotherapy after surgery").
-    """
-    return _record(ctx, await ctx.deps.trial_search.keyword_search(args.query))
+    citations = await ctx.deps.trial_search.syntactic_search(
+        flt, query=args.query, limit=args.limit, offset=args.offset
+    )
+    return _record(ctx, citations)
 
 
 @observe
@@ -97,10 +88,10 @@ async def define_term(
 ) -> list[GlossaryDefinition]:
     """Look up a plain-language definition of a medical or clinical-trial term.
 
-    Use this when you meet a technical term and want an authoritative lay
-    definition before explaining it to the patient, instead of guessing. Pick the
-    `source` dictionary that fits the term (cancer terms, genetics, or drugs).
-    Returns the single closest match (or nothing). If it does not match the term
-    you meant, call again with a more specific term or a different source.
+    Use sparingly, only for a central term you cannot confidently explain yourself,
+    not for everyday words. Pick the `source` dictionary that fits the term (cancer
+    terms, genetics, or drugs). Returns the single closest match (or nothing); if it
+    is empty or off, you may try once more with clearer phrasing or a different
+    source, but do not keep retrying.
     """
     return await ctx.deps.glossary.define(args.term, args.source)

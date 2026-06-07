@@ -20,11 +20,13 @@ def count_tool_call(ctx: RunContext[AgentDeps]) -> None:
     ctx.deps.tool_calls += 1
 
 
-def _normalize(value: str | list[str]) -> str | list[str]:
+def _normalize(value: object) -> object:
     """Canonicalize a tool-input value (case- and order-insensitive)."""
     if isinstance(value, str):
         return value.strip().lower()
-    return sorted(item.strip().lower() for item in value)
+    if isinstance(value, list):
+        return sorted(item.strip().lower() for item in value if isinstance(item, str))
+    return value
 
 
 def guard_duplicate_call(

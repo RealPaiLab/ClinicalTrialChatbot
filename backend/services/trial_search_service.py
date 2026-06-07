@@ -97,13 +97,19 @@ class TrialSearchService:
     def _repository(self, session: AsyncSession) -> TrialRepository:
         return TrialRepository(session, restrict_to_province=self._restrict_province)
 
-    async def search(
-        self, flt: TrialFilter, *, limit: int | None = None
+    async def syntactic_search(
+        self,
+        flt: TrialFilter,
+        *,
+        query: str | None = None,
+        limit: int | None = None,
+        offset: int = 0,
     ) -> list[TrialCitation]:
-        """Structured search; returns only sites matching the filters."""
+        """Lexical search over the filters, optionally narrowed by a free-text query;
+        returns only sites matching the filters."""
         async with self._session_factory() as session:
-            trials = await self._repository(session).filter_trials(
-                flt, limit=limit or self._default_limit
+            trials = await self._repository(session).syntactic_search(
+                flt, query=query, limit=limit or self._default_limit, offset=offset
             )
             citations = [
                 _to_citation(
@@ -115,16 +121,6 @@ class TrialSearchService:
             flt.locations or flt.cancer_types or self._restrict_province
         )
         return [c for c in citations if c.sites or not site_filtered]
-
-    async def keyword_search(
-        self, query: str, *, limit: int | None = None
-    ) -> list[TrialCitation]:
-        """Substring search for vague or symptom-based queries."""
-        async with self._session_factory() as session:
-            trials = await self._repository(session).keyword_search(
-                query, limit=limit or self._default_limit
-            )
-            return [_to_citation(t, [], [], self._restrict_province) for t in trials]
 
     async def get_by_ncts(self, nct_numbers: list[str]) -> list[TrialCitation]:
         """Fetch full details for trials by NCT number."""
