@@ -39,8 +39,7 @@ async def test_agent_registers_expected_tools() -> None:
     assert names == [
         "define_term",
         "get_trial_details",
-        "keyword_search_trials",
-        "search_trials",
+        "syntactic_search",
     ]
 
 

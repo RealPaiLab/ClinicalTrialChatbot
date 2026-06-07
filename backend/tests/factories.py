@@ -86,16 +86,15 @@ class StubTrialSearch:
         self.by_nct = dict(by_nct or {})
         self.calls: list[tuple[str, object]] = []
 
-    async def search(
-        self, flt: object, *, limit: int | None = None
+    async def syntactic_search(
+        self,
+        flt: object,
+        *,
+        query: str | None = None,
+        limit: int | None = None,
+        offset: int = 0,
     ) -> list[TrialCitation]:
-        self.calls.append(("search", flt))
-        return list(self.results)
-
-    async def keyword_search(
-        self, query: str, *, limit: int | None = None
-    ) -> list[TrialCitation]:
-        self.calls.append(("keyword_search", query))
+        self.calls.append(("syntactic_search", flt))
         return list(self.results)
 
     async def get_by_ncts(self, nct_numbers: list[str]) -> list[TrialCitation]:
