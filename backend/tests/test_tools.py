@@ -3,16 +3,24 @@ from pydantic_ai import ModelRetry
 
 from agents.clinical_trials.dependencies import AgentDeps
 from agents.clinical_trials.tool_schemas import (
+    DefineTermInput,
     GetTrialDetailsInput,
     KeywordSearchInput,
     SearchTrialsInput,
 )
 from agents.clinical_trials.tools import (
+    define_term,
     get_trial_details,
     keyword_search_trials,
     search_trials,
 )
-from tests.factories import StubTrialSearch, make_citation, make_run_context
+from schemas.glossary import GlossaryDefinition, GlossarySource
+from tests.factories import (
+    StubGlossary,
+    StubTrialSearch,
+    make_citation,
+    make_run_context,
+)
 
 
 async def test_search_trials_records_and_summarizes() -> None:
@@ -64,6 +72,24 @@ async def test_different_filters_are_not_treated_as_duplicates() -> None:
     await search_trials(ctx, SearchTrialsInput(reasoning="a", cancer_types=["lung"]))
 
     assert deps.tool_calls == 2
+
+
+async def test_define_term_returns_glossary_definitions() -> None:
+    definition = GlossaryDefinition(
+        source=GlossarySource.DRUGS, term="imatinib", definition="a kinase inhibitor"
+    )
+    glossary = StubGlossary(results=[definition])
+    deps = AgentDeps(trial_search=StubTrialSearch(), glossary=glossary)
+    ctx = make_run_context(deps)
+
+    result = await define_term(
+        ctx,
+        DefineTermInput(reasoning="r", term="gleevec", source=GlossarySource.DRUGS),
+    )
+
+    assert [d.term for d in result] == ["imatinib"]
+    assert glossary.calls == [("gleevec", GlossarySource.DRUGS)]
+    assert deps.tool_calls == 1
 
 
 async def test_get_trial_details_returns_found_only() -> None:

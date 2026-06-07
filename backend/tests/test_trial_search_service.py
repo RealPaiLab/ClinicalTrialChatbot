@@ -43,6 +43,16 @@ def test_to_citation_keeps_only_matching_sites() -> None:
     assert citation.sites[0].city == "Montréal"
 
 
+def test_to_citation_exposes_eligibility_and_treatment_context() -> None:
+    trial = make_orm_trial("NCT-1")
+    citation = _to_citation(trial, [], [])
+    assert citation.inclusion_criteria_en
+    assert citation.exclusion_criteria_en
+    assert citation.treatment_type_names == ["Immunotherapy"]
+    assert citation.intervention_names == ["DrugX"]
+    assert citation.treatment_lines == ["First Line"]
+
+
 async def test_search_drops_trials_with_no_matching_site() -> None:
     trials = [
         make_orm_trial("NCT-match", sites=[("Montréal", "Quebec", ("Breast Cancer",))]),

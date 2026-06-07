@@ -36,7 +36,12 @@ async def test_agent_registers_expected_tools() -> None:
     params = model.last_model_request_parameters
     assert params is not None
     names = sorted(t.name for t in params.function_tools)
-    assert names == ["get_trial_details", "keyword_search_trials", "search_trials"]
+    assert names == [
+        "define_term",
+        "get_trial_details",
+        "keyword_search_trials",
+        "search_trials",
+    ]
 
 
 async def test_agent_hides_tools_when_budget_exhausted() -> None:
