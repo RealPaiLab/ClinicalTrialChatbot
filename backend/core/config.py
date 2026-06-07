@@ -37,7 +37,9 @@ class Settings(BaseSettings):
     search_default_limit: int = 10
     restrict_to_province: str | None = None
 
-    agent_tool_calls_limit: int = 6
+    agent_tool_calls_limit: int = 10
+    nci_glossary_base_url: str = "https://webapis.cancer.gov/glossary/v1"
+    nci_drug_dictionary_base_url: str = "https://webapis.cancer.gov/drugdictionary/v1"
 
     @computed_field  # type: ignore[prop-decorator]
     @property
