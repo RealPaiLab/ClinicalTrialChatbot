@@ -104,7 +104,7 @@ export const mockConversation: ChatMessage[] = [
     id: 'm2',
     role: ChatRole.Assistant,
     content:
-      'I found a trial that may fit. [NCT04267848] is testing immunotherapy added to chemotherapy for advanced triple-negative breast cancer, and it is recruiting at Princess Margaret Cancer Centre in Toronto.',
+      'I found a trial that may fit. **[NCT04267848]** is testing immunotherapy added to chemotherapy for advanced triple-negative breast cancer, and it is currently **recruiting** at Princess Margaret Cancer Centre in Toronto.',
     trials: [mockTrials[0]],
     followUpQuestions: [
       'What are the eligibility requirements?',
@@ -136,7 +136,7 @@ export const mockWireStreamLines: string[] = [
     type: StreamEventType.ChatResult,
     data: {
       message:
-        'I found a trial that may fit. [NCT04267848] is testing immunotherapy added to chemotherapy for advanced triple-negative breast cancer, and it is recruiting at Princess Margaret Cancer Centre in Toronto.',
+        'I found a trial that may fit. **[NCT04267848]** is testing immunotherapy added to chemotherapy for advanced triple-negative breast cancer, and it is currently **recruiting** at Princess Margaret Cancer Centre in Toronto.',
       follow_up_questions: [
         'What are the eligibility requirements?',
         'Are there trials in Montreal too?',

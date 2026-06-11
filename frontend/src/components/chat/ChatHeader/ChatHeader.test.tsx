@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
 import ChatHeader from './ChatHeader';
 
 describe('ChatHeader', () => {
@@ -7,5 +8,13 @@ describe('ChatHeader', () => {
     render(<ChatHeader />);
     expect(screen.getByText('Trial Navigator')).toBeInTheDocument();
     expect(screen.getByText(/plain language/i)).toBeInTheDocument();
+  });
+
+  it('triggers a new conversation when the button is clicked', async () => {
+    const onNewConversation = vi.fn();
+    render(<ChatHeader onNewConversation={onNewConversation} />);
+
+    await userEvent.click(screen.getByRole('button', { name: /new conversation/i }));
+    expect(onNewConversation).toHaveBeenCalledTimes(1);
   });
 });
