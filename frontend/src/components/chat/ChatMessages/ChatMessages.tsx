@@ -7,6 +7,7 @@ import {
   ConversationScrollButton,
 } from '@/components/ai-elements/conversation';
 import { Message, MessageContent, MessageResponse } from '@/components/ai-elements/message';
+import SearchingIndicator from '@/components/chat/SearchingIndicator/SearchingIndicator';
 import TrialCitation from '@/components/chat/TrialCitation/TrialCitation';
 import { ChatRole, CITATION_HREF_PREFIX } from '@/constants/chat';
 import { linkifyCitations } from '@/lib/citations';
@@ -59,14 +60,16 @@ function ChatMessages({ messages, fetchTrial, onCitationClick }: ChatMessagesPro
           messages.map((message) => (
             <Message from={message.role} key={message.id}>
               <MessageContent>
-                {message.role === ChatRole.Assistant ? (
+                {message.role !== ChatRole.Assistant ? (
+                  message.content
+                ) : message.content === '' ? (
+                  <SearchingIndicator />
+                ) : (
                   <MessageResponse
                     components={createMarkdownComponents(fetchTrial, onCitationClick)}
                   >
                     {linkifyCitations(message.content)}
                   </MessageResponse>
-                ) : (
-                  message.content
                 )}
               </MessageContent>
             </Message>

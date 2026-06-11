@@ -2,6 +2,7 @@ import { ChatRole, StreamEventType } from '@/constants/chat';
 import type { StreamEvent } from '@/types/trial';
 import { mockConversation } from '@/test/fixtures/trials';
 
+const INITIAL_DELAY_MS = 2000;
 const CHUNK_DELAY_MS = 28;
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -13,6 +14,9 @@ export async function* streamMockChat(
   const reply = mockConversation.find((message) => message.role === ChatRole.Assistant);
   const message = reply?.content ?? '';
   const words = message.split(' ');
+
+  await delay(INITIAL_DELAY_MS);
+  if (signal?.aborted) return;
 
   let accumulated = '';
   for (const word of words) {
