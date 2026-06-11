@@ -3,6 +3,8 @@ import { Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import ChatPanel from '@/components/chat/ChatPanel/ChatPanel';
+import MapPanel from '@/components/map/MapPanel/MapPanel';
+import type { Trial } from '@/types/trial';
 
 function PanelPlaceholder({ label, name }: { label: string; name: string }) {
   return (
@@ -17,6 +19,8 @@ function PanelPlaceholder({ label, name }: { label: string; name: string }) {
 
 function HomePage() {
   const [dark, setDark] = useState(false);
+  const [trials, setTrials] = useState<Trial[]>([]);
+  const [selectedNctNumber, setSelectedNctNumber] = useState<string | null>(null);
 
   const toggleTheme = () => {
     setDark((prev) => {
@@ -24,6 +28,11 @@ function HomePage() {
       document.documentElement.classList.toggle('dark', next);
       return next;
     });
+  };
+
+  const handleReset = () => {
+    setTrials([]);
+    setSelectedNctNumber(null);
   };
 
   return (
@@ -37,7 +46,11 @@ function HomePage() {
 
       <ResizablePanelGroup orientation="horizontal" className="min-h-0 flex-1">
         <ResizablePanel defaultSize="32%" minSize="22%" maxSize="46%">
-          <ChatPanel />
+          <ChatPanel
+            onTrialsChange={setTrials}
+            onCitationClick={setSelectedNctNumber}
+            onReset={handleReset}
+          />
         </ResizablePanel>
 
         <ResizableHandle withHandle />
@@ -45,7 +58,12 @@ function HomePage() {
         <ResizablePanel defaultSize="68%">
           <ResizablePanelGroup orientation="vertical">
             <ResizablePanel defaultSize="66%">
-              <PanelPlaceholder label="Trial map" name="Map panel" />
+              <MapPanel
+                trials={trials}
+                selectedNctNumber={selectedNctNumber}
+                onSelectTrial={setSelectedNctNumber}
+                dark={dark}
+              />
             </ResizablePanel>
 
             <ResizableHandle withHandle />
