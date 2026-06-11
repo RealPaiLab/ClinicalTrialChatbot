@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
+import ChatPanel from '@/components/chat/ChatPanel/ChatPanel';
 
 function PanelPlaceholder({ label, name }: { label: string; name: string }) {
   return (
@@ -36,7 +37,7 @@ function HomePage() {
 
       <ResizablePanelGroup orientation="horizontal" className="min-h-0 flex-1">
         <ResizablePanel defaultSize="32%" minSize="22%" maxSize="46%">
-          <PanelPlaceholder label="Conversation" name="Chat panel" />
+          <ChatPanel />
         </ResizablePanel>
 
         <ResizableHandle withHandle />

@@ -1,3 +1,8 @@
+import { StreamEventType } from '@/constants/chat';
+import type { ChatRole } from '@/constants/chat';
+
+export type { ChatRole };
+
 export interface TrialSite {
   nameEn: string;
   address: string | null;
@@ -37,11 +42,9 @@ export interface AgentResponse {
 }
 
 export type StreamEvent =
-  | { type: 'AgentResponse'; data: AgentResponse }
-  | { type: 'ChatResult'; data: ChatResult }
-  | { type: 'error'; data: string };
-
-export type ChatRole = 'user' | 'assistant';
+  | { type: typeof StreamEventType.AgentResponse; data: AgentResponse }
+  | { type: typeof StreamEventType.ChatResult; data: ChatResult }
+  | { type: typeof StreamEventType.Error; data: string };
 
 export interface ChatMessage {
   id: string;

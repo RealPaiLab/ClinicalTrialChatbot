@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { parseEventStream, streamChat } from './chat';
+import { StreamEventType } from '@/constants/chat';
 import type { StreamEvent } from '@/types/trial';
 import { createNdjsonStream, mockWireStreamLines } from '@/test/fixtures/trials';
 
@@ -15,15 +16,19 @@ describe('parseEventStream', () => {
   it('maps snake_case wire events into camelCase domain events in order', async () => {
     const events = await collect(parseEventStream(createNdjsonStream(mockWireStreamLines)));
 
-    expect(events.map((e) => e.type)).toEqual(['AgentResponse', 'AgentResponse', 'ChatResult']);
+    expect(events.map((e) => e.type)).toEqual([
+      StreamEventType.AgentResponse,
+      StreamEventType.AgentResponse,
+      StreamEventType.ChatResult,
+    ]);
 
     const second = events[1];
-    if (second.type !== 'AgentResponse') throw new Error('expected AgentResponse');
+    if (second.type !== StreamEventType.AgentResponse) throw new Error('expected AgentResponse');
     expect(second.data.usedNctNumbers).toEqual(['NCT04267848']);
     expect(second.data.followUpQuestions).toEqual(['What are the eligibility requirements?']);
 
     const final = events[2];
-    if (final.type !== 'ChatResult') throw new Error('expected ChatResult');
+    if (final.type !== StreamEventType.ChatResult) throw new Error('expected ChatResult');
     const trial = final.data.trials[0];
     expect(trial.nctNumber).toBe('NCT04267848');
     expect(trial.shortTitleEn).toContain('Triple-Negative');
@@ -35,7 +40,7 @@ describe('parseEventStream', () => {
   it('reassembles events split across small byte chunks', async () => {
     const events = await collect(parseEventStream(createNdjsonStream(mockWireStreamLines, 7)));
     expect(events).toHaveLength(3);
-    expect(events[2].type).toBe('ChatResult');
+    expect(events[2].type).toBe(StreamEventType.ChatResult);
   });
 });
 

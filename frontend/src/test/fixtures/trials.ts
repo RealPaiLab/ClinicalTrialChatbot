@@ -1,3 +1,4 @@
+import { ChatRole, StreamEventType } from '@/constants/chat';
 import type { ChatMessage, Trial } from '@/types/trial';
 
 export const mockTrials: Trial[] = [
@@ -96,12 +97,12 @@ export const mockTrials: Trial[] = [
 export const mockConversation: ChatMessage[] = [
   {
     id: 'm1',
-    role: 'user',
+    role: ChatRole.User,
     content: 'I have advanced triple-negative breast cancer and live in Toronto. Any trials?',
   },
   {
     id: 'm2',
-    role: 'assistant',
+    role: ChatRole.Assistant,
     content:
       'I found a trial that may fit. [NCT04267848] is testing immunotherapy added to chemotherapy for advanced triple-negative breast cancer, and it is recruiting at Princess Margaret Cancer Centre in Toronto.',
     trials: [mockTrials[0]],
@@ -115,7 +116,7 @@ export const mockConversation: ChatMessage[] = [
 
 export const mockWireStreamLines: string[] = [
   JSON.stringify({
-    type: 'AgentResponse',
+    type: StreamEventType.AgentResponse,
     data: {
       message: 'Looking for trials that match advanced triple-negative breast cancer near Toronto',
       used_nct_numbers: [],
@@ -123,7 +124,7 @@ export const mockWireStreamLines: string[] = [
     },
   }),
   JSON.stringify({
-    type: 'AgentResponse',
+    type: StreamEventType.AgentResponse,
     data: {
       message:
         'I found a trial that may fit. [NCT04267848] is testing immunotherapy added to chemotherapy.',
@@ -132,7 +133,7 @@ export const mockWireStreamLines: string[] = [
     },
   }),
   JSON.stringify({
-    type: 'ChatResult',
+    type: StreamEventType.ChatResult,
     data: {
       message:
         'I found a trial that may fit. [NCT04267848] is testing immunotherapy added to chemotherapy for advanced triple-negative breast cancer, and it is recruiting at Princess Margaret Cancer Centre in Toronto.',
