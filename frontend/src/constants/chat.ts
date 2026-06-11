@@ -5,6 +5,8 @@ export const ChatRole = {
 
 export type ChatRole = (typeof ChatRole)[keyof typeof ChatRole];
 
+export const CITATION_HREF_PREFIX = '#citation-';
+
 export const StreamEventType = {
   AgentResponse: 'AgentResponse',
   ChatResult: 'ChatResult',

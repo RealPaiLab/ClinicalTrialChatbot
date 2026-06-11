@@ -29,6 +29,11 @@ export interface Trial {
   sites: TrialSite[];
 }
 
+export type TrialSummary = Pick<
+  Trial,
+  'nctNumber' | 'shortTitleEn' | 'officialTitleEn' | 'descriptionEn'
+>;
+
 export interface ChatResult {
   message: string;
   trials: Trial[];
