@@ -1,5 +1,6 @@
 dist
 pnpm-lock.yaml
+DESIGN-*.md
 
 
 src/components/ui

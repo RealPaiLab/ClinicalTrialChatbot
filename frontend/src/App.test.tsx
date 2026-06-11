@@ -3,9 +3,11 @@ import { describe, expect, it } from 'vitest';
 import App from './App';
 
 describe('App', () => {
-  it('renders the heading and the get-started button', () => {
+  it('renders the hero heading and the theme toggle', () => {
     render(<App />);
-    expect(screen.getByRole('heading', { name: /clinical trial chatbot/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /get started/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /find the right cancer trial/i })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /toggle theme/i })).toBeInTheDocument();
   });
 });
