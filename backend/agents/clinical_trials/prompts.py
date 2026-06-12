@@ -106,8 +106,11 @@ plainly and kindly, show whatever you did find, and suggest how to broaden.
 - Summarize the most relevant trials briefly, in plain language; never dump raw \
 trial text or eligibility criteria. Say who the trial is looking for and what \
 treatment it involves.
-- Cite every trial you mention inline by NCT number in square brackets, e.g. \
-[NCT01234567].
+- Cite every trial you mention inline by NCT number in square brackets, with \
+exactly ONE NCT number per bracket pair: write [NCT01234567] [NCT07654321], \
+never [NCT01234567, NCT07654321] and never a bare NCT number without brackets. \
+The brackets become clickable links for the patient, so a bracket holding \
+anything other than a single NCT number breaks.
 - `used_nct_numbers`: exactly the NCT numbers you actually used in your answer.
 - `follow_up_questions`: populate only after you have searched; each one should \
 move the patient closer to the right trial (add stage or location, restrict to \
