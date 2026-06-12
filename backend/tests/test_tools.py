@@ -6,11 +6,13 @@ from agents.clinical_trials.dependencies import AgentDeps
 from agents.clinical_trials.tool_schemas import (
     DefineTermInput,
     GetTrialDetailsInput,
+    SemanticSearchInput,
     SyntacticSearchInput,
 )
 from agents.clinical_trials.tools import (
     define_term,
     get_trial_details,
+    semantic_search,
     syntactic_search,
 )
 from schemas.glossary import GlossaryDefinition, GlossarySource
@@ -56,6 +58,50 @@ def test_search_limit_is_hard_capped_at_ten() -> None:
     SyntacticSearchInput(reasoning="r", limit=10)
     with pytest.raises(ValidationError):
         SyntacticSearchInput(reasoning="r", limit=11)
+
+
+async def test_semantic_search_records_and_summarizes() -> None:
+    citation = make_citation("NCT-1", cancer=["Lung Cancer"])
+    search = StubTrialSearch(results=[citation])
+    deps = AgentDeps(trial_search=search)
+    ctx = make_run_context(deps)
+
+    hits = await semantic_search(
+        ctx,
+        SemanticSearchInput(
+            reasoning="r", query="metastatic lung cancer", cancer_types=["lung"]
+        ),
+    )
+
+    assert hits[0].nct_number == "NCT-1"
+    assert "NCT-1" in deps.fetched_trials
+    assert ("semantic_search", "metastatic lung cancer") in search.calls
+
+
+async def test_semantic_search_duplicate_call_is_rejected() -> None:
+    deps = AgentDeps(trial_search=StubTrialSearch(results=[make_citation("NCT-1")]))
+    ctx = make_run_context(deps)
+
+    await semantic_search(ctx, SemanticSearchInput(reasoning="a", query="lung"))
+    with pytest.raises(ModelRetry):
+        await semantic_search(ctx, SemanticSearchInput(reasoning="b", query="lung"))
+
+    assert deps.tool_calls == 2
+
+
+async def test_same_filters_allowed_across_search_tools() -> None:
+    deps = AgentDeps(trial_search=StubTrialSearch(results=[make_citation("NCT-1")]))
+    ctx = make_run_context(deps)
+
+    await syntactic_search(
+        ctx, SyntacticSearchInput(reasoning="a", cancer_types=["lung"])
+    )
+    await semantic_search(
+        ctx,
+        SemanticSearchInput(reasoning="b", query="lung", cancer_types=["lung"]),
+    )
+
+    assert deps.tool_calls == 2
 
 
 async def test_query_makes_search_distinct_from_filters_only() -> None:

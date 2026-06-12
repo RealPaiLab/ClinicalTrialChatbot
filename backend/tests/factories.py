@@ -97,6 +97,16 @@ class StubTrialSearch:
         self.calls.append(("syntactic_search", flt))
         return list(self.results)
 
+    async def semantic_search(
+        self,
+        flt: object,
+        *,
+        query: str,
+        limit: int | None = None,
+    ) -> list[TrialCitation]:
+        self.calls.append(("semantic_search", query))
+        return list(self.results)
+
     async def get_by_ncts(self, nct_numbers: list[str]) -> list[TrialCitation]:
         self.calls.append(("get_by_ncts", nct_numbers))
         return [self.by_nct[n] for n in nct_numbers if n in self.by_nct]
