@@ -2,11 +2,13 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 from core.config import get_settings
 from core.database import engine, read_engine
 from core.langfuse import setup_langfuse
+from routes import chat, trials
 
 
 @asynccontextmanager
@@ -22,6 +24,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=get_settings().cors_allow_origins,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(chat.router)
+app.include_router(trials.router)
 
 
 @app.get("/health")

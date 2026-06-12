@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     openai_api_key: str | None = None
 
     environment: str = "development"
+    cors_allow_origins: list[str] = [
+        "http://localhost:5173",
+        "http://localhost:4173",
+    ]
     langfuse_public_key: str | None = None
     langfuse_secret_key: str | None = None
     langfuse_host: str = "http://localhost:3000"

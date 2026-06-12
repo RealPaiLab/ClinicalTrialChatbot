@@ -7,6 +7,13 @@ from pydantic import BaseModel, Field
 from schemas.trial import TrialCitation
 
 
+class ChatRequest(BaseModel):
+    """Incoming chat turn request."""
+
+    session_id: str
+    user_message: str
+
+
 class ChatResult(BaseModel):
     """Final assembled turn result."""
 
