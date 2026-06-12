@@ -7,7 +7,7 @@ describe('App', () => {
     render(<App />);
     expect(screen.getByText('Trial Navigator')).toBeInTheDocument();
     expect(screen.getByText(/mapbox token/i)).toBeInTheDocument();
-    expect(screen.getByText(/trial summary/i)).toBeInTheDocument();
+    expect(screen.getByText(/no trial selected/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /toggle theme/i })).toBeInTheDocument();
   });
 });
