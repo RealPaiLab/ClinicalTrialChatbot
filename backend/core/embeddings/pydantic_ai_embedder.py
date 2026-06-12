@@ -6,8 +6,9 @@ from core.embeddings.base import EXPECTED_DIMENSIONS
 class PydanticAIEmbedder:
     """Adapter from pydantic-ai's Embedder to plain pgvector-sized vectors."""
 
-    def __init__(self, embedder: Embedder) -> None:
+    def __init__(self, embedder: Embedder, query_prefix: str = "") -> None:
         self._embedder = embedder
+        self._query_prefix = query_prefix
 
     @staticmethod
     def _checked(vector: list[float]) -> list[float]:
@@ -18,7 +19,7 @@ class PydanticAIEmbedder:
         return vector
 
     async def embed_query(self, text: str) -> list[float]:
-        result = await self._embedder.embed_query(text)
+        result = await self._embedder.embed_query(self._query_prefix + text)
         return self._checked([float(x) for x in result.embeddings[0]])
 
     async def embed_documents(self, texts: list[str]) -> list[list[float]]:

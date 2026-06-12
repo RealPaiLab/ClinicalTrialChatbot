@@ -19,17 +19,26 @@ class OllamaEmbeddingModelName(StrEnum):
     QWEN3_EMBEDDING_0_6B = "qwen3-embedding:0.6b"
 
 
-def _build_ollama(model: str, settings: Settings) -> Embedder:
+QUERY_PREFIXES: dict[OllamaEmbeddingModelName, str] = {
+    OllamaEmbeddingModelName.QWEN3_EMBEDDING_0_6B: (
+        "Instruct: Given a description of a cancer patient, retrieve "
+        "clinical trials the patient may be eligible for\nQuery: "
+    ),
+}
+
+
+def _build_ollama(model: str, settings: Settings) -> PydanticAIEmbedder:
     name = OllamaEmbeddingModelName(model)
-    return Embedder(
+    embedder = Embedder(
         OpenAIEmbeddingModel(
             name.value,
             provider=OllamaProvider(base_url=settings.ollama_base_url),
         )
     )
+    return PydanticAIEmbedder(embedder, query_prefix=QUERY_PREFIXES.get(name, ""))
 
 
-PROVIDER_MAP: dict[EmbeddingProvider, Callable[[str, Settings], Embedder]] = {
+PROVIDER_MAP: dict[EmbeddingProvider, Callable[[str, Settings], PydanticAIEmbedder]] = {
     EmbeddingProvider.OLLAMA: _build_ollama,
 }
 
@@ -42,4 +51,4 @@ def get_embedder(
     settings = get_settings()
     selected_provider = provider or EmbeddingProvider(settings.embedding_provider)
     model_name = model or settings.embedding_model
-    return PydanticAIEmbedder(PROVIDER_MAP[selected_provider](model_name, settings))
+    return PROVIDER_MAP[selected_provider](model_name, settings)
