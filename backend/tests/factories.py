@@ -102,6 +102,21 @@ class StubTrialSearch:
         return [self.by_nct[n] for n in nct_numbers if n in self.by_nct]
 
 
+class StubEmbedder:
+    """In-memory QueryEmbedder; records queries, returns a canned vector."""
+
+    def __init__(self, vector: list[float] | None = None) -> None:
+        self.vector = vector if vector is not None else [0.1] * 1024
+        self.queries: list[str] = []
+
+    async def embed_query(self, text: str) -> list[float]:
+        self.queries.append(text)
+        return self.vector
+
+    async def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        return [self.vector for _ in texts]
+
+
 class StubGlossary:
     """In-memory GlossaryLookup; records calls, returns canned definitions."""
 
