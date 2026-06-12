@@ -16,6 +16,7 @@ class EmbeddingProvider(StrEnum):
 
 class OllamaEmbeddingModelName(StrEnum):
     BGE_M3 = "bge-m3"
+    QWEN3_EMBEDDING_0_6B = "qwen3-embedding:0.6b"
 
 
 def _build_ollama(model: str, settings: Settings) -> Embedder:

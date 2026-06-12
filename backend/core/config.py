@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     openai_api_key: str | None = None
 
     embedding_provider: str = "ollama"
-    embedding_model: str = "bge-m3"
+    embedding_model: str = "qwen3-embedding:0.6b"
     embedding_batch_size: int = 16
     embedding_warmup: bool = False
 
