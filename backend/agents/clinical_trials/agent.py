@@ -14,6 +14,7 @@ from agents.clinical_trials.prompts import get_system_prompt
 from agents.clinical_trials.tools import (
     define_term,
     get_trial_details,
+    semantic_search,
     syntactic_search,
 )
 from core.config import get_settings
@@ -24,7 +25,7 @@ from core.llm import get_llm
 def get_clinical_trials_agent() -> Agent[AgentDeps, AgentResponse]:
     """Build the cached clinical-trials agent."""
     toolset = FunctionToolset[AgentDeps](
-        [syntactic_search, get_trial_details, define_term]
+        [syntactic_search, semantic_search, get_trial_details, define_term]
     ).filtered(within_tool_budget)
     agent = Agent(
         get_llm(),
