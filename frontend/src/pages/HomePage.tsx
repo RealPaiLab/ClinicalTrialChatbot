@@ -4,23 +4,15 @@ import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import ChatPanel from '@/components/chat/ChatPanel/ChatPanel';
 import MapPanel from '@/components/map/MapPanel/MapPanel';
+import TrialSummaryPanel from '@/components/summary/TrialSummaryPanel/TrialSummaryPanel';
 import type { Trial } from '@/types/trial';
-
-function PanelPlaceholder({ label, name }: { label: string; name: string }) {
-  return (
-    <div className="h-full p-3">
-      <div className="border-border/70 bg-card/40 flex h-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed p-6 text-center">
-        <span className="text-eyebrow text-primary">{label}</span>
-        <span className="text-title text-muted-foreground">{name}</span>
-      </div>
-    </div>
-  );
-}
 
 function HomePage() {
   const [dark, setDark] = useState(false);
   const [trials, setTrials] = useState<Trial[]>([]);
   const [selectedNctNumber, setSelectedNctNumber] = useState<string | null>(null);
+
+  const selectedTrial = trials.find((trial) => trial.nctNumber === selectedNctNumber) ?? null;
 
   const toggleTheme = () => {
     setDark((prev) => {
@@ -36,8 +28,8 @@ function HomePage() {
   };
 
   return (
-    <div className="bg-background text-foreground flex h-screen w-screen flex-col overflow-hidden">
-      <header className="border-border flex h-12 shrink-0 items-center justify-between border-b px-4">
+    <div className="text-foreground flex h-screen w-screen flex-col overflow-hidden">
+      <header className="border-border bg-background/70 flex h-12 shrink-0 items-center justify-between border-b px-4 backdrop-blur-sm">
         <span className="text-eyebrow text-primary">Clinical Trial Navigator</span>
         <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
           {dark ? <Sun /> : <Moon />}
@@ -69,7 +61,7 @@ function HomePage() {
             <ResizableHandle withHandle />
 
             <ResizablePanel defaultSize="34%" minSize="20%">
-              <PanelPlaceholder label="Details" name="Trial summary" />
+              <TrialSummaryPanel trial={selectedTrial} onClose={() => setSelectedNctNumber(null)} />
             </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>

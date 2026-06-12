@@ -1,3 +1,5 @@
+import type { TrialStatus } from '@/types/trial';
+
 interface TrialStatusConfig {
   label: string;
   colorClass: string;
@@ -18,9 +20,7 @@ export const TRIAL_STATUS = {
     badgeClass: 'bg-active',
     pulse: false,
   },
-} as const satisfies Record<string, TrialStatusConfig>;
-
-export type TrialStatus = keyof typeof TRIAL_STATUS;
+} as const satisfies Record<TrialStatus, TrialStatusConfig>;
 
 export function normalizeStatus(state: string | null | undefined): TrialStatus | null {
   if (!state) return null;

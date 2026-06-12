@@ -96,7 +96,7 @@ function ChatPanel({
   }, [messages]);
 
   return (
-    <div className="bg-background flex h-full flex-col">
+    <div className="bg-background/80 flex h-full flex-col">
       <ChatHeader onNewConversation={handleNewConversation} />
       <ChatMessages messages={messages} fetchTrial={fetchTrial} onCitationClick={onCitationClick} />
       <div className="border-border flex flex-col gap-3 border-t p-3">

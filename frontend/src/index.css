@@ -161,9 +161,41 @@
     font-feature-settings:
       'ss01' on,
       'cv01' on;
+    background-image:
+      radial-gradient(
+        55% 42% at 50% -14%,
+        color-mix(in oklch, var(--primary) 16%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        44% 32% at 50% -10%,
+        color-mix(in oklch, var(--amber) 26%, transparent),
+        transparent 72%
+      ),
+      radial-gradient(
+        30% 22% at 50% -8%,
+        color-mix(in oklch, white 60%, transparent),
+        transparent 70%
+      );
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+  }
+  .dark body {
+    background-image:
+      radial-gradient(
+        58% 44% at 50% -14%,
+        color-mix(in oklch, var(--primary) 12%, transparent),
+        transparent 72%
+      ),
+      radial-gradient(
+        44% 30% at 50% -10%,
+        color-mix(in oklch, #65371f 40%, transparent),
+        transparent 74%
+      );
   }
   html {
     @apply font-sans;
+    font-size: 125%;
   }
   h1,
   h2,

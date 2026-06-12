@@ -1,7 +1,7 @@
 import { Marker } from 'react-map-gl/mapbox';
 import { Button } from '@/components/ui/button';
 import HospitalPin from '@/components/map/HospitalPin/HospitalPin';
-import type { TrialStatus } from '@/lib/trialStatus';
+import type { TrialStatus } from '@/types/trial';
 
 interface TrialMarkerProps {
   longitude: number;

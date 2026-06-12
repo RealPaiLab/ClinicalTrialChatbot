@@ -34,6 +34,8 @@ export type TrialSummary = Pick<
   'nctNumber' | 'shortTitleEn' | 'officialTitleEn' | 'descriptionEn'
 >;
 
+export type TrialStatus = 'recruiting' | 'opening_soon';
+
 export interface ChatResult {
   message: string;
   trials: Trial[];

@@ -4,8 +4,8 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapPin } from 'lucide-react';
 import MapLegend from '@/components/map/MapLegend/MapLegend';
 import TrialMarker from '@/components/map/TrialMarker/TrialMarker';
-import { normalizeStatus, type TrialStatus } from '@/lib/trialStatus';
-import type { Trial, TrialSite } from '@/types/trial';
+import { normalizeStatus } from '@/lib/trialStatus';
+import type { Trial, TrialSite, TrialStatus } from '@/types/trial';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 const LIGHT_STYLE = import.meta.env.VITE_MAPBOX_STYLE_LIGHT ?? 'mapbox://styles/mapbox/light-v11';

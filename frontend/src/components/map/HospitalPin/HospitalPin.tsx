@@ -1,6 +1,7 @@
 import { useId } from 'react';
 import { cn } from '@/lib/utils';
-import { TRIAL_STATUS, type TrialStatus } from '@/lib/trialStatus';
+import { TRIAL_STATUS } from '@/lib/trialStatus';
+import type { TrialStatus } from '@/types/trial';
 
 interface HospitalPinProps {
   status: TrialStatus;
