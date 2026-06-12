@@ -143,6 +143,23 @@ class TrialRepository:
         )
         return await self._run(stmt)
 
+    async def semantic_search(
+        self,
+        flt: TrialFilter,
+        *,
+        query_embedding: list[float],
+        limit: int = 20,
+    ) -> list[Trial]:
+        """Vector search: filter conditions, ranked by cosine distance."""
+        conditions = [*_filter_conditions(flt), Trial.embedding.is_not(None)]
+        stmt = (
+            self._base_select()
+            .where(*conditions)
+            .order_by(Trial.embedding.cosine_distance(query_embedding))
+            .limit(limit)
+        )
+        return await self._run(stmt)
+
     async def get_by_ncts(self, nct_numbers: list[str]) -> list[Trial]:
         """Fetch trials by their NCT numbers."""
         if not nct_numbers:

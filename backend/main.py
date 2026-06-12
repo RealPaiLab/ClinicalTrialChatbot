@@ -7,6 +7,7 @@ from sqlalchemy import text
 
 from core.config import get_settings
 from core.database import engine, read_engine
+from core.embeddings import get_embedder
 from core.langfuse import setup_langfuse
 from routes import chat, trials
 
@@ -17,6 +18,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     async with engine.connect() as conn:
         await conn.execute(text("SELECT 1"))
     setup_langfuse(get_settings().environment)
+    if get_settings().embedding_warmup:
+        await get_embedder().embed_query("warmup")
     yield
     # Shutdown: dispose both connection pools
     await engine.dispose()
