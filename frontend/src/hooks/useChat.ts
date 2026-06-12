@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ChatStatus } from 'ai';
-import { ChatRole, StreamEventType } from '@/constants/chat';
+import { ChatRole, SELECTED_TRIALS_PROMPT, StreamEventType } from '@/constants/chat';
 import { streamChat } from '@/services/chat';
 import type { ChatMessage, StreamEvent, Trial } from '@/types/trial';
 
@@ -15,7 +15,7 @@ interface UseChatOptions {
 interface UseChatResult {
   messages: ChatMessage[];
   status: ChatStatus;
-  sendMessage: (text: string) => Promise<void>;
+  sendMessage: (text: string, contextNctNumbers?: string[]) => Promise<void>;
   stop: () => void;
   reset: () => void;
 }
@@ -33,12 +33,17 @@ export function useChat({ createStream, onTrialsChange }: UseChatOptions = {}): 
     );
   };
 
-  const sendMessage = async (text: string) => {
+  const sendMessage = async (text: string, contextNctNumbers?: string[]) => {
     if (status === 'streaming') return;
 
     const stream =
       createStream ??
       ((message, signal) => streamChat({ sessionId: sessionIdRef.current, message, signal }));
+
+    const payload =
+      contextNctNumbers && contextNctNumbers.length > 0
+        ? `${text}\n\n${SELECTED_TRIALS_PROMPT}${contextNctNumbers.join(', ')}`
+        : text;
 
     const assistantId = crypto.randomUUID();
     setMessages((prev) => [
@@ -52,7 +57,7 @@ export function useChat({ createStream, onTrialsChange }: UseChatOptions = {}): 
     abortRef.current = controller;
 
     try {
-      for await (const event of stream(text, controller.signal)) {
+      for await (const event of stream(payload, controller.signal)) {
         if (event.type === StreamEventType.AgentResponse) {
           patchMessage(assistantId, { content: event.data.message });
         } else if (event.type === StreamEventType.ChatResult) {

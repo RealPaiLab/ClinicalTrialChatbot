@@ -11,8 +11,12 @@ function HomePage() {
   const [dark, setDark] = useState(false);
   const [trials, setTrials] = useState<Trial[]>([]);
   const [selectedNctNumber, setSelectedNctNumber] = useState<string | null>(null);
+  const [contextNctNumbers, setContextNctNumbers] = useState<string[]>([]);
 
   const selectedTrial = trials.find((trial) => trial.nctNumber === selectedNctNumber) ?? null;
+  const contextTrials = contextNctNumbers
+    .map((nct) => trials.find((trial) => trial.nctNumber === nct))
+    .filter((trial): trial is Trial => Boolean(trial));
 
   const toggleTheme = () => {
     setDark((prev) => {
@@ -22,9 +26,19 @@ function HomePage() {
     });
   };
 
+  const handleSelectTrial = (nctNumber: string) => {
+    setSelectedNctNumber(nctNumber);
+    setContextNctNumbers((prev) => (prev.includes(nctNumber) ? prev : [...prev, nctNumber]));
+  };
+
+  const removeFromContext = (nctNumber: string) => {
+    setContextNctNumbers((prev) => prev.filter((nct) => nct !== nctNumber));
+  };
+
   const handleReset = () => {
     setTrials([]);
     setSelectedNctNumber(null);
+    setContextNctNumbers([]);
   };
 
   return (
@@ -40,8 +54,11 @@ function HomePage() {
         <ResizablePanel defaultSize="32%" minSize="22%" maxSize="46%">
           <ChatPanel
             onTrialsChange={setTrials}
-            onCitationClick={setSelectedNctNumber}
+            onCitationClick={handleSelectTrial}
             onReset={handleReset}
+            contextTrials={contextTrials}
+            onRemoveContext={removeFromContext}
+            onClearContext={() => setContextNctNumbers([])}
           />
         </ResizablePanel>
 
@@ -53,7 +70,7 @@ function HomePage() {
               <MapPanel
                 trials={trials}
                 selectedNctNumber={selectedNctNumber}
-                onSelectTrial={setSelectedNctNumber}
+                onSelectTrial={handleSelectTrial}
                 dark={dark}
               />
             </ResizablePanel>

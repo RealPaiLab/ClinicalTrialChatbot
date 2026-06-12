@@ -117,4 +117,27 @@ describe('ChatPanel', () => {
     expect(onTrialsChange).toHaveBeenLastCalledWith([]);
     expect(onReset).toHaveBeenCalledTimes(1);
   });
+
+  it('appends selected-trial NCTs to the sent payload and clears the tray', async () => {
+    const createStream = vi.fn<(text: string, signal?: AbortSignal) => AsyncGenerator<StreamEvent>>(
+      () => streamWithTrials()
+    );
+    const onClearContext = vi.fn();
+    renderWithClient(
+      <ChatPanel
+        createStream={createStream}
+        fetchTrial={fetchTrial}
+        contextTrials={[mockTrials[0]]}
+        onClearContext={onClearContext}
+      />
+    );
+
+    await userEvent.type(screen.getByRole('textbox'), 'what are the side effects?');
+    await userEvent.click(screen.getByRole('button', { name: /submit/i }));
+
+    const sentText = createStream.mock.calls[0][0];
+    expect(sentText).toContain('what are the side effects?');
+    expect(sentText).toContain('NCT04267848');
+    expect(onClearContext).toHaveBeenCalledTimes(1);
+  });
 });
