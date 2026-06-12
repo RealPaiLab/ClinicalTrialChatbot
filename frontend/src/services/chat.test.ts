@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { parseEventStream, streamChat } from './chat';
 import { StreamEventType } from '@/constants/chat';
 import type { StreamEvent } from '@/types/trial';
-import { createNdjsonStream, mockWireStreamLines } from '@/test/fixtures/trials';
+import { createSseStream, mockWireStreamLines } from '@/test/fixtures/trials';
 
 async function collect(stream: AsyncGenerator<StreamEvent>): Promise<StreamEvent[]> {
   const events: StreamEvent[] = [];
@@ -14,7 +14,7 @@ async function collect(stream: AsyncGenerator<StreamEvent>): Promise<StreamEvent
 
 describe('parseEventStream', () => {
   it('maps snake_case wire events into camelCase domain events in order', async () => {
-    const events = await collect(parseEventStream(createNdjsonStream(mockWireStreamLines)));
+    const events = await collect(parseEventStream(createSseStream(mockWireStreamLines)));
 
     expect(events.map((e) => e.type)).toEqual([
       StreamEventType.AgentResponse,
@@ -38,7 +38,7 @@ describe('parseEventStream', () => {
   });
 
   it('reassembles events split across small byte chunks', async () => {
-    const events = await collect(parseEventStream(createNdjsonStream(mockWireStreamLines, 7)));
+    const events = await collect(parseEventStream(createSseStream(mockWireStreamLines, 7)));
     expect(events).toHaveLength(3);
     expect(events[2].type).toBe(StreamEventType.ChatResult);
   });
@@ -52,7 +52,7 @@ describe('streamChat', () => {
   it('posts the session id and user message, then yields mapped events', async () => {
     const fetchMock = vi
       .fn()
-      .mockResolvedValue(new Response(createNdjsonStream(mockWireStreamLines), { status: 200 }));
+      .mockResolvedValue(new Response(createSseStream(mockWireStreamLines), { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
 
     const events = await collect(streamChat({ sessionId: 'session-1', message: 'hello' }));

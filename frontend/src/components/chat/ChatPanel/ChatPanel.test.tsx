@@ -78,8 +78,13 @@ describe('ChatPanel', () => {
         descriptionEn: null,
       })
     );
+    const onTrialsChange = vi.fn();
     renderWithClient(
-      <ChatPanel createStream={() => streamWithoutTrials()} fetchTrial={detectFetch} />
+      <ChatPanel
+        createStream={() => streamWithoutTrials()}
+        fetchTrial={detectFetch}
+        onTrialsChange={onTrialsChange}
+      />
     );
 
     await userEvent.type(screen.getByRole('textbox'), 'hello');
@@ -87,6 +92,7 @@ describe('ChatPanel', () => {
 
     expect(await screen.findByText(/fetched on detect/i)).toBeInTheDocument();
     expect(detectFetch).toHaveBeenCalledWith('NCT04267848', expect.anything());
+    expect(onTrialsChange).not.toHaveBeenCalled();
   });
 
   it('clears the conversation and trials on new conversation', async () => {

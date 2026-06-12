@@ -175,9 +175,9 @@ export const mockWireStreamLines: string[] = [
   }),
 ];
 
-export function createNdjsonStream(lines: string[], chunkSize = 24): ReadableStream<Uint8Array> {
+export function createSseStream(lines: string[], chunkSize = 24): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
-  const bytes = encoder.encode(lines.join('\n'));
+  const bytes = encoder.encode(lines.map((line) => `data: ${line}\n\n`).join(''));
   return new ReadableStream<Uint8Array>({
     start(controller) {
       for (let offset = 0; offset < bytes.length; offset += chunkSize) {
