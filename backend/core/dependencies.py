@@ -12,7 +12,10 @@ from services.trial_search_service import TrialSearchService
 
 @lru_cache
 def get_chat_service() -> ChatService:
-    return ChatService(ConversationService(get_conversation_repository()))
+    return ChatService(
+        ConversationService(get_conversation_repository()),
+        trial_search=get_trial_search(),
+    )
 
 
 def get_trial_search() -> TrialSearchService:
