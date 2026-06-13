@@ -27,6 +27,14 @@ class Settings(BaseSettings):
     langfuse_public_key: str | None = None
     langfuse_secret_key: str | None = None
     langfuse_host: str = "http://localhost:3000"
+    langfuse_prompt_name: str = "clinical-trial-chatbot-system"
+    langfuse_prompt_label: str = "production"
+
+    conversation_store: str = "memory"
+    redis_url: str = "redis://localhost:6379/0"
+    conversation_ttl_seconds: int = 3600
+
+    search_default_limit: int = 10
 
     @computed_field  # type: ignore[prop-decorator]
     @property

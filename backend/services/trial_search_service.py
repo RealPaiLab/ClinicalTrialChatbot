@@ -1,0 +1,107 @@
+"""Trial search business logic"""
+
+from __future__ import annotations
+
+import unicodedata
+
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+from core.config import get_settings
+from models.trial import Trial
+from models.trial_site import TrialSite
+from repository.trial_repository import TrialRepository
+from schemas.trial import TrialCitation, TrialFilter, TrialSiteInfo
+
+
+def _to_site_info(site: TrialSite) -> TrialSiteInfo:
+    loc = site.location
+    return TrialSiteInfo(
+        name_en=loc.name_en,
+        address=loc.address,
+        city=loc.city,
+        province=loc.province,
+        lat=loc.lat,
+        lon=loc.lon,
+        state=site.state,
+        cancer_type_names=list(site.cancer_type_names),
+    )
+
+
+def _fold(text: str) -> str:
+    """Lowercase and strip accents (NFKD + drop combining marks)."""
+    nfkd = unicodedata.normalize("NFKD", text)
+    return "".join(c for c in nfkd if not unicodedata.combining(c)).lower()
+
+
+def _site_matches_location(site: TrialSite, locations: list[str]) -> bool:
+    if not locations:
+        return True
+    loc = site.location
+    haystack = _fold(" ".join(x for x in (loc.city, loc.province, loc.name_en) if x))
+    return any(_fold(term) in haystack for term in locations)
+
+
+def _site_matches_cancer(site: TrialSite, cancer_types: list[str]) -> bool:
+    if not cancer_types:
+        return True
+    haystack = _fold(" ".join(site.cancer_type_names))
+    return any(_fold(term) in haystack for term in cancer_types)
+
+
+def _to_citation(
+    trial: Trial, locations: list[str], cancer_types: list[str]
+) -> TrialCitation:
+    """Map an ORM trial to a citation, keeping only sites matching the filters."""
+    sites = [
+        s
+        for s in trial.sites
+        if _site_matches_location(s, locations)
+        and _site_matches_cancer(s, cancer_types)
+    ]
+    return TrialCitation(
+        nct_number=trial.nct_number,
+        acronym_or_protocol_id=trial.acronym_or_protocol_id,
+        short_title_en=trial.short_title_en,
+        official_title_en=trial.official_title_en,
+        description_en=trial.description_en,
+        phases=list(trial.phases),
+        sites=[_to_site_info(s) for s in sites],
+    )
+
+
+class TrialSearchService:
+    """Search facade over TrialRepository"""
+
+    def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
+        self._session_factory = session_factory
+        self._default_limit = get_settings().search_default_limit
+
+    async def search(
+        self, flt: TrialFilter, *, limit: int | None = None
+    ) -> list[TrialCitation]:
+        """Structured search; returns only sites matching the filters."""
+        async with self._session_factory() as session:
+            trials = await TrialRepository(session).filter_trials(
+                flt, limit=limit or self._default_limit
+            )
+            citations = [
+                _to_citation(t, flt.locations, flt.cancer_types) for t in trials
+            ]
+        site_filtered = bool(flt.locations or flt.cancer_types)
+        return [c for c in citations if c.sites or not site_filtered]
+
+    async def keyword_search(
+        self, query: str, *, limit: int | None = None
+    ) -> list[TrialCitation]:
+        """Substring search for vague or symptom-based queries."""
+        async with self._session_factory() as session:
+            trials = await TrialRepository(session).keyword_search(
+                query, limit=limit or self._default_limit
+            )
+            return [_to_citation(t, [], []) for t in trials]
+
+    async def get_by_ncts(self, nct_numbers: list[str]) -> list[TrialCitation]:
+        """Fetch full details for trials by NCT number."""
+        async with self._session_factory() as session:
+            trials = await TrialRepository(session).get_by_ncts(nct_numbers)
+            return [_to_citation(t, [], []) for t in trials]
