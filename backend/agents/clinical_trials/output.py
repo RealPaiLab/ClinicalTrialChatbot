@@ -11,13 +11,17 @@ class AgentResponse(BaseModel):
     message: str = Field(
         description=(
             "Natural-language answer for the patient, written in warm, plain, "
-            "everyday language. Re-explain trial information in your own words "
-            "rather than copying raw technical text; the first time a technical "
-            "term or code appears (e.g. a phase code, ECOG, metastatic), add a "
-            "short lay explanation in parentheses. Explain what terms mean and who "
-            "a trial is for; do not judge whether the patient personally qualifies. "
-            "Cite each referenced trial inline by its NCT number in square "
-            "brackets, e.g. [NCT01234567]."
+            "everyday language and rendered as Markdown. Re-explain trial "
+            "information in your own words rather than copying raw technical text. "
+            "When presenting or comparing trials, structure it to scan: short "
+            "headers, bold for key facts, a table only when comparing three or "
+            "more trials; emojis are rare (at most one or two per answer). The "
+            "first time a technical term appears (e.g. a phase code, ECOG, "
+            "metastatic), mark it up inline as [[term||a short lay meaning]] "
+            "instead of a parenthetical; define each term inline only once. "
+            "Explain what terms mean and who a trial is for; do not judge whether "
+            "the patient personally qualifies. Cite each referenced trial inline "
+            "by its NCT number in square brackets, e.g. [NCT01234567]."
         )
     )
     used_nct_numbers: list[str] = Field(
