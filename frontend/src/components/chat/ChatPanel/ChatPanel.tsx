@@ -53,10 +53,10 @@ function ChatPanel({
   }, [messages]);
 
   return (
-    <div className="bg-background/80 flex h-full flex-col">
+    <div className="bg-background flex h-full flex-col">
       <ChatHeader onNewConversation={handleNewConversation} />
       <ChatMessages messages={messages} fetchTrial={fetchTrial} onCitationClick={onCitationClick} />
-      <div className="border-border flex flex-col gap-3 border-t p-3">
+      <div className="border-border bg-secondary/60 before:bg-amber/80 relative flex flex-col gap-3 border-t p-2 before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:content-['']">
         <SelectedTrials trials={contextTrials} onRemove={onRemoveContext} />
         <FollowUpChips questions={suggestions} onSelect={handleSend} />
         <ChatInput onSend={handleSend} onStop={stop} status={status} />

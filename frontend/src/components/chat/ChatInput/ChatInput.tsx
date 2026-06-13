@@ -32,7 +32,7 @@ function ChatInput({ onSend, onStop, status = 'ready' }: ChatInputProps) {
   };
 
   return (
-    <PromptInput onSubmit={handleSubmit}>
+    <PromptInput onSubmit={handleSubmit} className="bg-background rounded-lg shadow-sm">
       <PromptInputBody>
         <PromptInputTextarea placeholder={PLACEHOLDER} />
       </PromptInputBody>
