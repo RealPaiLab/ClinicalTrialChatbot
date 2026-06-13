@@ -1,0 +1,7 @@
+dist
+pnpm-lock.yaml
+DESIGN-*.md
+
+
+src/components/ui
+src/components/ai-elements
