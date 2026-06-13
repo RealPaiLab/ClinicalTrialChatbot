@@ -43,21 +43,31 @@ def test_to_citation_keeps_only_matching_sites() -> None:
     assert citation.sites[0].city == "Montréal"
 
 
-async def test_search_drops_trials_with_no_matching_site() -> None:
+def test_to_citation_exposes_eligibility_and_treatment_context() -> None:
+    trial = make_orm_trial("NCT-1")
+    citation = _to_citation(trial, [], [])
+    assert citation.inclusion_criteria_en
+    assert citation.exclusion_criteria_en
+    assert citation.treatment_type_names == ["Immunotherapy"]
+    assert citation.intervention_names == ["DrugX"]
+    assert citation.treatment_lines == ["First Line"]
+
+
+async def test_syntactic_search_drops_trials_with_no_matching_site() -> None:
     trials = [
         make_orm_trial("NCT-match", sites=[("Montréal", "Quebec", ("Breast Cancer",))]),
         make_orm_trial("NCT-other", sites=[("Toronto", "Ontario", ("Lung Cancer",))]),
     ]
     service = TrialSearchService(cast(Any, FakeSessionFactory(trials)))
-    result = await service.search(
+    result = await service.syntactic_search(
         TrialFilter(locations=["quebec"], cancer_types=["breast"])
     )
     assert [c.nct_number for c in result] == ["NCT-match"]
 
 
-async def test_keyword_search_keeps_all_sites() -> None:
+async def test_syntactic_search_with_query_keeps_unfiltered_sites() -> None:
     trial = make_orm_trial("NCT-1", sites=[("Toronto", "Ontario", ("Lung Cancer",))])
     service = TrialSearchService(cast(Any, FakeSessionFactory([trial])))
-    result = await service.keyword_search("lung")
+    result = await service.syntactic_search(TrialFilter(), query="lung")
     assert len(result) == 1
     assert len(result[0].sites) == 1

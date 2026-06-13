@@ -27,7 +27,7 @@ async def test_stream_yields_partials_then_result(
     )
     chat = _chat()
     model = make_test_model(
-        call_tools=["search_trials"],
+        call_tools=["syntactic_search"],
         output={
             "message": "see [NCT-1]",
             "used_nct_numbers": ["NCT-1"],

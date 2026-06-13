@@ -9,6 +9,7 @@ from agents.clinical_trials.dependencies import AgentDeps
 from agents.clinical_trials.output import AgentResponse
 from core.database import ReadOnlySessionFactory
 from core.langfuse import get_langfuse_client, trace_id_from_session
+from repository.glossary_repository import GlossaryRepository
 from schemas.chat import ChatResult
 from services.conversation_service import ConversationService
 from services.trial_search_service import TrialSearchService
@@ -39,7 +40,10 @@ class ChatService:
     async def stream_chat(
         self, session_id: str, user_message: str
     ) -> AsyncIterator[StreamItem]:
-        deps = AgentDeps(trial_search=TrialSearchService(ReadOnlySessionFactory))
+        deps = AgentDeps(
+            trial_search=TrialSearchService(ReadOnlySessionFactory),
+            glossary=GlossaryRepository(),
+        )
         history = await self._conversation_service.get_history(session_id)
 
         with (

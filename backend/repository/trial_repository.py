@@ -48,6 +48,18 @@ def _location_filter(value: str) -> ColumnElement[bool]:
     )
 
 
+def _province_restriction(province: str) -> ColumnElement[bool]:
+    return (
+        select(TrialSite.trial_id)
+        .join(Location, TrialSite.location_id == Location.id)
+        .where(
+            TrialSite.trial_id == Trial.id,
+            _contains(Location.province, province),
+        )
+        .exists()
+    )
+
+
 def _status_filter(value: str) -> ColumnElement[bool]:
     return (
         select(TrialSite.trial_id)
@@ -68,44 +80,66 @@ _FILTER_BUILDERS: dict[str, Callable[[str], ColumnElement[bool]]] = {
 }
 
 
+def _filter_conditions(flt: TrialFilter) -> list[ColumnElement[bool]]:
+    """AND of per-dimension OR-groups built from a TrialFilter."""
+    values = flt.model_dump()
+    conditions: list[ColumnElement[bool]] = []
+    for name, build in _FILTER_BUILDERS.items():
+        terms = [v for v in values.get(name, []) if v]
+        if terms:
+            conditions.append(or_(*(build(v) for v in terms)))
+    return conditions
+
+
+def _keyword_condition(query: str) -> ColumnElement[bool]:
+    """Free-text match across titles, description, and inclusion criteria."""
+    return or_(
+        _contains(Trial.short_title_en, query),
+        _contains(Trial.official_title_en, query),
+        _contains(Trial.description_en, query),
+        _contains(Trial.inclusion_criteria_en, query),
+    )
+
+
 class TrialRepository:
     """Reads trials from PostgreSQL. Returns ORM rows with sites + location loaded."""
 
-    def __init__(self, session: AsyncSession) -> None:
+    def __init__(
+        self, session: AsyncSession, *, restrict_to_province: str | None = None
+    ) -> None:
         self._session = session
+        self._restrict_to_province = restrict_to_province
 
     def _base_select(self) -> Select[tuple[Trial]]:
-        return select(Trial).options(
+        stmt = select(Trial).options(
             selectinload(Trial.sites).selectinload(TrialSite.location)
         )
+        if self._restrict_to_province:
+            stmt = stmt.where(_province_restriction(self._restrict_to_province))
+        return stmt
 
     async def _run(self, stmt: Select[tuple[Trial]]) -> list[Trial]:
         result = await self._session.execute(stmt)
         return list(result.scalars().unique().all())
 
-    async def filter_trials(self, flt: TrialFilter, *, limit: int = 20) -> list[Trial]:
-        """Structured search"""
-        values = flt.model_dump()
-        conditions: list[ColumnElement[bool]] = []
-        for name, build in _FILTER_BUILDERS.items():
-            terms = [v for v in values.get(name, []) if v]
-            if terms:
-                conditions.append(or_(*(build(v) for v in terms)))
-        return await self._run(self._base_select().where(*conditions).limit(limit))
-
-    async def keyword_search(self, query: str, *, limit: int = 20) -> list[Trial]:
-        """Substring search across titles, description, and inclusion criteria."""
+    async def syntactic_search(
+        self,
+        flt: TrialFilter,
+        *,
+        query: str | None = None,
+        limit: int = 20,
+        offset: int = 0,
+    ) -> list[Trial]:
+        """Lexical search: filter conditions AND an optional free-text query."""
+        conditions = _filter_conditions(flt)
+        if query:
+            conditions.append(_keyword_condition(query))
         stmt = (
             self._base_select()
-            .where(
-                or_(
-                    _contains(Trial.short_title_en, query),
-                    _contains(Trial.official_title_en, query),
-                    _contains(Trial.description_en, query),
-                    _contains(Trial.inclusion_criteria_en, query),
-                )
-            )
+            .where(*conditions)
+            .order_by(Trial.id)
             .limit(limit)
+            .offset(offset)
         )
         return await self._run(stmt)
 

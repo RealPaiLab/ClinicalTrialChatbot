@@ -13,6 +13,7 @@ from agents.clinical_trials.dependencies import AgentDeps
 from models.location import Location
 from models.trial import Trial
 from models.trial_site import TrialSite
+from schemas.glossary import GlossaryDefinition, GlossarySource
 from schemas.trial import TrialCitation, TrialSiteInfo
 
 
@@ -52,7 +53,16 @@ def make_orm_trial(
     phases: Sequence[str] = ("PHASE3",),
 ) -> Trial:
     """Build an in-memory ORM Trial; each site is (city, province, cancer_types)."""
-    trial = Trial(nct_number=nct, short_title_en="A trial", phases=list(phases))
+    trial = Trial(
+        nct_number=nct,
+        short_title_en="A trial",
+        inclusion_criteria_en="Adults with the condition.",
+        exclusion_criteria_en="Prior treatment in the last year.",
+        phases=list(phases),
+        treatment_type_names=["Immunotherapy"],
+        intervention_names=["DrugX"],
+        treatment_lines=["First Line"],
+    )
     trial.sites = [
         TrialSite(
             state="Recruiting",
@@ -76,21 +86,34 @@ class StubTrialSearch:
         self.by_nct = dict(by_nct or {})
         self.calls: list[tuple[str, object]] = []
 
-    async def search(
-        self, flt: object, *, limit: int | None = None
+    async def syntactic_search(
+        self,
+        flt: object,
+        *,
+        query: str | None = None,
+        limit: int | None = None,
+        offset: int = 0,
     ) -> list[TrialCitation]:
-        self.calls.append(("search", flt))
-        return list(self.results)
-
-    async def keyword_search(
-        self, query: str, *, limit: int | None = None
-    ) -> list[TrialCitation]:
-        self.calls.append(("keyword_search", query))
+        self.calls.append(("syntactic_search", flt))
         return list(self.results)
 
     async def get_by_ncts(self, nct_numbers: list[str]) -> list[TrialCitation]:
         self.calls.append(("get_by_ncts", nct_numbers))
         return [self.by_nct[n] for n in nct_numbers if n in self.by_nct]
+
+
+class StubGlossary:
+    """In-memory GlossaryLookup; records calls, returns canned definitions."""
+
+    def __init__(self, results: Sequence[GlossaryDefinition] = ()) -> None:
+        self.results = list(results)
+        self.calls: list[tuple[str, GlossarySource]] = []
+
+    async def define(
+        self, term: str, source: GlossarySource
+    ) -> list[GlossaryDefinition]:
+        self.calls.append((term, source))
+        return list(self.results)
 
 
 class FakeSessionFactory:

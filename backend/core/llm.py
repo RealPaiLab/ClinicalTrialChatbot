@@ -22,6 +22,8 @@ class OllamaModelName(StrEnum):
 
 class OpenAIModelName(StrEnum):
     GPT_5 = "gpt-5"
+    GPT_5_4_MINI = "gpt-5.4-mini"
+    GPT_5_4 = "gpt-5.4"
 
 
 def _build_ollama(model: str, settings: Settings) -> Model:

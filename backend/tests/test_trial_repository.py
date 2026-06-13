@@ -27,26 +27,27 @@ async def test_get_by_ncts_returns_rows() -> None:
     assert "nct_number in" in _sql(factory.last_statement)
 
 
-async def test_filter_trials_uses_unaccent_ilike_for_location() -> None:
+async def test_syntactic_search_uses_unaccent_ilike_for_location() -> None:
     factory = FakeSessionFactory([make_orm_trial("NCT-1")])
     repo = TrialRepository(factory.session)
-    await repo.filter_trials(TrialFilter(locations=["Montreal"]))
+    await repo.syntactic_search(TrialFilter(locations=["Montreal"]))
     sql = _sql(factory.last_statement)
     assert "unaccent" in sql
     assert "ilike" in sql
 
 
-async def test_filter_trials_without_filters_has_no_where() -> None:
+async def test_syntactic_search_without_filters_or_query_has_no_where() -> None:
     factory = FakeSessionFactory([make_orm_trial("NCT-1")])
     repo = TrialRepository(factory.session)
-    await repo.filter_trials(TrialFilter())
+    await repo.syntactic_search(TrialFilter())
     assert "where" not in _sql(factory.last_statement)
 
 
-async def test_keyword_search_matches_text_columns() -> None:
+async def test_syntactic_search_query_matches_text_columns_within_filters() -> None:
     factory = FakeSessionFactory([make_orm_trial("NCT-1")])
     repo = TrialRepository(factory.session)
-    await repo.keyword_search("immunotherapy")
+    await repo.syntactic_search(TrialFilter(cancer_types=["lung"]), query="immuno")
     sql = _sql(factory.last_statement)
     assert "short_title_en" in sql
+    assert "cancer_type_names" in sql
     assert "ilike" in sql
