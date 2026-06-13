@@ -30,6 +30,7 @@ interface SiteMarker {
 
 function MapPanel({ trials, selectedNctNumber, onSelectTrial, dark }: MapPanelProps) {
   const mapRef = useRef<MapRef | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   const markers = useMemo<SiteMarker[]>(() => {
@@ -44,6 +45,17 @@ function MapPanel({ trials, selectedNctNumber, onSelectTrial, dark }: MapPanelPr
     }
     return result;
   }, [trials]);
+
+  useEffect(() => {
+    if (!loaded) return;
+    const container = containerRef.current;
+    if (!container) return;
+    const observer = new ResizeObserver(() => {
+      mapRef.current?.resize();
+    });
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [loaded]);
 
   useEffect(() => {
     if (!loaded || markers.length === 0) return;
@@ -84,7 +96,7 @@ function MapPanel({ trials, selectedNctNumber, onSelectTrial, dark }: MapPanelPr
   }
 
   return (
-    <div className="relative h-full w-full">
+    <div ref={containerRef} className="relative h-full w-full">
       <Map
         ref={mapRef}
         mapboxAccessToken={MAPBOX_TOKEN}
