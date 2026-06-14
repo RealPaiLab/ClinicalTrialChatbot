@@ -18,9 +18,10 @@ export const ASK_AI_PROMPT_SUFFIX = ' mean?';
 export const FEEDBACK = {
   helpfulLabel: 'Helpful',
   notHelpfulLabel: 'Not helpful',
-  commentPlaceholder: 'Add a comment (optional)',
-  nctPlaceholder: 'Add an NCT number the agent should have used',
-  submitLabel: 'Submit details',
+  commentPlaceholder: 'Comment (optional)',
+  nctPlaceholder: 'NCT the agent should have used',
+  nctHint: 'Press Enter to add each NCT number.',
+  submitLabel: 'Submit',
   submittedLabel: 'Thanks for the feedback',
 } as const;
 
