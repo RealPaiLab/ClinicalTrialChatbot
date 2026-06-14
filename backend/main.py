@@ -9,7 +9,7 @@ from core.config import get_settings
 from core.database import engine, read_engine
 from core.embeddings import get_embedder
 from core.langfuse import setup_langfuse
-from routes import chat, trials
+from routes import chat, feedback, trials
 
 
 @asynccontextmanager
@@ -37,6 +37,7 @@ app.add_middleware(
 
 app.include_router(chat.router)
 app.include_router(trials.router)
+app.include_router(feedback.router)
 
 
 @app.get("/health")
