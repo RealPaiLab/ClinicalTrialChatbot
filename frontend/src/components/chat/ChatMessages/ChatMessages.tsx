@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { MessagesSquare } from 'lucide-react';
 import type { Components } from 'streamdown';
 import {
@@ -7,10 +8,12 @@ import {
   ConversationScrollButton,
 } from '@/components/ai-elements/conversation';
 import { Message, MessageContent, MessageResponse } from '@/components/ai-elements/message';
+import AskAiSelection from '@/components/chat/AskAiSelection/AskAiSelection';
 import SearchingIndicator from '@/components/chat/SearchingIndicator/SearchingIndicator';
+import TermDefinition from '@/components/chat/TermDefinition/TermDefinition';
 import TrialCitation from '@/components/chat/TrialCitation/TrialCitation';
-import { ChatRole, CITATION_HREF_PREFIX } from '@/constants/chat';
-import { linkifyCitations } from '@/lib/citations';
+import { ChatRole, CITATION_HREF_PREFIX, DEFINITION_HREF_PREFIX } from '@/constants/chat';
+import { linkifyCitations, linkifyDefinitions } from '@/lib/citations';
 import type { ChatMessage, TrialSummary } from '@/types/trial';
 
 const EMPTY_TITLE = 'How can I help?';
@@ -23,6 +26,7 @@ interface ChatMessagesProps {
   messages: ChatMessage[];
   fetchTrial: FetchTrial;
   onCitationClick?: (nctNumber: string) => void;
+  onAskAi?: (text: string) => void;
 }
 
 function createMarkdownComponents(
@@ -37,6 +41,10 @@ function createMarkdownComponents(
           <TrialCitation nctNumber={nctNumber} fetchTrial={fetchTrial} onSelect={onCitationClick} />
         );
       }
+      if (href?.startsWith(DEFINITION_HREF_PREFIX)) {
+        const definition = decodeURIComponent(href.slice(DEFINITION_HREF_PREFIX.length));
+        return <TermDefinition term={children} definition={definition} />;
+      }
       return (
         <a href={href} rel="noreferrer" target="_blank">
           {children}
@@ -46,38 +54,42 @@ function createMarkdownComponents(
   };
 }
 
-function ChatMessages({ messages, fetchTrial, onCitationClick }: ChatMessagesProps) {
+function ChatMessages({ messages, fetchTrial, onCitationClick, onAskAi }: ChatMessagesProps) {
+  const rootRef = useRef<HTMLDivElement>(null);
   return (
-    <Conversation className="min-h-0 flex-1">
-      <ConversationContent>
-        {messages.length === 0 ? (
-          <ConversationEmptyState
-            icon={<MessagesSquare className="size-6" />}
-            title={EMPTY_TITLE}
-            description={EMPTY_DESCRIPTION}
-          />
-        ) : (
-          messages.map((message) => (
-            <Message from={message.role} key={message.id}>
-              <MessageContent>
-                {message.role !== ChatRole.Assistant ? (
-                  message.content
-                ) : message.content === '' ? (
-                  <SearchingIndicator />
-                ) : (
-                  <MessageResponse
-                    components={createMarkdownComponents(fetchTrial, onCitationClick)}
-                  >
-                    {linkifyCitations(message.content)}
-                  </MessageResponse>
-                )}
-              </MessageContent>
-            </Message>
-          ))
-        )}
-      </ConversationContent>
-      <ConversationScrollButton />
-    </Conversation>
+    <div ref={rootRef} className="contents">
+      {onAskAi && <AskAiSelection rootRef={rootRef} onAsk={onAskAi} />}
+      <Conversation className="min-h-0 flex-1">
+        <ConversationContent>
+          {messages.length === 0 ? (
+            <ConversationEmptyState
+              icon={<MessagesSquare className="size-6" />}
+              title={EMPTY_TITLE}
+              description={EMPTY_DESCRIPTION}
+            />
+          ) : (
+            messages.map((message) => (
+              <Message from={message.role} key={message.id}>
+                <MessageContent>
+                  {message.role !== ChatRole.Assistant ? (
+                    message.content
+                  ) : message.content === '' ? (
+                    <SearchingIndicator />
+                  ) : (
+                    <MessageResponse
+                      components={createMarkdownComponents(fetchTrial, onCitationClick)}
+                    >
+                      {linkifyDefinitions(linkifyCitations(message.content))}
+                    </MessageResponse>
+                  )}
+                </MessageContent>
+              </Message>
+            ))
+          )}
+        </ConversationContent>
+        <ConversationScrollButton />
+      </Conversation>
+    </div>
   );
 }
 
