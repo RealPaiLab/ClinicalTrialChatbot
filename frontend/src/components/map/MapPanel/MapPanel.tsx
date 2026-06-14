@@ -1,11 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import Map, { type MapRef } from 'react-map-gl/mapbox';
+import { useRef, useState } from 'react';
+import MapGL, { type MapRef } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapPin } from 'lucide-react';
 import MapLegend from '@/components/map/MapLegend/MapLegend';
 import TrialMarker from '@/components/map/TrialMarker/TrialMarker';
-import { normalizeStatus } from '@/lib/trialStatus';
-import type { Trial, TrialSite, TrialStatus } from '@/types/trial';
+import TrialCluster from '@/components/map/TrialCluster/TrialCluster';
+import { useClusterDisclosure } from '@/hooks/useClusterDisclosure';
+import { useMapViewSync } from '@/hooks/useMapViewSync';
+import { useTrialPins } from '@/hooks/useTrialPins';
+import type { Trial } from '@/types/trial';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 const LIGHT_STYLE = import.meta.env.VITE_MAPBOX_STYLE_LIGHT ?? 'mapbox://styles/mapbox/light-v11';
@@ -20,68 +23,14 @@ interface MapPanelProps {
   dark?: boolean;
 }
 
-interface SiteMarker {
-  trial: Trial;
-  site: TrialSite;
-  status: TrialStatus;
-  longitude: number;
-  latitude: number;
-}
-
 function MapPanel({ trials, selectedNctNumber, onSelectTrial, dark }: MapPanelProps) {
   const mapRef = useRef<MapRef | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [loaded, setLoaded] = useState(false);
 
-  const markers = useMemo<SiteMarker[]>(() => {
-    const result: SiteMarker[] = [];
-    for (const trial of trials) {
-      for (const site of trial.sites) {
-        const status = normalizeStatus(site.state);
-        if (status && site.lat !== null && site.lon !== null) {
-          result.push({ trial, site, status, longitude: site.lon, latitude: site.lat });
-        }
-      }
-    }
-    return result;
-  }, [trials]);
-
-  useEffect(() => {
-    if (!loaded) return;
-    const container = containerRef.current;
-    if (!container) return;
-    const observer = new ResizeObserver(() => {
-      mapRef.current?.resize();
-    });
-    observer.observe(container);
-    return () => observer.disconnect();
-  }, [loaded]);
-
-  useEffect(() => {
-    if (!loaded || markers.length === 0) return;
-    const lons = markers.map((marker) => marker.longitude);
-    const lats = markers.map((marker) => marker.latitude);
-    mapRef.current?.fitBounds(
-      [
-        [Math.min(...lons), Math.min(...lats)],
-        [Math.max(...lons), Math.max(...lats)],
-      ],
-      { padding: 72, duration: 900, maxZoom: 11 }
-    );
-  }, [loaded, markers]);
-
-  useEffect(() => {
-    if (!loaded || !selectedNctNumber) return;
-    const marker = markers.find((item) => item.trial.nctNumber === selectedNctNumber);
-    if (marker) {
-      mapRef.current?.flyTo({
-        center: [marker.longitude, marker.latitude],
-        zoom: 11,
-        duration: 1200,
-        essential: true,
-      });
-    }
-  }, [loaded, selectedNctNumber, markers]);
+  const { markers, units } = useTrialPins(trials);
+  const { openKey, toggle, close } = useClusterDisclosure(units, selectedNctNumber);
+  useMapViewSync({ mapRef, containerRef, loaded, markers, units, selectedNctNumber });
 
   if (!MAPBOX_TOKEN) {
     return (
@@ -97,7 +46,7 @@ function MapPanel({ trials, selectedNctNumber, onSelectTrial, dark }: MapPanelPr
 
   return (
     <div ref={containerRef} className="relative h-full w-full">
-      <Map
+      <MapGL
         ref={mapRef}
         mapboxAccessToken={MAPBOX_TOKEN}
         mapStyle={dark ? DARK_STYLE : LIGHT_STYLE}
@@ -107,20 +56,47 @@ function MapPanel({ trials, selectedNctNumber, onSelectTrial, dark }: MapPanelPr
         style={{ width: '100%', height: '100%' }}
         onLoad={() => setLoaded(true)}
       >
-        {markers.map((marker, index) => (
-          <TrialMarker
-            key={`${marker.trial.nctNumber ?? 'trial'}-${index}`}
-            longitude={marker.longitude}
-            latitude={marker.latitude}
-            status={marker.status}
-            selected={marker.trial.nctNumber === selectedNctNumber}
-            label={`${marker.site.nameEn} — ${marker.trial.shortTitleEn ?? marker.trial.nctNumber ?? 'trial'}`}
-            onSelect={() => {
-              if (marker.trial.nctNumber) onSelectTrial?.(marker.trial.nctNumber);
-            }}
-          />
-        ))}
-      </Map>
+        {units.map((unit) => {
+          if (unit.items.length === 1) {
+            const marker = unit.items[0];
+            return (
+              <TrialMarker
+                key={unit.key}
+                longitude={unit.longitude}
+                latitude={unit.latitude}
+                status={marker.status}
+                selected={marker.trial.nctNumber === selectedNctNumber}
+                label={`${marker.site.nameEn} — ${marker.trial.shortTitleEn ?? marker.trial.nctNumber ?? 'trial'}`}
+                onSelect={() => {
+                  if (marker.trial.nctNumber) onSelectTrial?.(marker.trial.nctNumber);
+                }}
+              />
+            );
+          }
+          return (
+            <TrialCluster
+              key={unit.key}
+              longitude={unit.longitude}
+              latitude={unit.latitude}
+              locationName={unit.locationName}
+              selectedNctNumber={selectedNctNumber}
+              open={openKey === unit.key}
+              onToggle={() => toggle(unit.key)}
+              onClose={close}
+              onSelectTrial={(nct) => onSelectTrial?.(nct)}
+              items={unit.items.map((item) => ({
+                nctNumber: item.trial.nctNumber,
+                title:
+                  item.trial.shortTitleEn ??
+                  item.trial.officialTitleEn ??
+                  item.trial.nctNumber ??
+                  'Trial',
+                status: item.status,
+              }))}
+            />
+          );
+        })}
+      </MapGL>
 
       {markers.length > 0 ? (
         <MapLegend />
