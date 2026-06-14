@@ -15,6 +15,7 @@ interface UseChatOptions {
 interface UseChatResult {
   messages: ChatMessage[];
   status: ChatStatus;
+  sessionId: string;
   sendMessage: (text: string, contextNctNumbers?: string[]) => Promise<void>;
   stop: () => void;
   reset: () => void;
@@ -25,7 +26,7 @@ export function useChat({ createStream, onTrialsChange }: UseChatOptions = {}): 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [status, setStatus] = useState<ChatStatus>('ready');
   const abortRef = useRef<AbortController | null>(null);
-  const sessionIdRef = useRef<string>(crypto.randomUUID());
+  const [sessionId, setSessionId] = useState<string>(() => crypto.randomUUID());
 
   const patchMessage = (id: string, patch: Partial<ChatMessage>) => {
     setMessages((prev) =>
@@ -37,8 +38,7 @@ export function useChat({ createStream, onTrialsChange }: UseChatOptions = {}): 
     if (status === 'streaming') return;
 
     const stream =
-      createStream ??
-      ((message, signal) => streamChat({ sessionId: sessionIdRef.current, message, signal }));
+      createStream ?? ((message, signal) => streamChat({ sessionId, message, signal }));
 
     const payload =
       contextNctNumbers && contextNctNumbers.length > 0
@@ -65,6 +65,7 @@ export function useChat({ createStream, onTrialsChange }: UseChatOptions = {}): 
             content: event.data.message,
             trials: event.data.trials,
             followUpQuestions: event.data.followUpQuestions,
+            observationId: event.data.observationId,
           });
           if (event.data.trials.length > 0) {
             for (const trial of event.data.trials) {
@@ -89,12 +90,12 @@ export function useChat({ createStream, onTrialsChange }: UseChatOptions = {}): 
   const reset = () => {
     abortRef.current?.abort();
     abortRef.current = null;
-    sessionIdRef.current = crypto.randomUUID();
+    setSessionId(crypto.randomUUID());
     queryClient.removeQueries({ queryKey: ['trial'] });
     setMessages([]);
     setStatus('ready');
     onTrialsChange?.([]);
   };
 
-  return { messages, status, sendMessage, stop, reset };
+  return { messages, status, sessionId, sendMessage, stop, reset };
 }

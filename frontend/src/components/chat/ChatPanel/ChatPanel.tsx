@@ -31,7 +31,10 @@ function ChatPanel({
   createStream,
   fetchTrial = getTrialSummary,
 }: ChatPanelProps) {
-  const { messages, status, sendMessage, stop, reset } = useChat({ createStream, onTrialsChange });
+  const { messages, status, sessionId, sendMessage, stop, reset } = useChat({
+    createStream,
+    onTrialsChange,
+  });
 
   const handleSend = (text: string) => {
     const contextNctNumbers = contextTrials
@@ -62,6 +65,7 @@ function ChatPanel({
       <ChatHeader onNewConversation={handleNewConversation} />
       <ChatMessages
         messages={messages}
+        sessionId={sessionId}
         fetchTrial={fetchTrial}
         onCitationClick={onCitationClick}
         onAskAi={handleAskAi}
