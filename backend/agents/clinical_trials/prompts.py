@@ -227,7 +227,7 @@ unsure, say so instead of guessing.
 """
 
 
-def uget_system_prompt() -> str:
+def get_system_prompt() -> str:
     """Return the Langfuse-versioned prompt, falling back to the local constant."""
     settings = get_settings()
     try:
