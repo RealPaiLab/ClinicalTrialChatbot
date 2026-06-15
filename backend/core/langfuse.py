@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from langfuse import Langfuse, get_client
 from pydantic_ai import Agent, InstrumentationSettings
+from pydantic_ai.embeddings import Embedder
 
 from core.logger import get_logger
 
@@ -17,7 +18,9 @@ def setup_langfuse(environment: str) -> bool:
     langfuse = get_client()
     try:
         connected = langfuse.auth_check()
-        Agent.instrument_all(instrument=InstrumentationSettings(include_content=True))
+        instrumentation = InstrumentationSettings(include_content=True)
+        Agent.instrument_all(instrument=instrumentation)
+        Embedder.instrument_all(instrument=instrumentation)
         if connected:
             logger.info("Langfuse client is authenticated and ready!")
         else:
