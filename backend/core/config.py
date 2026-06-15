@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     embedding_model: str = "qwen3-embedding:0.6b"
     embedding_batch_size: int = 16
     embedding_warmup: bool = False
+    openai_embedding_model: str = "text-embedding-3-large"
+    openai_embedding_dimensions: int = 1024
 
     environment: str = "development"
     cors_allow_origins: list[str] = [

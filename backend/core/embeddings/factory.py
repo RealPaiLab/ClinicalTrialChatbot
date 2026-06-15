@@ -2,21 +2,29 @@ from collections.abc import Callable
 from enum import StrEnum
 from functools import lru_cache
 
-from pydantic_ai.embeddings import Embedder
+from pydantic_ai.embeddings import Embedder, EmbeddingSettings
 from pydantic_ai.embeddings.openai import OpenAIEmbeddingModel
 from pydantic_ai.providers.ollama import OllamaProvider
+from pydantic_ai.providers.openai import OpenAIProvider
 
 from core.config import Settings, get_settings
+from core.embeddings.base import EXPECTED_DIMENSIONS
 from core.embeddings.pydantic_ai_embedder import PydanticAIEmbedder
 
 
 class EmbeddingProvider(StrEnum):
     OLLAMA = "ollama"
+    OPENAI = "openai"
 
 
 class OllamaEmbeddingModelName(StrEnum):
     BGE_M3 = "bge-m3"
     QWEN3_EMBEDDING_0_6B = "qwen3-embedding:0.6b"
+
+
+class OpenAIEmbeddingModelName(StrEnum):
+    TEXT_EMBEDDING_3_SMALL = "text-embedding-3-small"
+    TEXT_EMBEDDING_3_LARGE = "text-embedding-3-large"
 
 
 QUERY_PREFIXES: dict[OllamaEmbeddingModelName, str] = {
@@ -27,19 +35,41 @@ QUERY_PREFIXES: dict[OllamaEmbeddingModelName, str] = {
 }
 
 
-def _build_ollama(model: str, settings: Settings) -> PydanticAIEmbedder:
-    name = OllamaEmbeddingModelName(model)
+def _build_ollama(model: str | None, settings: Settings) -> PydanticAIEmbedder:
+    name = OllamaEmbeddingModelName(model or settings.embedding_model)
     embedder = Embedder(
         OpenAIEmbeddingModel(
             name.value,
             provider=OllamaProvider(base_url=settings.ollama_base_url),
         )
     )
-    return PydanticAIEmbedder(embedder, query_prefix=QUERY_PREFIXES.get(name, ""))
+    return PydanticAIEmbedder(
+        embedder,
+        dimensions=EXPECTED_DIMENSIONS,
+        query_prefix=QUERY_PREFIXES.get(name, ""),
+    )
 
 
-PROVIDER_MAP: dict[EmbeddingProvider, Callable[[str, Settings], PydanticAIEmbedder]] = {
+def _build_openai(model: str | None, settings: Settings) -> PydanticAIEmbedder:
+    name = OpenAIEmbeddingModelName(model or settings.openai_embedding_model)
+    if settings.openai_api_key is None:
+        raise ValueError("OPENAI_API_KEY is required when EMBEDDING_PROVIDER=openai")
+    dimensions = settings.openai_embedding_dimensions
+    embedder = Embedder(
+        OpenAIEmbeddingModel(
+            name.value,
+            provider=OpenAIProvider(api_key=settings.openai_api_key),
+        ),
+        settings=EmbeddingSettings(dimensions=dimensions),
+    )
+    return PydanticAIEmbedder(embedder, dimensions=dimensions)
+
+
+PROVIDER_MAP: dict[
+    EmbeddingProvider, Callable[[str | None, Settings], PydanticAIEmbedder]
+] = {
     EmbeddingProvider.OLLAMA: _build_ollama,
+    EmbeddingProvider.OPENAI: _build_openai,
 }
 
 
@@ -50,5 +80,4 @@ def get_embedder(
     """Provider-agnostic embedder factory."""
     settings = get_settings()
     selected_provider = provider or EmbeddingProvider(settings.embedding_provider)
-    model_name = model or settings.embedding_model
-    return PROVIDER_MAP[selected_provider](model_name, settings)
+    return PROVIDER_MAP[selected_provider](model, settings)
