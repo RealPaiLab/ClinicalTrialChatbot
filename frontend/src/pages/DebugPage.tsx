@@ -25,6 +25,13 @@ const STATUS_OPTIONS = Object.entries(TRIAL_STATUS).map(([value, config]) => ({
   label: config.label,
 }));
 
+const DEFAULT_PROVIDER = 'default';
+
+const PROVIDER_OPTIONS = [
+  { value: 'ollama', label: 'qwen3' },
+  { value: 'openai', label: 'OpenAI' },
+];
+
 type Mode = 'lexical' | 'semantic';
 
 const splitList = (value: string): string[] =>
@@ -61,6 +68,7 @@ function DebugPage() {
   const [phases, setPhases] = useState('');
   const [text, setText] = useState('');
   const [mode, setMode] = useState<Mode>('lexical');
+  const [provider, setProvider] = useState<string>(DEFAULT_PROVIDER);
   const [criteria, setCriteria] = useState<DebugSearchParams>({});
   const [page, setPage] = useState(0);
 
@@ -81,6 +89,8 @@ function DebugPage() {
       phases: splitList(phases),
       query: mode === 'lexical' ? text : undefined,
       semantic: mode === 'semantic' ? text : undefined,
+      embeddingProvider:
+        mode === 'semantic' && provider !== DEFAULT_PROVIDER ? provider : undefined,
     });
   };
 
@@ -160,6 +170,24 @@ function DebugPage() {
               ))}
             </div>
           </div>
+          {mode === 'semantic' && (
+            <div className="flex flex-col gap-1">
+              <span className="text-eyebrow text-muted-foreground">Embeddings</span>
+              <Select value={provider} onValueChange={setProvider}>
+                <SelectTrigger className="h-8 w-32 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={DEFAULT_PROVIDER}>Default</SelectItem>
+                  {PROVIDER_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <Input
             value={text}
             onChange={(event) => setText(event.target.value)}

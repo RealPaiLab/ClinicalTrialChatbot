@@ -11,6 +11,7 @@ export interface DebugSearchParams {
   phases?: string[];
   query?: string;
   semantic?: string;
+  embeddingProvider?: string;
   limit?: number;
   offset?: number;
 }
@@ -30,6 +31,7 @@ function buildQuery(params: DebugSearchParams): string {
   }
   if (params.query?.trim()) search.set('query', params.query.trim());
   if (params.semantic?.trim()) search.set('semantic', params.semantic.trim());
+  if (params.embeddingProvider) search.set('embedding_provider', params.embeddingProvider);
   if (params.limit != null) search.set('limit', String(params.limit));
   if (params.offset != null) search.set('offset', String(params.offset));
   return search.toString();
