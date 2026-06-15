@@ -5,6 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query
 
 from core.dependencies import get_trial_search
+from core.embeddings import EmbeddingProvider
 from schemas.trial import TrialCitation, TrialFilter
 from services.trial_search_service import TrialSearchService
 
@@ -20,6 +21,7 @@ async def search_trials(
     phases: Annotated[list[str] | None, Query()] = None,
     query: str | None = None,
     semantic: str | None = None,
+    embedding_provider: EmbeddingProvider | None = None,
     limit: int = 10,
     offset: int = 0,
 ) -> list[TrialCitation]:
@@ -32,7 +34,11 @@ async def search_trials(
     )
     if semantic:
         return await trial_search.semantic_search(
-            flt, query=semantic, limit=limit, offset=offset
+            flt,
+            query=semantic,
+            provider=embedding_provider,
+            limit=limit,
+            offset=offset,
         )
     return await trial_search.syntactic_search(
         flt, query=query, limit=limit, offset=offset
