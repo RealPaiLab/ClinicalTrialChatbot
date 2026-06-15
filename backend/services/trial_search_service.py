@@ -56,10 +56,20 @@ def _site_in_province(site: TrialSite, province: str | None) -> bool:
     return prov is not None and _fold(province) in _fold(prov)
 
 
+def _site_matches_status(site: TrialSite, statuses: list[str]) -> bool:
+    if not statuses:
+        return True
+    if not site.state:
+        return False
+    haystack = _fold(site.state)
+    return any(_fold(term) in haystack for term in statuses)
+
+
 def _to_citation(
     trial: Trial,
     locations: list[str],
     cancer_types: list[str],
+    statuses: list[str] | None = None,
     restrict_province: str | None = None,
 ) -> TrialCitation:
     """Map an ORM trial to a citation, keeping only sites matching the filters."""
@@ -68,6 +78,7 @@ def _to_citation(
         for s in trial.sites
         if _site_matches_location(s, locations)
         and _site_matches_cancer(s, cancer_types)
+        and _site_matches_status(s, statuses or [])
         and _site_in_province(s, restrict_province)
     ]
     return TrialCitation(
@@ -109,11 +120,17 @@ class TrialSearchService:
     ) -> list[TrialCitation]:
         """Map trials to citations; drop trials with no site left after filtering."""
         citations = [
-            _to_citation(t, flt.locations, flt.cancer_types, self._restrict_province)
+            _to_citation(
+                t,
+                flt.locations,
+                flt.cancer_types,
+                flt.statuses,
+                self._restrict_province,
+            )
             for t in trials
         ]
         site_filtered = bool(
-            flt.locations or flt.cancer_types or self._restrict_province
+            flt.locations or flt.cancer_types or flt.statuses or self._restrict_province
         )
         return [c for c in citations if c.sites or not site_filtered]
 
@@ -162,4 +179,7 @@ class TrialSearchService:
         """Fetch full details for trials by NCT number."""
         async with self._session_factory() as session:
             trials = await self._repository(session).get_by_ncts(nct_numbers)
-            return [_to_citation(t, [], [], self._restrict_province) for t in trials]
+            return [
+                _to_citation(t, [], [], restrict_province=self._restrict_province)
+                for t in trials
+            ]

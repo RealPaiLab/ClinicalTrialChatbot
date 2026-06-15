@@ -8,6 +8,7 @@ from services.trial_search_service import (
     _fold,
     _site_matches_cancer,
     _site_matches_location,
+    _site_matches_status,
     _to_citation,
 )
 from tests.factories import FakeSessionFactory, StubEmbedder, make_orm_trial
@@ -30,6 +31,29 @@ def test_site_matches_cancer() -> None:
     assert _site_matches_cancer(site, ["breast"]) is True
     assert _site_matches_cancer(site, ["lung"]) is False
     assert _site_matches_cancer(site, []) is True
+
+
+def test_site_matches_status() -> None:
+    site = make_orm_trial("NCT-1").sites[0]
+    site.state = "recruiting"
+    assert _site_matches_status(site, ["recruiting"]) is True
+    assert _site_matches_status(site, ["opening_soon"]) is False
+    assert _site_matches_status(site, []) is True
+
+
+def test_to_citation_keeps_only_matching_status_sites() -> None:
+    trial = make_orm_trial(
+        "NCT-1",
+        sites=[
+            ("Montréal", "Quebec", ("Breast Cancer",)),
+            ("Toronto", "Ontario", ("Lung Cancer",)),
+        ],
+    )
+    trial.sites[0].state = "recruiting"
+    trial.sites[1].state = "opening_soon"
+    citation = _to_citation(trial, [], [], ["opening_soon"])
+    assert len(citation.sites) == 1
+    assert citation.sites[0].state == "opening_soon"
 
 
 def test_to_citation_keeps_only_matching_sites() -> None:
