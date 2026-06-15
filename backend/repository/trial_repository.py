@@ -149,6 +149,7 @@ class TrialRepository:
         *,
         query_embedding: list[float],
         limit: int = 20,
+        offset: int = 0,
     ) -> list[Trial]:
         """Vector search: filter conditions, ranked by cosine distance."""
         conditions = [*_filter_conditions(flt), Trial.embedding.is_not(None)]
@@ -157,6 +158,7 @@ class TrialRepository:
             .where(*conditions)
             .order_by(Trial.embedding.cosine_distance(query_embedding))
             .limit(limit)
+            .offset(offset)
         )
         return await self._run(stmt)
 

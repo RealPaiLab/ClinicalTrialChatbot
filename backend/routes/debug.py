@@ -31,7 +31,9 @@ async def search_trials(
         phases=phases or [],
     )
     if semantic:
-        return await trial_search.semantic_search(flt, query=semantic, limit=limit)
+        return await trial_search.semantic_search(
+            flt, query=semantic, limit=limit, offset=offset
+        )
     return await trial_search.syntactic_search(
         flt, query=query, limit=limit, offset=offset
     )

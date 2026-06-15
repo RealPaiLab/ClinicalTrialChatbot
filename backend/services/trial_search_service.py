@@ -139,6 +139,7 @@ class TrialSearchService:
         *,
         query: str,
         limit: int | None = None,
+        offset: int = 0,
     ) -> list[TrialCitation]:
         """Meaning-based search: hard filters narrow candidates, the query
         embedding ranks them by clinical fit; returns only matching sites."""
@@ -150,7 +151,10 @@ class TrialSearchService:
         vector = await self._embedder.embed_query(query)
         async with self._session_factory() as session:
             trials = await self._repository(session).semantic_search(
-                flt, query_embedding=vector, limit=limit or self._default_limit
+                flt,
+                query_embedding=vector,
+                limit=limit or self._default_limit,
+                offset=offset,
             )
             return self._filtered_citations(trials, flt)
 
