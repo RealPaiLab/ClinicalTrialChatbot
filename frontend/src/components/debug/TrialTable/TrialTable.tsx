@@ -12,6 +12,9 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { deriveTrialStatus, formatPhases, uniqueCancerTypes } from '@/lib/trial';
 import { TRIAL_STATUS, normalizeStatus } from '@/lib/trialStatus';
+import { MessageResponse } from '@/components/ai-elements/message';
+import TrialFacts from '@/components/summary/TrialFacts/TrialFacts';
+import TrialCriteria from '@/components/summary/TrialCriteria/TrialCriteria';
 import type { Trial } from '@/types/trial';
 
 interface TrialTableProps {
@@ -51,50 +54,55 @@ function CancerTypesCell({ trial }: { trial: Trial }) {
   );
 }
 
-function Criterion({ label, text }: { label: string; text: string | null }) {
-  if (!text) return null;
+function StatusBadge({ state }: { state: string }) {
+  const status = normalizeStatus(state);
   return (
-    <div>
-      <p className="text-eyebrow text-muted-foreground mb-1">{label}</p>
-      <p className="text-sm whitespace-pre-line">{text}</p>
+    <Badge variant="secondary" className="gap-1.5">
+      <span
+        className={cn(
+          'size-2 rounded-full',
+          status ? TRIAL_STATUS[status].badgeClass : 'bg-muted-foreground'
+        )}
+      />
+      {status ? TRIAL_STATUS[status].label : state}
+    </Badge>
+  );
+}
+
+function SitesList({ trial }: { trial: Trial }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-eyebrow text-muted-foreground">Sites ({trial.sites.length})</p>
+      <ul className="flex flex-col gap-1.5">
+        {trial.sites.map((site, index) => {
+          const place = [site.city, site.province].filter(Boolean).join(', ');
+          return (
+            <li
+              key={`${site.nameEn}-${index}`}
+              className="flex flex-wrap items-center gap-x-1.5 text-sm"
+            >
+              <span className="font-medium">{site.nameEn}</span>
+              {place && <span className="text-muted-foreground">· {place}</span>}
+              {site.state && <StatusBadge state={site.state} />}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
 
 function TrialDetail({ trial }: { trial: Trial }) {
   return (
-    <div className="bg-muted/40 grid gap-4 px-4 py-3 md:grid-cols-2">
-      <div className="flex flex-col gap-3">
-        {trial.officialTitleEn && <Criterion label="Official title" text={trial.officialTitleEn} />}
-        <Criterion label="Description" text={trial.descriptionEn} />
-        <Criterion label="Inclusion" text={trial.inclusionCriteriaEn} />
-        <Criterion label="Exclusion" text={trial.exclusionCriteriaEn} />
-      </div>
-      <div className="flex flex-col gap-2">
-        <p className="text-eyebrow text-muted-foreground">Sites ({trial.sites.length})</p>
-        <ul className="flex flex-col gap-1.5">
-          {trial.sites.map((site, index) => {
-            const status = normalizeStatus(site.state);
-            const place = [site.city, site.province].filter(Boolean).join(', ');
-            return (
-              <li key={`${site.nameEn}-${index}`} className="text-sm">
-                <span className="font-medium">{site.nameEn}</span>
-                {place && <span className="text-muted-foreground"> · {place}</span>}
-                {site.state && (
-                  <span
-                    className={cn(
-                      'ml-2 text-xs',
-                      status ? TRIAL_STATUS[status].colorClass : 'text-muted-foreground'
-                    )}
-                  >
-                    {site.state}
-                  </span>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+    <div className="bg-muted/30 flex flex-col gap-5 p-4 break-words whitespace-normal">
+      <TrialFacts trial={trial} />
+      {trial.descriptionEn && (
+        <MessageResponse className="text-muted-foreground text-sm leading-relaxed">
+          {trial.descriptionEn}
+        </MessageResponse>
+      )}
+      <TrialCriteria trial={trial} />
+      {trial.sites.length > 0 && <SitesList trial={trial} />}
     </div>
   );
 }

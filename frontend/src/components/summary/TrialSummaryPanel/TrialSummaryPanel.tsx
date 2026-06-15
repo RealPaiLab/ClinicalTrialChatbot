@@ -1,5 +1,6 @@
 import { ClipboardList } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { MessageResponse } from '@/components/ai-elements/message';
 import TrialSummaryHeader from '@/components/summary/TrialSummaryHeader/TrialSummaryHeader';
 import TrialFacts from '@/components/summary/TrialFacts/TrialFacts';
 import TrialCriteria from '@/components/summary/TrialCriteria/TrialCriteria';
@@ -32,7 +33,9 @@ function TrialSummaryPanel({ trial, onClose }: TrialSummaryPanelProps) {
         <div className="flex flex-col gap-5 p-4">
           <TrialFacts trial={trial} />
           {trial.descriptionEn && (
-            <p className="text-muted-foreground text-sm leading-relaxed">{trial.descriptionEn}</p>
+            <MessageResponse className="text-muted-foreground text-sm leading-relaxed">
+              {trial.descriptionEn}
+            </MessageResponse>
           )}
           <TrialCriteria trial={trial} />
         </div>
