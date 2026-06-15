@@ -8,7 +8,6 @@ from pydantic_ai.providers.ollama import OllamaProvider
 from pydantic_ai.providers.openai import OpenAIProvider
 
 from core.config import Settings, get_settings
-from core.embeddings.base import EXPECTED_DIMENSIONS
 from core.embeddings.pydantic_ai_embedder import PydanticAIEmbedder
 
 
@@ -43,26 +42,21 @@ def _build_ollama(model: str | None, settings: Settings) -> PydanticAIEmbedder:
             provider=OllamaProvider(base_url=settings.ollama_base_url),
         )
     )
-    return PydanticAIEmbedder(
-        embedder,
-        dimensions=EXPECTED_DIMENSIONS,
-        query_prefix=QUERY_PREFIXES.get(name, ""),
-    )
+    return PydanticAIEmbedder(embedder, query_prefix=QUERY_PREFIXES.get(name, ""))
 
 
 def _build_openai(model: str | None, settings: Settings) -> PydanticAIEmbedder:
     name = OpenAIEmbeddingModelName(model or settings.openai_embedding_model)
     if settings.openai_api_key is None:
         raise ValueError("OPENAI_API_KEY is required when EMBEDDING_PROVIDER=openai")
-    dimensions = settings.openai_embedding_dimensions
     embedder = Embedder(
         OpenAIEmbeddingModel(
             name.value,
             provider=OpenAIProvider(api_key=settings.openai_api_key),
         ),
-        settings=EmbeddingSettings(dimensions=dimensions),
+        settings=EmbeddingSettings(dimensions=settings.openai_embedding_dimensions),
     )
-    return PydanticAIEmbedder(embedder, dimensions=dimensions)
+    return PydanticAIEmbedder(embedder)
 
 
 PROVIDER_MAP: dict[
