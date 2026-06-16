@@ -9,6 +9,8 @@ from typing import Literal
 from openai import AsyncOpenAI
 
 from core.config import Settings
+from core.embeddings.base import EXPECTED_DIMENSIONS
+from core.embeddings.factory import OpenAIEmbeddingModelName, _resolve_model
 
 _EMBEDDINGS_URL: Literal["/v1/embeddings"] = "/v1/embeddings"
 _TERMINAL_OK = "completed"
@@ -50,8 +52,12 @@ class OpenAIBatchEmbedder:
         if settings.openai_api_key is None:
             raise ValueError("OPENAI_API_KEY is required for batch embedding")
         self._client = AsyncOpenAI(api_key=settings.openai_api_key)
-        self._model = settings.openai_embedding_model
-        self._dimensions = settings.openai_embedding_dimensions
+        self._model = _resolve_model(
+            OpenAIEmbeddingModelName,
+            settings.embedding_model,
+            OpenAIEmbeddingModelName.TEXT_EMBEDDING_3_LARGE,
+        ).value
+        self._dimensions = EXPECTED_DIMENSIONS
 
     async def submit(self, items: dict[str, str]) -> str:
         """Upload a JSONL batch and return the batch id."""

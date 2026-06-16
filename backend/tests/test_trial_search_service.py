@@ -134,14 +134,15 @@ async def test_semantic_search_without_embedder_raises() -> None:
 async def test_semantic_search_provider_override_uses_embedder_for() -> None:
     trial = make_orm_trial("NCT-1")
     default = StubEmbedder()
-    openai = StubEmbedder()
+    other = StubEmbedder()
     service = TrialSearchService(
         cast(Any, FakeSessionFactory([trial])),
         embedder=default,
-        embedder_for=lambda _provider: openai,
+        embedder_for=lambda _provider: other,
     )
+    override = next(p for p in EmbeddingProvider if p != service._default_provider)
     await service.semantic_search(
-        TrialFilter(), query="metastatic lung", provider=EmbeddingProvider.OPENAI
+        TrialFilter(), query="metastatic lung", provider=override
     )
-    assert openai.queries == ["metastatic lung"]
+    assert other.queries == ["metastatic lung"]
     assert default.queries == []

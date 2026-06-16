@@ -8,7 +8,16 @@ from pydantic_ai.providers.ollama import OllamaProvider
 from pydantic_ai.providers.openai import OpenAIProvider
 
 from core.config import Settings, get_settings
+from core.embeddings.base import EXPECTED_DIMENSIONS
 from core.embeddings.pydantic_ai_embedder import PydanticAIEmbedder
+
+
+def _resolve_model[E: StrEnum](options: type[E], configured: str, default: E) -> E:
+    """The configured model if it belongs to this provider's enum, else the default."""
+    try:
+        return options(configured)
+    except ValueError:
+        return default
 
 
 class EmbeddingProvider(StrEnum):
@@ -37,7 +46,11 @@ QUERY_PREFIXES: dict[OllamaEmbeddingModelName, str] = {
 def _build_ollama(
     model: str | None, settings: Settings, instrument: bool | None
 ) -> PydanticAIEmbedder:
-    name = OllamaEmbeddingModelName(model or settings.embedding_model)
+    name = _resolve_model(
+        OllamaEmbeddingModelName,
+        model or settings.embedding_model,
+        OllamaEmbeddingModelName.QWEN3_EMBEDDING_0_6B,
+    )
     embedder = Embedder(
         OpenAIEmbeddingModel(
             name.value,
@@ -51,7 +64,11 @@ def _build_ollama(
 def _build_openai(
     model: str | None, settings: Settings, instrument: bool | None
 ) -> PydanticAIEmbedder:
-    name = OpenAIEmbeddingModelName(model or settings.openai_embedding_model)
+    name = _resolve_model(
+        OpenAIEmbeddingModelName,
+        model or settings.embedding_model,
+        OpenAIEmbeddingModelName.TEXT_EMBEDDING_3_LARGE,
+    )
     if settings.openai_api_key is None:
         raise ValueError("OPENAI_API_KEY is required when EMBEDDING_PROVIDER=openai")
     embedder = Embedder(
@@ -59,7 +76,7 @@ def _build_openai(
             name.value,
             provider=OpenAIProvider(api_key=settings.openai_api_key),
         ),
-        settings=EmbeddingSettings(dimensions=settings.openai_embedding_dimensions),
+        settings=EmbeddingSettings(dimensions=EXPECTED_DIMENSIONS),
         instrument=instrument,
     )
     return PydanticAIEmbedder(embedder)
