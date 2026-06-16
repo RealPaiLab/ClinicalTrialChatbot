@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from functools import lru_cache
+from functools import lru_cache, partial
 
 from core.database import ReadOnlySessionFactory
 from core.embeddings import get_embedder
@@ -20,3 +20,11 @@ def get_chat_service() -> ChatService:
 
 def get_trial_search() -> TrialSearchService:
     return TrialSearchService(ReadOnlySessionFactory, embedder=get_embedder())
+
+
+def get_debug_trial_search() -> TrialSearchService:
+    return TrialSearchService(
+        ReadOnlySessionFactory,
+        embedder=get_embedder(instrument=False),
+        embedder_for=partial(get_embedder, instrument=False),
+    )

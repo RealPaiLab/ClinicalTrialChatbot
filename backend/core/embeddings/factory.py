@@ -34,18 +34,23 @@ QUERY_PREFIXES: dict[OllamaEmbeddingModelName, str] = {
 }
 
 
-def _build_ollama(model: str | None, settings: Settings) -> PydanticAIEmbedder:
+def _build_ollama(
+    model: str | None, settings: Settings, instrument: bool | None
+) -> PydanticAIEmbedder:
     name = OllamaEmbeddingModelName(model or settings.embedding_model)
     embedder = Embedder(
         OpenAIEmbeddingModel(
             name.value,
             provider=OllamaProvider(base_url=settings.ollama_base_url),
-        )
+        ),
+        instrument=instrument,
     )
     return PydanticAIEmbedder(embedder, query_prefix=QUERY_PREFIXES.get(name, ""))
 
 
-def _build_openai(model: str | None, settings: Settings) -> PydanticAIEmbedder:
+def _build_openai(
+    model: str | None, settings: Settings, instrument: bool | None
+) -> PydanticAIEmbedder:
     name = OpenAIEmbeddingModelName(model or settings.openai_embedding_model)
     if settings.openai_api_key is None:
         raise ValueError("OPENAI_API_KEY is required when EMBEDDING_PROVIDER=openai")
@@ -55,12 +60,13 @@ def _build_openai(model: str | None, settings: Settings) -> PydanticAIEmbedder:
             provider=OpenAIProvider(api_key=settings.openai_api_key),
         ),
         settings=EmbeddingSettings(dimensions=settings.openai_embedding_dimensions),
+        instrument=instrument,
     )
     return PydanticAIEmbedder(embedder)
 
 
 PROVIDER_MAP: dict[
-    EmbeddingProvider, Callable[[str | None, Settings], PydanticAIEmbedder]
+    EmbeddingProvider, Callable[[str | None, Settings, bool | None], PydanticAIEmbedder]
 ] = {
     EmbeddingProvider.OLLAMA: _build_ollama,
     EmbeddingProvider.OPENAI: _build_openai,
@@ -69,9 +75,17 @@ PROVIDER_MAP: dict[
 
 @lru_cache
 def get_embedder(
-    provider: EmbeddingProvider | None = None, model: str | None = None
+    provider: EmbeddingProvider | None = None,
+    model: str | None = None,
+    *,
+    instrument: bool | None = None,
 ) -> PydanticAIEmbedder:
-    """Provider-agnostic embedder factory."""
+    """Provider-agnostic embedder factory.
+
+    `instrument=None` follows the global default set by Embedder.instrument_all
+    (on in the app). Pass `instrument=False` to opt out of Langfuse tracing, e.g.
+    the internal /debug page, so its eval queries do not pollute production traces.
+    """
     settings = get_settings()
     selected_provider = provider or EmbeddingProvider(settings.embedding_provider)
-    return PROVIDER_MAP[selected_provider](model, settings)
+    return PROVIDER_MAP[selected_provider](model, settings, instrument)
