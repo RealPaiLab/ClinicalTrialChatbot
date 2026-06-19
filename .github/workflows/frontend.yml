@@ -2,16 +2,58 @@ name: Frontend CI
 
 on:
   push:
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend.yml"
   pull_request:
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend.yml"
 
-defaults:
-  run:
-    working-directory: frontend
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: frontend-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  gate:
+    name: Gate
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.decide.outputs.run }}
+    steps:
+      - name: Decide whether to run
+        id: decide
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          open_prs=$(gh pr list --repo "$REPO" \
+            --head "$BRANCH" --state open --json number --jq 'length')
+          if [ "${open_prs:-0}" -gt 0 ]; then
+            echo "Branch $BRANCH has an open PR; skipping push CI."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
   lint:
     name: Lint
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - uses: actions/checkout@v6
 
@@ -38,7 +80,12 @@ jobs:
 
   test:
     name: Test
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - uses: actions/checkout@v6
 
@@ -59,3 +106,41 @@ jobs:
 
       - name: Vitest
         run: pnpm test
+
+  deps-scan:
+    name: Dependency scan
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Trivy dependency scan (full report)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: frontend
+          scanners: vuln
+          severity: CRITICAL,HIGH,MEDIUM,LOW
+          exit-code: "0"
+          format: table
+          output: trivy-frontend-deps.txt
+
+      - name: Trivy dependency scan (fail on fixable CRITICAL/HIGH)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: frontend
+          scanners: vuln
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+          format: table
+
+      - name: Upload dependency scan report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: trivy-frontend-deps
+          path: trivy-frontend-deps.txt
+          if-no-files-found: ignore
