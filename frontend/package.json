@@ -35,7 +35,7 @@
     "embla-carousel-react": "^8.6.0",
     "lucide-react": "^1.21.0",
     "mapbox-gl": "^3.25.0",
-    "nanoid": "^5.1.14",
+    "nanoid": "^5.1.11",
     "radix-ui": "^1.6.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
