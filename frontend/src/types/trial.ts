@@ -40,6 +40,7 @@ export interface ChatResult {
   message: string;
   trials: Trial[];
   followUpQuestions: string[];
+  observationId: string;
 }
 
 export interface AgentResponse {
@@ -59,4 +60,5 @@ export interface ChatMessage {
   content: string;
   trials?: Trial[];
   followUpQuestions?: string[];
+  observationId?: string;
 }

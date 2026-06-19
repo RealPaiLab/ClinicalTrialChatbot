@@ -66,6 +66,8 @@ class ChatService:
 
             await self._conversation_service.save_history(session_id, messages)
             chat_result = self._to_chat_result(output, deps)
+            observation_id = self._langfuse.get_current_observation_id()
+            chat_result.observation_id = observation_id or ""
             span.update(output=chat_result.message)
             yield chat_result
 

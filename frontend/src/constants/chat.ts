@@ -15,6 +15,16 @@ export const ASK_AI_PROMPT_PREFIX = 'What does ';
 
 export const ASK_AI_PROMPT_SUFFIX = ' mean?';
 
+export const FEEDBACK = {
+  helpfulLabel: 'Helpful',
+  notHelpfulLabel: 'Not helpful',
+  commentPlaceholder: 'Comment (optional)',
+  nctPlaceholder: 'NCT the agent should have used',
+  nctHint: 'Press Enter to add each NCT number.',
+  submitLabel: 'Submit',
+  submittedLabel: 'Thanks for the feedback',
+} as const;
+
 export const StreamEventType = {
   AgentResponse: 'AgentResponse',
   ChatResult: 'ChatResult',

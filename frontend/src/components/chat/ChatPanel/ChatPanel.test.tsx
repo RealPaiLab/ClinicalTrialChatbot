@@ -20,6 +20,7 @@ async function* streamWithTrials(): AsyncGenerator<StreamEvent> {
       message: REPLY,
       trials: [mockTrials[0]],
       followUpQuestions: ['What are the eligibility requirements?'],
+      observationId: '',
     },
   };
 }
@@ -35,7 +36,12 @@ async function* streamWithoutTrials(): AsyncGenerator<StreamEvent> {
   };
   yield {
     type: StreamEventType.ChatResult,
-    data: { message: 'See [NCT04267848] now.', trials: [], followUpQuestions: [] },
+    data: {
+      message: 'See [NCT04267848] now.',
+      trials: [],
+      followUpQuestions: [],
+      observationId: '',
+    },
   };
 }
 

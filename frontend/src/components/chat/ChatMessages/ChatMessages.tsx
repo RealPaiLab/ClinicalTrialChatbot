@@ -9,6 +9,7 @@ import {
 } from '@/components/ai-elements/conversation';
 import { Message, MessageContent, MessageResponse } from '@/components/ai-elements/message';
 import AskAiSelection from '@/components/chat/AskAiSelection/AskAiSelection';
+import MessageFeedback from '@/components/chat/MessageFeedback/MessageFeedback';
 import SearchingIndicator from '@/components/chat/SearchingIndicator/SearchingIndicator';
 import TermDefinition from '@/components/chat/TermDefinition/TermDefinition';
 import TrialCitation from '@/components/chat/TrialCitation/TrialCitation';
@@ -24,6 +25,7 @@ type FetchTrial = (nctNumber: string, signal?: AbortSignal) => Promise<TrialSumm
 
 interface ChatMessagesProps {
   messages: ChatMessage[];
+  sessionId: string;
   fetchTrial: FetchTrial;
   onCitationClick?: (nctNumber: string) => void;
   onAskAi?: (text: string) => void;
@@ -54,7 +56,13 @@ function createMarkdownComponents(
   };
 }
 
-function ChatMessages({ messages, fetchTrial, onCitationClick, onAskAi }: ChatMessagesProps) {
+function ChatMessages({
+  messages,
+  sessionId,
+  fetchTrial,
+  onCitationClick,
+  onAskAi,
+}: ChatMessagesProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   return (
     <div ref={rootRef} className="contents">
@@ -83,6 +91,9 @@ function ChatMessages({ messages, fetchTrial, onCitationClick, onAskAi }: ChatMe
                     </MessageResponse>
                   )}
                 </MessageContent>
+                {message.role === ChatRole.Assistant && message.observationId && (
+                  <MessageFeedback sessionId={sessionId} observationId={message.observationId} />
+                )}
               </Message>
             ))
           )}

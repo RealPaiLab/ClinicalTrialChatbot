@@ -11,7 +11,7 @@ const fetchTrial = vi.fn().mockResolvedValue(mockTrials[0]);
 
 describe('ChatMessages', () => {
   it('shows the empty state when there are no messages', () => {
-    renderWithClient(<ChatMessages messages={[]} fetchTrial={fetchTrial} />);
+    renderWithClient(<ChatMessages messages={[]} sessionId="s1" fetchTrial={fetchTrial} />);
     expect(screen.getByText(/how can i help/i)).toBeInTheDocument();
   });
 
@@ -20,7 +20,7 @@ describe('ChatMessages', () => {
       { id: 'a', role: ChatRole.User, content: 'Any breast cancer trials in Toronto?' },
       { id: 'b', role: ChatRole.Assistant, content: 'Yes, I found **one** that may fit.' },
     ];
-    renderWithClient(<ChatMessages messages={messages} fetchTrial={fetchTrial} />);
+    renderWithClient(<ChatMessages messages={messages} sessionId="s1" fetchTrial={fetchTrial} />);
     expect(screen.getByText(/any breast cancer trials in toronto/i)).toBeInTheDocument();
     expect(screen.getByText('one')).toBeInTheDocument();
   });
@@ -31,7 +31,12 @@ describe('ChatMessages', () => {
       { id: 'c', role: ChatRole.Assistant, content: 'This one fits: [NCT04267848].' },
     ];
     renderWithClient(
-      <ChatMessages messages={messages} fetchTrial={fetchTrial} onCitationClick={onCitationClick} />
+      <ChatMessages
+        messages={messages}
+        sessionId="s1"
+        fetchTrial={fetchTrial}
+        onCitationClick={onCitationClick}
+      />
     );
 
     const citation = await screen.findByRole('button', {
