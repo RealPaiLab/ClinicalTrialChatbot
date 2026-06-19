@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import cast
 
 from sqlalchemy import ColumnElement, Select, func, or_, select
@@ -23,29 +22,47 @@ def _contains(column: ColumnOperators, term: str) -> ColumnElement[bool]:
     return cast(ColumnElement[bool], func.unaccent(column).ilike(pattern, escape="\\"))
 
 
-def _cancer_type_filter(value: str) -> ColumnElement[bool]:
+def _cancer_match(value: str) -> ColumnElement[bool]:
     site_text = func.array_to_string(TrialSite.cancer_type_names, " ")
-    return (
-        select(TrialSite.trial_id)
-        .where(TrialSite.trial_id == Trial.id, _contains(site_text, value))
-        .exists()
+    return _contains(site_text, value)
+
+
+def _location_match(value: str) -> ColumnElement[bool]:
+    return or_(
+        _contains(Location.city, value),
+        _contains(Location.province, value),
+        _contains(Location.name_en, value),
     )
 
 
-def _location_filter(value: str) -> ColumnElement[bool]:
-    return (
-        select(TrialSite.trial_id)
-        .join(Location, TrialSite.location_id == Location.id)
-        .where(
-            TrialSite.trial_id == Trial.id,
-            or_(
-                _contains(Location.city, value),
-                _contains(Location.province, value),
-                _contains(Location.name_en, value),
-            ),
-        )
-        .exists()
-    )
+def _status_match(value: str) -> ColumnElement[bool]:
+    return _contains(TrialSite.state, value)
+
+
+def _site_match_exists(
+    flt: TrialFilter, restrict_province: str | None
+) -> ColumnElement[bool] | None:
+    site_terms = {
+        _cancer_match: [v for v in flt.cancer_types if v],
+        _status_match: [v for v in flt.statuses if v],
+        _location_match: [v for v in flt.locations if v],
+    }
+    conditions = [
+        or_(*(build(v) for v in terms)) for build, terms in site_terms.items() if terms
+    ]
+    if restrict_province:
+        conditions.append(_contains(Location.province, restrict_province))
+    if not conditions:
+        return None
+    needs_location = bool(flt.locations) or restrict_province is not None
+    stmt = select(TrialSite.trial_id)
+    if needs_location:
+        stmt = stmt.join(Location, TrialSite.location_id == Location.id)
+    return stmt.where(TrialSite.trial_id == Trial.id, *conditions).exists()
+
+
+def _phase_filter(value: str) -> ColumnElement[bool]:
+    return _contains(func.array_to_string(Trial.phases, " "), value)
 
 
 def _province_restriction(province: str) -> ColumnElement[bool]:
@@ -60,34 +77,18 @@ def _province_restriction(province: str) -> ColumnElement[bool]:
     )
 
 
-def _status_filter(value: str) -> ColumnElement[bool]:
-    return (
-        select(TrialSite.trial_id)
-        .where(TrialSite.trial_id == Trial.id, _contains(TrialSite.state, value))
-        .exists()
-    )
-
-
-def _phase_filter(value: str) -> ColumnElement[bool]:
-    return _contains(func.array_to_string(Trial.phases, " "), value)
-
-
-_FILTER_BUILDERS: dict[str, Callable[[str], ColumnElement[bool]]] = {
-    "cancer_types": _cancer_type_filter,
-    "locations": _location_filter,
-    "statuses": _status_filter,
-    "phases": _phase_filter,
-}
-
-
-def _filter_conditions(flt: TrialFilter) -> list[ColumnElement[bool]]:
-    """AND of per-dimension OR-groups built from a TrialFilter."""
-    values = flt.model_dump()
+def _filter_conditions(
+    flt: TrialFilter, restrict_province: str | None = None
+) -> list[ColumnElement[bool]]:
+    """Combined same-site predicate (cancer/location/status/province) AND the
+    trial-level phase predicate."""
     conditions: list[ColumnElement[bool]] = []
-    for name, build in _FILTER_BUILDERS.items():
-        terms = [v for v in values.get(name, []) if v]
-        if terms:
-            conditions.append(or_(*(build(v) for v in terms)))
+    site_match = _site_match_exists(flt, restrict_province)
+    if site_match is not None:
+        conditions.append(site_match)
+    phases = [v for v in flt.phases if v]
+    if phases:
+        conditions.append(or_(*(_phase_filter(v) for v in phases)))
     return conditions
 
 
@@ -111,12 +112,9 @@ class TrialRepository:
         self._restrict_to_province = restrict_to_province
 
     def _base_select(self) -> Select[tuple[Trial]]:
-        stmt = select(Trial).options(
+        return select(Trial).options(
             selectinload(Trial.sites).selectinload(TrialSite.location)
         )
-        if self._restrict_to_province:
-            stmt = stmt.where(_province_restriction(self._restrict_to_province))
-        return stmt
 
     async def _run(self, stmt: Select[tuple[Trial]]) -> list[Trial]:
         result = await self._session.execute(stmt)
@@ -131,7 +129,7 @@ class TrialRepository:
         offset: int = 0,
     ) -> list[Trial]:
         """Lexical search: filter conditions AND an optional free-text query."""
-        conditions = _filter_conditions(flt)
+        conditions = _filter_conditions(flt, self._restrict_to_province)
         if query:
             conditions.append(_keyword_condition(query))
         stmt = (
@@ -149,14 +147,19 @@ class TrialRepository:
         *,
         query_embedding: list[float],
         limit: int = 20,
+        offset: int = 0,
     ) -> list[Trial]:
         """Vector search: filter conditions, ranked by cosine distance."""
-        conditions = [*_filter_conditions(flt), Trial.embedding.is_not(None)]
+        conditions = [
+            *_filter_conditions(flt, self._restrict_to_province),
+            Trial.embedding.is_not(None),
+        ]
         stmt = (
             self._base_select()
             .where(*conditions)
             .order_by(Trial.embedding.cosine_distance(query_embedding))
             .limit(limit)
+            .offset(offset)
         )
         return await self._run(stmt)
 
@@ -164,6 +167,7 @@ class TrialRepository:
         """Fetch trials by their NCT numbers."""
         if not nct_numbers:
             return []
-        return await self._run(
-            self._base_select().where(Trial.nct_number.in_(nct_numbers))
-        )
+        conditions: list[ColumnElement[bool]] = [Trial.nct_number.in_(nct_numbers)]
+        if self._restrict_to_province:
+            conditions.append(_province_restriction(self._restrict_to_province))
+        return await self._run(self._base_select().where(*conditions))

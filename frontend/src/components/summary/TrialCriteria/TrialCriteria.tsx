@@ -4,6 +4,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { MessageResponse } from '@/components/ai-elements/message';
 import type { Trial } from '@/types/trial';
 
 function TrialCriteria({ trial }: { trial: Trial }) {
@@ -17,16 +18,20 @@ function TrialCriteria({ trial }: { trial: Trial }) {
       {hasInclusion && (
         <AccordionItem value="inclusion">
           <AccordionTrigger>Who can join</AccordionTrigger>
-          <AccordionContent className="text-muted-foreground text-sm whitespace-pre-line">
-            {trial.inclusionCriteriaEn}
+          <AccordionContent>
+            <MessageResponse className="text-muted-foreground text-sm">
+              {trial.inclusionCriteriaEn ?? ''}
+            </MessageResponse>
           </AccordionContent>
         </AccordionItem>
       )}
       {hasExclusion && (
         <AccordionItem value="exclusion">
           <AccordionTrigger>Who cannot join</AccordionTrigger>
-          <AccordionContent className="text-muted-foreground text-sm whitespace-pre-line">
-            {trial.exclusionCriteriaEn}
+          <AccordionContent>
+            <MessageResponse className="text-muted-foreground text-sm">
+              {trial.exclusionCriteriaEn ?? ''}
+            </MessageResponse>
           </AccordionContent>
         </AccordionItem>
       )}
