@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@source '../node_modules/streamdown/dist/*.js';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 @import '@fontsource-variable/bricolage-grotesque';
@@ -44,9 +45,11 @@
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
+  --color-header: var(--header);
+  --color-header-foreground: var(--header-foreground);
 
-  /* Brand accent + trial-site status colors (reused by map pins and badges).
-     Earth-toned on purpose so the map harmonizes with the espresso/cream palette. */
+  /* Brand highlight + trial-site status colors (reused by map pins and badges).
+     Cool-toned (blue/yellow) so the map harmonizes with the clinical white/navy palette. */
   --color-amber: var(--amber);
   --color-recruiting: var(--recruiting);
   --color-active: var(--active);
@@ -63,93 +66,100 @@
 }
 
 /* ===========================================================================
-   Warm editorial clinic - cream paper (light)
-   Palette anchors: Cream #E5D8BD · Warm Orange #C97338 · Burnt Orange #A54D27
-                    Deep Brown #65371F · Dark Espresso #282119
+   Clinical trials - white paper (light)
+   Palette anchors: Deep Navy #2F3F7B · Yellow #EBC042 · Light Blue #91ABDA
+                    Cool White #F7F9FC · Ink Navy #16203F
    =========================================================================== */
 :root {
-  --background: #f7f1e5;
-  --foreground: #282119;
-  --card: #fcf8f0;
-  --card-foreground: #282119;
-  --popover: #fcf8f0;
-  --popover-foreground: #282119;
-  /* Dark espresso text on warm orange: editorial, high-contrast, not white-on-color */
-  --primary: #c97338;
-  --primary-foreground: #282119;
-  --secondary: #e5d8bd;
-  --secondary-foreground: #65371f;
-  --muted: #ece3ce;
-  --muted-foreground: #7c6a52;
-  --accent: #eadfc6;
-  --accent-foreground: #65371f;
-  --destructive: #b0392c;
-  --border: #ddccad;
-  --input: #ddccad;
-  --ring: #a54d27;
-  --chart-1: #c97338;
-  --chart-2: #d9a441;
-  --chart-3: #6b8e4e;
-  --chart-4: #65371f;
-  --chart-5: #9a8466;
+  --background: #ffffff;
+  --foreground: #16203f;
+  --card: #ffffff;
+  --card-foreground: #16203f;
+  --popover: #ffffff;
+  --popover-foreground: #16203f;
+  /* White text on deep navy: clean, governmental, high-contrast clinical look */
+  --primary: #2f3f7b;
+  --primary-foreground: #ffffff;
+  --secondary: #e7edf8;
+  --secondary-foreground: #2f3f7b;
+  --muted: #eef2f9;
+  --muted-foreground: #5d6b8a;
+  --accent: #e7edf8;
+  --accent-foreground: #2f3f7b;
+  --destructive: #cf4436;
+  --border: #d8e0ef;
+  --input: #d8e0ef;
+  --ring: #91abda;
+  --chart-1: #2f3f7b;
+  --chart-2: #fbd813;
+  --chart-3: #91abda;
+  --chart-4: #3f9e74;
+  --chart-5: #8295bb;
   --radius: 0.625rem;
-  --sidebar: #f2ead9;
-  --sidebar-foreground: #282119;
-  --sidebar-primary: #c97338;
-  --sidebar-primary-foreground: #282119;
-  --sidebar-accent: #eadfc6;
-  --sidebar-accent-foreground: #65371f;
-  --sidebar-border: #ddccad;
-  --sidebar-ring: #a54d27;
+  --sidebar: #f1f5fb;
+  --sidebar-foreground: #16203f;
+  --sidebar-primary: #2f3f7b;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e7edf8;
+  --sidebar-accent-foreground: #2f3f7b;
+  --sidebar-border: #d8e0ef;
+  --sidebar-ring: #91abda;
 
-  --amber: #d9a441;
-  --recruiting: #6b8e4e;
-  --active: #d9a441;
-  --completed: #9a8466;
-  --closed: #b0392c;
+  --amber: #fbd813;
+  --recruiting: #2f3f7b;
+  --active: #fbd813;
+  --completed: #8295bb;
+  --closed: #c0453a;
+
+  /* Header surface (kept as its own token so the bar color is easy to tweak) */
+  --header: #ffffff;
+  --header-foreground: #16203f;
 }
 
 /* ===========================================================================
-   Warm editorial clinic - espresso (dark)
+   Clinical trials - deep navy (dark)
    =========================================================================== */
 .dark {
-  --background: #221b13;
-  --foreground: #ece3ce;
-  --card: #2c241a;
-  --card-foreground: #ece3ce;
-  --popover: #2c241a;
-  --popover-foreground: #ece3ce;
-  --primary: #d6803f;
-  --primary-foreground: #211b13;
-  --secondary: #3a3122;
-  --secondary-foreground: #ece3ce;
-  --muted: #332b1e;
-  --muted-foreground: #b5a488;
-  --accent: #3e3424;
-  --accent-foreground: #ece3ce;
-  --destructive: #c24a3b;
-  --border: #463b29;
-  --input: #463b29;
-  --ring: #d6803f;
-  --chart-1: #d6803f;
-  --chart-2: #e0b057;
-  --chart-3: #7fa05c;
-  --chart-4: #b5825a;
-  --chart-5: #b09a7a;
-  --sidebar: #1e1810;
-  --sidebar-foreground: #ece3ce;
-  --sidebar-primary: #d6803f;
-  --sidebar-primary-foreground: #211b13;
-  --sidebar-accent: #3e3424;
-  --sidebar-accent-foreground: #ece3ce;
-  --sidebar-border: #463b29;
-  --sidebar-ring: #d6803f;
+  --background: #0e1730;
+  --foreground: #e6ecf8;
+  --card: #16213f;
+  --card-foreground: #e6ecf8;
+  --popover: #16213f;
+  --popover-foreground: #e6ecf8;
+  --primary: #7e9ce6;
+  --primary-foreground: #0e1730;
+  --secondary: #243154;
+  --secondary-foreground: #e6ecf8;
+  --muted: #1d2945;
+  --muted-foreground: #9fb0d2;
+  --accent: #283762;
+  --accent-foreground: #e6ecf8;
+  --destructive: #e0584a;
+  --border: #2d3c63;
+  --input: #2d3c63;
+  --ring: #7e9ce6;
+  --chart-1: #7e9ce6;
+  --chart-2: #fbd813;
+  --chart-3: #91abda;
+  --chart-4: #4fb088;
+  --chart-5: #9fb0d2;
+  --sidebar: #0b1227;
+  --sidebar-foreground: #e6ecf8;
+  --sidebar-primary: #7e9ce6;
+  --sidebar-primary-foreground: #0e1730;
+  --sidebar-accent: #283762;
+  --sidebar-accent-foreground: #e6ecf8;
+  --sidebar-border: #2d3c63;
+  --sidebar-ring: #7e9ce6;
 
-  --amber: #e0b057;
-  --recruiting: #84a862;
-  --active: #e0b057;
-  --completed: #b5a082;
-  --closed: #d2604f;
+  --amber: #fbd813;
+  --recruiting: #7e9ce6;
+  --active: #fbd813;
+  --completed: #93a6cc;
+  --closed: #e0584a;
+
+  --header: #16213f;
+  --header-foreground: #e6ecf8;
 }
 
 @layer base {
@@ -207,7 +217,7 @@
       ),
       radial-gradient(
         44% 30% at 50% -10%,
-        color-mix(in oklch, #65371f 40%, transparent),
+        color-mix(in oklch, var(--amber) 22%, transparent),
         transparent 74%
       );
   }
@@ -283,4 +293,13 @@
     mix-blend-mode: multiply;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
   }
+}
+
+.trial-cluster-popup .mapboxgl-popup-content {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.trial-cluster-popup .mapboxgl-popup-tip {
+  display: none;
 }

@@ -8,6 +8,7 @@ import {
   PromptInputTools,
   type PromptInputMessage,
 } from '@/components/ai-elements/prompt-input';
+import AskAiHint from '@/components/chat/AskAiHint/AskAiHint';
 
 const PLACEHOLDER = 'Describe your situation or ask about a trial...';
 const SEND_HINT = 'Enter to send';
@@ -32,7 +33,10 @@ function ChatInput({ onSend, onStop, status = 'ready' }: ChatInputProps) {
   };
 
   return (
-    <PromptInput onSubmit={handleSubmit}>
+    <PromptInput onSubmit={handleSubmit} className="bg-background relative rounded-lg shadow-sm">
+      <div className="absolute top-2 right-2 z-10">
+        <AskAiHint />
+      </div>
       <PromptInputBody>
         <PromptInputTextarea placeholder={PLACEHOLDER} />
       </PromptInputBody>

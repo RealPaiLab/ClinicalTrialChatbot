@@ -26,7 +26,7 @@ function SearchingIndicator() {
 
   return (
     <div className="text-muted-foreground flex items-center gap-2 font-mono text-xs tracking-tight">
-      <Spinner className="text-primary text-base" />
+      <Spinner className="text-amber text-base" />
       <span role="status" aria-live="polite">
         {message}
       </span>

@@ -43,8 +43,8 @@ function HomePage() {
 
   return (
     <div className="text-foreground flex h-screen w-screen flex-col overflow-hidden">
-      <header className="border-border bg-background/70 flex h-12 shrink-0 items-center justify-between border-b px-4 backdrop-blur-sm">
-        <span className="text-eyebrow text-primary">Clinical Trial Navigator</span>
+      <header className="bg-header text-header-foreground border-border after:bg-amber relative flex h-12 shrink-0 items-center justify-between border-b px-4 after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:content-['']">
+        <span className="text-eyebrow">Clinical Trial Navigator</span>
         <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
           {dark ? <Sun /> : <Moon />}
         </Button>
@@ -64,21 +64,32 @@ function HomePage() {
 
         <ResizableHandle withHandle />
 
-        <ResizablePanel defaultSize="68%">
+        <ResizablePanel defaultSize="68%" className="bg-secondary/60">
           <ResizablePanelGroup orientation="vertical">
             <ResizablePanel defaultSize="66%">
-              <MapPanel
-                trials={trials}
-                selectedNctNumber={selectedNctNumber}
-                onSelectTrial={handleSelectTrial}
-                dark={dark}
-              />
+              <div className="h-full p-2 pb-1">
+                <div className="border-border h-full overflow-hidden rounded-lg border shadow-sm">
+                  <MapPanel
+                    trials={trials}
+                    selectedNctNumber={selectedNctNumber}
+                    onSelectTrial={handleSelectTrial}
+                    dark={dark}
+                  />
+                </div>
+              </div>
             </ResizablePanel>
 
-            <ResizableHandle withHandle />
+            <ResizableHandle withHandle className="bg-transparent" />
 
             <ResizablePanel defaultSize="34%" minSize="20%">
-              <TrialSummaryPanel trial={selectedTrial} onClose={() => setSelectedNctNumber(null)} />
+              <div className="h-full p-2 pt-1">
+                <div className="border-border h-full overflow-hidden rounded-lg border shadow-sm">
+                  <TrialSummaryPanel
+                    trial={selectedTrial}
+                    onClose={() => setSelectedNctNumber(null)}
+                  />
+                </div>
+              </div>
             </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>
