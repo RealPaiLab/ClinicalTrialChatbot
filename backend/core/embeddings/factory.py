@@ -2,21 +2,37 @@ from collections.abc import Callable
 from enum import StrEnum
 from functools import lru_cache
 
-from pydantic_ai.embeddings import Embedder
+from pydantic_ai.embeddings import Embedder, EmbeddingSettings
 from pydantic_ai.embeddings.openai import OpenAIEmbeddingModel
 from pydantic_ai.providers.ollama import OllamaProvider
+from pydantic_ai.providers.openai import OpenAIProvider
 
 from core.config import Settings, get_settings
+from core.embeddings.base import EXPECTED_DIMENSIONS
 from core.embeddings.pydantic_ai_embedder import PydanticAIEmbedder
+
+
+def _resolve_model[E: StrEnum](options: type[E], configured: str, default: E) -> E:
+    """The configured model if it belongs to this provider's enum, else the default."""
+    try:
+        return options(configured)
+    except ValueError:
+        return default
 
 
 class EmbeddingProvider(StrEnum):
     OLLAMA = "ollama"
+    OPENAI = "openai"
 
 
 class OllamaEmbeddingModelName(StrEnum):
     BGE_M3 = "bge-m3"
     QWEN3_EMBEDDING_0_6B = "qwen3-embedding:0.6b"
+
+
+class OpenAIEmbeddingModelName(StrEnum):
+    TEXT_EMBEDDING_3_SMALL = "text-embedding-3-small"
+    TEXT_EMBEDDING_3_LARGE = "text-embedding-3-large"
 
 
 QUERY_PREFIXES: dict[OllamaEmbeddingModelName, str] = {
@@ -27,28 +43,66 @@ QUERY_PREFIXES: dict[OllamaEmbeddingModelName, str] = {
 }
 
 
-def _build_ollama(model: str, settings: Settings) -> PydanticAIEmbedder:
-    name = OllamaEmbeddingModelName(model)
+def _build_ollama(
+    model: str | None, settings: Settings, instrument: bool | None
+) -> PydanticAIEmbedder:
+    name = _resolve_model(
+        OllamaEmbeddingModelName,
+        model or settings.embedding_model,
+        OllamaEmbeddingModelName.QWEN3_EMBEDDING_0_6B,
+    )
     embedder = Embedder(
         OpenAIEmbeddingModel(
             name.value,
             provider=OllamaProvider(base_url=settings.ollama_base_url),
-        )
+        ),
+        instrument=instrument,
     )
     return PydanticAIEmbedder(embedder, query_prefix=QUERY_PREFIXES.get(name, ""))
 
 
-PROVIDER_MAP: dict[EmbeddingProvider, Callable[[str, Settings], PydanticAIEmbedder]] = {
+def _build_openai(
+    model: str | None, settings: Settings, instrument: bool | None
+) -> PydanticAIEmbedder:
+    name = _resolve_model(
+        OpenAIEmbeddingModelName,
+        model or settings.embedding_model,
+        OpenAIEmbeddingModelName.TEXT_EMBEDDING_3_LARGE,
+    )
+    if settings.openai_api_key is None:
+        raise ValueError("OPENAI_API_KEY is required when EMBEDDING_PROVIDER=openai")
+    embedder = Embedder(
+        OpenAIEmbeddingModel(
+            name.value,
+            provider=OpenAIProvider(api_key=settings.openai_api_key),
+        ),
+        settings=EmbeddingSettings(dimensions=EXPECTED_DIMENSIONS),
+        instrument=instrument,
+    )
+    return PydanticAIEmbedder(embedder)
+
+
+PROVIDER_MAP: dict[
+    EmbeddingProvider, Callable[[str | None, Settings, bool | None], PydanticAIEmbedder]
+] = {
     EmbeddingProvider.OLLAMA: _build_ollama,
+    EmbeddingProvider.OPENAI: _build_openai,
 }
 
 
 @lru_cache
 def get_embedder(
-    provider: EmbeddingProvider | None = None, model: str | None = None
+    provider: EmbeddingProvider | None = None,
+    model: str | None = None,
+    *,
+    instrument: bool | None = None,
 ) -> PydanticAIEmbedder:
-    """Provider-agnostic embedder factory."""
+    """Provider-agnostic embedder factory.
+
+    `instrument=None` follows the global default set by Embedder.instrument_all
+    (on in the app). Pass `instrument=False` to opt out of Langfuse tracing, e.g.
+    the internal /debug page, so its eval queries do not pollute production traces.
+    """
     settings = get_settings()
     selected_provider = provider or EmbeddingProvider(settings.embedding_provider)
-    model_name = model or settings.embedding_model
-    return PROVIDER_MAP[selected_provider](model_name, settings)
+    return PROVIDER_MAP[selected_provider](model, settings, instrument)

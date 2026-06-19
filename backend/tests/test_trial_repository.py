@@ -60,8 +60,8 @@ async def test_semantic_search_orders_by_cosine_distance_within_filters() -> Non
         TrialFilter(cancer_types=["lung"]), query_embedding=[0.1] * 1024, limit=5
     )
     sql = _sql(factory.last_statement)
-    assert "embedding <=>" in sql
-    assert "embedding is not null" in sql
+    assert "qwen_embedding <=>" in sql
+    assert "qwen_embedding is not null" in sql
     assert "order by" in sql
     assert "limit" in sql
     assert "cancer_type_names" in sql

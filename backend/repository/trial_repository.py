@@ -6,13 +6,21 @@ from typing import cast
 
 from sqlalchemy import ColumnElement, Select, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import InstrumentedAttribute, selectinload
 from sqlalchemy.sql.operators import ColumnOperators
 
+from core.embeddings import EmbeddingProvider
 from models.location import Location
 from models.trial import Trial
 from models.trial_site import TrialSite
 from schemas.trial import TrialFilter
+
+_EMBEDDING_COLUMNS: dict[
+    EmbeddingProvider, InstrumentedAttribute[list[float] | None]
+] = {
+    EmbeddingProvider.OLLAMA: Trial.qwen_embedding,
+    EmbeddingProvider.OPENAI: Trial.openai_embedding,
+}
 
 
 def _contains(column: ColumnOperators, term: str) -> ColumnElement[bool]:
@@ -146,18 +154,21 @@ class TrialRepository:
         flt: TrialFilter,
         *,
         query_embedding: list[float],
+        provider: EmbeddingProvider = EmbeddingProvider.OLLAMA,
         limit: int = 20,
         offset: int = 0,
     ) -> list[Trial]:
-        """Vector search: filter conditions, ranked by cosine distance."""
+        """Vector search: filter conditions, ranked by cosine distance against
+        the column matching the provider that produced the query embedding."""
+        column = _EMBEDDING_COLUMNS[provider]
         conditions = [
             *_filter_conditions(flt, self._restrict_to_province),
-            Trial.embedding.is_not(None),
+            column.is_not(None),
         ]
         stmt = (
             self._base_select()
             .where(*conditions)
-            .order_by(Trial.embedding.cosine_distance(query_embedding))
+            .order_by(column.cosine_distance(query_embedding))
             .limit(limit)
             .offset(offset)
         )

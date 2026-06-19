@@ -65,7 +65,12 @@ class Trial(Base):
     purpose: Mapped[str | None] = mapped_column(Text, nullable=True)
     sponsor_name: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    embedding: Mapped[list[float] | None] = mapped_column(Vector(1024), nullable=True)
+    qwen_embedding: Mapped[list[float] | None] = mapped_column(
+        Vector(1024), nullable=True
+    )
+    openai_embedding: Mapped[list[float] | None] = mapped_column(
+        Vector(1024), nullable=True
+    )
 
     sites: Mapped[list[TrialSite]] = relationship(
         "TrialSite", back_populates="trial", lazy="select"

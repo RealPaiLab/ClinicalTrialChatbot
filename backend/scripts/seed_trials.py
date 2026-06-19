@@ -75,7 +75,8 @@ def transform_trial(raw: dict) -> dict:  # type: ignore[type-arg]
         "treatment_lines": [
             tl["name"] for tl in (raw.get("treatmentLines") or []) if tl.get("name")
         ],
-        "embedding": None,
+        "qwen_embedding": None,
+        "openai_embedding": None,
     }
 
 

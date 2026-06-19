@@ -23,8 +23,8 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434/v1"
     openai_api_key: str | None = None
 
-    embedding_provider: str = "ollama"
-    embedding_model: str = "qwen3-embedding:0.6b"
+    embedding_provider: str = "openai"
+    embedding_model: str = "text-embedding-3-large"
     embedding_batch_size: int = 16
     embedding_warmup: bool = False
 

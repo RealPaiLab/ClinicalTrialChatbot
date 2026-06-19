@@ -2,6 +2,7 @@ from typing import Any, cast
 
 import pytest
 
+from core.embeddings import EmbeddingProvider
 from schemas.trial import TrialFilter
 from services.trial_search_service import (
     TrialSearchService,
@@ -128,3 +129,20 @@ async def test_semantic_search_without_embedder_raises() -> None:
     service = TrialSearchService(cast(Any, FakeSessionFactory()))
     with pytest.raises(RuntimeError, match="embedder"):
         await service.semantic_search(TrialFilter(), query="anything")
+
+
+async def test_semantic_search_provider_override_uses_embedder_for() -> None:
+    trial = make_orm_trial("NCT-1")
+    default = StubEmbedder()
+    other = StubEmbedder()
+    service = TrialSearchService(
+        cast(Any, FakeSessionFactory([trial])),
+        embedder=default,
+        embedder_for=lambda _provider: other,
+    )
+    override = next(p for p in EmbeddingProvider if p != service._default_provider)
+    await service.semantic_search(
+        TrialFilter(), query="metastatic lung", provider=override
+    )
+    assert other.queries == ["metastatic lung"]
+    assert default.queries == []
