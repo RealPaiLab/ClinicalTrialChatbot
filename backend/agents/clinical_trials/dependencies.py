@@ -21,6 +21,14 @@ class TrialSearch(Protocol):
         offset: int = 0,
     ) -> list[TrialCitation]: ...
 
+    async def semantic_search(
+        self,
+        flt: TrialFilter,
+        *,
+        query: str,
+        limit: int | None = None,
+    ) -> list[TrialCitation]: ...
+
     async def get_by_ncts(self, nct_numbers: list[str]) -> list[TrialCitation]: ...
 
 

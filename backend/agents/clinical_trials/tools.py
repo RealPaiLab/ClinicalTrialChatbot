@@ -10,6 +10,7 @@ from agents.clinical_trials.guards import guarded
 from agents.clinical_trials.tool_schemas import (
     DefineTermInput,
     GetTrialDetailsInput,
+    SemanticSearchInput,
     SyntacticSearchInput,
     TrialSearchHit,
 )
@@ -60,6 +61,33 @@ async def syntactic_search(
     )
     citations = await ctx.deps.trial_search.syntactic_search(
         flt, query=args.query, limit=args.limit, offset=args.offset
+    )
+    return _record(ctx, citations)
+
+
+@observe
+@guarded
+async def semantic_search(
+    ctx: RunContext[AgentDeps], args: SemanticSearchInput
+) -> list[TrialSearchHit]:
+    """Search clinical trials by meaning, ranked by fit to the patient's situation.
+
+    Use when the match depends on soft clinical fit the structured filters cannot
+    express: how advanced the disease is, prior treatments, eligibility nuances,
+    or intent in the patient's own words. Write `query` in English. The filters
+    are hard constraints applied before ranking, so keep passing the known cancer
+    type, location, status, or phase. Results always come back in best-fit order;
+    a weak top result means the constraints are too narrow, so relax a filter
+    rather than rephrasing the same query.
+    """
+    flt = TrialFilter(
+        cancer_types=args.cancer_types,
+        locations=args.locations,
+        statuses=args.statuses,
+        phases=args.phases,
+    )
+    citations = await ctx.deps.trial_search.semantic_search(
+        flt, query=args.query, limit=args.limit
     )
     return _record(ctx, citations)
 

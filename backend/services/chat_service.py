@@ -5,14 +5,12 @@ from collections.abc import AsyncIterator
 from langfuse import propagate_attributes
 
 from agents.clinical_trials.agent import get_clinical_trials_agent
-from agents.clinical_trials.dependencies import AgentDeps
+from agents.clinical_trials.dependencies import AgentDeps, TrialSearch
 from agents.clinical_trials.output import AgentResponse
-from core.database import ReadOnlySessionFactory
 from core.langfuse import get_langfuse_client, trace_id_from_session
 from repository.glossary_repository import GlossaryRepository
 from schemas.chat import ChatResult
 from services.conversation_service import ConversationService
-from services.trial_search_service import TrialSearchService
 
 StreamItem = AgentResponse | ChatResult
 
@@ -20,8 +18,11 @@ StreamItem = AgentResponse | ChatResult
 class ChatService:
     """Runs the clinical-trials agent for a session and streams the turn."""
 
-    def __init__(self, conversation_service: ConversationService) -> None:
+    def __init__(
+        self, conversation_service: ConversationService, trial_search: TrialSearch
+    ) -> None:
         self._conversation_service = conversation_service
+        self._trial_search = trial_search
         self._agent = get_clinical_trials_agent()
         self._langfuse = get_langfuse_client()
 
@@ -41,7 +42,7 @@ class ChatService:
         self, session_id: str, user_message: str
     ) -> AsyncIterator[StreamItem]:
         deps = AgentDeps(
-            trial_search=TrialSearchService(ReadOnlySessionFactory),
+            trial_search=self._trial_search,
             glossary=GlossaryRepository(),
         )
         history = await self._conversation_service.get_history(session_id)

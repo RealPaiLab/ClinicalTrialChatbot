@@ -53,6 +53,39 @@ class SyntacticSearchInput(ToolInput):
     )
 
 
+class SemanticSearchInput(ToolInput):
+    query: str = Field(
+        description="A plain-language description of the patient's clinical "
+        "situation and what they are looking for, written in English (translate "
+        'first if the patient writes in another language), e.g. "stage IV '
+        "non-small-cell lung cancer, progressed after chemotherapy, seeking "
+        'immunotherapy".'
+    )
+    cancer_types: list[str] = Field(
+        default_factory=list,
+        description='Cancer types to require, e.g. ["breast cancer", "lung"].',
+    )
+    locations: list[str] = Field(
+        default_factory=list,
+        description='Cities or provinces to require, e.g. ["Quebec", "Ontario"].',
+    )
+    statuses: list[str] = Field(
+        default_factory=list,
+        description='Recruiting statuses to require, e.g. ["recruiting"].',
+    )
+    phases: list[str] = Field(
+        default_factory=list,
+        description='Trial phases to require, e.g. ["PHASE2", "PHASE3"].',
+    )
+    limit: int = Field(
+        default=5,
+        ge=1,
+        le=10,
+        description="How many of the best-matching trials to return (1-10). "
+        "There is no pagination; raise the limit to see more.",
+    )
+
+
 class GetTrialDetailsInput(ToolInput):
     nct_numbers: list[str] = Field(
         description='NCT numbers to fetch full details for, e.g. ["NCT01234567"].'

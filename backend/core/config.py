@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434/v1"
     openai_api_key: str | None = None
 
+    embedding_provider: str = "ollama"
+    embedding_model: str = "qwen3-embedding:0.6b"
+    embedding_batch_size: int = 16
+    embedding_warmup: bool = False
+
     environment: str = "development"
     cors_allow_origins: list[str] = [
         "http://localhost:5173",

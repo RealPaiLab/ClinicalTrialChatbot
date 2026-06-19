@@ -51,3 +51,17 @@ async def test_syntactic_search_query_matches_text_columns_within_filters() -> N
     assert "short_title_en" in sql
     assert "cancer_type_names" in sql
     assert "ilike" in sql
+
+
+async def test_semantic_search_orders_by_cosine_distance_within_filters() -> None:
+    factory = FakeSessionFactory([make_orm_trial("NCT-1")])
+    repo = TrialRepository(factory.session)
+    await repo.semantic_search(
+        TrialFilter(cancer_types=["lung"]), query_embedding=[0.1] * 1024, limit=5
+    )
+    sql = _sql(factory.last_statement)
+    assert "embedding <=>" in sql
+    assert "embedding is not null" in sql
+    assert "order by" in sql
+    assert "limit" in sql
+    assert "cancer_type_names" in sql

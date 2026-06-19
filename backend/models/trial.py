@@ -28,15 +28,9 @@ class Trial(Base):
             "intervention_names",
             postgresql_using="gin",
         ),
-        # HNSW index created after seeding (requires non-null vectors).
-        # Uncomment once embeddings are populated:
-        # Index(
-        #     "ix_trials_embedding_hnsw",
-        #     "embedding",
-        #     postgresql_using="hnsw",
-        #     postgresql_with={"m": 16, "ef_construction": 64},
-        #     postgresql_ops={"embedding": "vector_cosine_ops"},
-        # ),
+        # No vector index on purpose: at ~1-2K rows an exact seq scan is
+        # faster than embedding the query and stays 100% accurate. Add an
+        # HNSW index (vector_cosine_ops) only if the corpus grows ~50x.
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)

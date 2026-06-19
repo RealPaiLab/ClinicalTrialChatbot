@@ -7,6 +7,7 @@ import unicodedata
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from core.config import get_settings
+from core.embeddings import QueryEmbedder
 from models.trial import Trial
 from models.trial_site import TrialSite
 from repository.trial_repository import TrialRepository
@@ -88,14 +89,33 @@ def _to_citation(
 class TrialSearchService:
     """Search facade over TrialRepository"""
 
-    def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
+    def __init__(
+        self,
+        session_factory: async_sessionmaker[AsyncSession],
+        *,
+        embedder: QueryEmbedder | None = None,
+    ) -> None:
         self._session_factory = session_factory
+        self._embedder = embedder
         settings = get_settings()
         self._default_limit = settings.search_default_limit
         self._restrict_province = (settings.restrict_to_province or "").strip() or None
 
     def _repository(self, session: AsyncSession) -> TrialRepository:
         return TrialRepository(session, restrict_to_province=self._restrict_province)
+
+    def _filtered_citations(
+        self, trials: list[Trial], flt: TrialFilter
+    ) -> list[TrialCitation]:
+        """Map trials to citations; drop trials with no site left after filtering."""
+        citations = [
+            _to_citation(t, flt.locations, flt.cancer_types, self._restrict_province)
+            for t in trials
+        ]
+        site_filtered = bool(
+            flt.locations or flt.cancer_types or self._restrict_province
+        )
+        return [c for c in citations if c.sites or not site_filtered]
 
     async def syntactic_search(
         self,
@@ -111,16 +131,28 @@ class TrialSearchService:
             trials = await self._repository(session).syntactic_search(
                 flt, query=query, limit=limit or self._default_limit, offset=offset
             )
-            citations = [
-                _to_citation(
-                    t, flt.locations, flt.cancer_types, self._restrict_province
-                )
-                for t in trials
-            ]
-        site_filtered = bool(
-            flt.locations or flt.cancer_types or self._restrict_province
-        )
-        return [c for c in citations if c.sites or not site_filtered]
+            return self._filtered_citations(trials, flt)
+
+    async def semantic_search(
+        self,
+        flt: TrialFilter,
+        *,
+        query: str,
+        limit: int | None = None,
+    ) -> list[TrialCitation]:
+        """Meaning-based search: hard filters narrow candidates, the query
+        embedding ranks them by clinical fit; returns only matching sites."""
+        if self._embedder is None:
+            raise RuntimeError(
+                "TrialSearchService was built without an embedder; "
+                "semantic search is unavailable"
+            )
+        vector = await self._embedder.embed_query(query)
+        async with self._session_factory() as session:
+            trials = await self._repository(session).semantic_search(
+                flt, query_embedding=vector, limit=limit or self._default_limit
+            )
+            return self._filtered_citations(trials, flt)
 
     async def get_by_ncts(self, nct_numbers: list[str]) -> list[TrialCitation]:
         """Fetch full details for trials by NCT number."""

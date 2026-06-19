@@ -97,9 +97,34 @@ class StubTrialSearch:
         self.calls.append(("syntactic_search", flt))
         return list(self.results)
 
+    async def semantic_search(
+        self,
+        flt: object,
+        *,
+        query: str,
+        limit: int | None = None,
+    ) -> list[TrialCitation]:
+        self.calls.append(("semantic_search", query))
+        return list(self.results)
+
     async def get_by_ncts(self, nct_numbers: list[str]) -> list[TrialCitation]:
         self.calls.append(("get_by_ncts", nct_numbers))
         return [self.by_nct[n] for n in nct_numbers if n in self.by_nct]
+
+
+class StubEmbedder:
+    """In-memory QueryEmbedder; records queries, returns a canned vector."""
+
+    def __init__(self, vector: list[float] | None = None) -> None:
+        self.vector = vector if vector is not None else [0.1] * 1024
+        self.queries: list[str] = []
+
+    async def embed_query(self, text: str) -> list[float]:
+        self.queries.append(text)
+        return self.vector
+
+    async def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        return [self.vector for _ in texts]
 
 
 class StubGlossary:

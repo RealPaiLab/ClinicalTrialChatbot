@@ -1,5 +1,7 @@
 from typing import Any, cast
 
+import pytest
+
 from schemas.trial import TrialFilter
 from services.trial_search_service import (
     TrialSearchService,
@@ -8,7 +10,7 @@ from services.trial_search_service import (
     _site_matches_location,
     _to_citation,
 )
-from tests.factories import FakeSessionFactory, make_orm_trial
+from tests.factories import FakeSessionFactory, StubEmbedder, make_orm_trial
 
 
 def test_fold_strips_accents() -> None:
@@ -71,3 +73,34 @@ async def test_syntactic_search_with_query_keeps_unfiltered_sites() -> None:
     result = await service.syntactic_search(TrialFilter(), query="lung")
     assert len(result) == 1
     assert len(result[0].sites) == 1
+
+
+async def test_semantic_search_embeds_query_and_maps_citations() -> None:
+    trial = make_orm_trial("NCT-1")
+    embedder = StubEmbedder()
+    service = TrialSearchService(
+        cast(Any, FakeSessionFactory([trial])), embedder=embedder
+    )
+    result = await service.semantic_search(TrialFilter(), query="metastatic lung")
+    assert embedder.queries == ["metastatic lung"]
+    assert [c.nct_number for c in result] == ["NCT-1"]
+
+
+async def test_semantic_search_drops_trials_with_no_matching_site() -> None:
+    trials = [
+        make_orm_trial("NCT-match", sites=[("Montréal", "Quebec", ("Breast Cancer",))]),
+        make_orm_trial("NCT-other", sites=[("Toronto", "Ontario", ("Lung Cancer",))]),
+    ]
+    service = TrialSearchService(
+        cast(Any, FakeSessionFactory(trials)), embedder=StubEmbedder()
+    )
+    result = await service.semantic_search(
+        TrialFilter(locations=["quebec"], cancer_types=["breast"]), query="breast"
+    )
+    assert [c.nct_number for c in result] == ["NCT-match"]
+
+
+async def test_semantic_search_without_embedder_raises() -> None:
+    service = TrialSearchService(cast(Any, FakeSessionFactory()))
+    with pytest.raises(RuntimeError, match="embedder"):
+        await service.semantic_search(TrialFilter(), query="anything")
