@@ -1,10 +1,11 @@
 name: Build
 
+# On a release tag from release-please, build + scan + PUSH the image
 on:
   push:
-    branches: [main]
-    tags: ["v*"]
-  workflow_dispatch: {}
+    tags:
+      - "backend-v*"
+      - "frontend-v*"
 
 permissions:
   contents: read
@@ -14,97 +15,34 @@ concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: false
 
-env:
-  REGISTRY: ghcr.io
-
 jobs:
-  build:
-    name: Build & publish ${{ matrix.name }}
+  resolve:
+    name: Resolve tag
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: backend
-            context: backend
-            image: ctc-backend
-          - name: frontend
-            context: frontend
-            image: ctc-frontend
+    outputs:
+      package: ${{ steps.t.outputs.package }}
+      version: ${{ steps.t.outputs.version }}
     steps:
-      - uses: actions/checkout@v6
-
-      - name: Set up Buildx
-        uses: docker/setup-buildx-action@v5
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v4
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Image metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}
-          # main -> edge + sha-<short>; vX.Y.Z tag -> X.Y.Z, X.Y, X, latest
-          tags: |
-            type=raw,value=edge,enable=${{ github.ref == 'refs/heads/main' }}
-            type=sha,prefix=sha-,enable=${{ github.ref == 'refs/heads/main' }}
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-
-      - name: Build image (load for scan)
-        uses: docker/build-push-action@v6
-        with:
-          context: ./${{ matrix.context }}
-          load: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL }}
-            VITE_MAPBOX_TOKEN=${{ secrets.VITE_MAPBOX_TOKEN }}
-            VITE_ENABLE_DEBUG_PAGE=${{ vars.VITE_ENABLE_DEBUG_PAGE || 'false' }}
-          cache-from: type=gha,scope=${{ matrix.name }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
-
-      - name: Trivy image scan (full report)
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          scan-type: image
-          image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
-          scanners: vuln
-          severity: CRITICAL,HIGH,MEDIUM,LOW
-          exit-code: "0"
-          format: table
-          output: trivy-image-${{ matrix.name }}.txt
-
-      - name: Trivy image scan (fail on fixable CRITICAL/HIGH)
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          scan-type: image
-          image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
-          scanners: vuln
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
-          exit-code: "1"
-          format: table
-
-      - name: Upload image scan report
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: trivy-image-${{ matrix.name }}
-          path: trivy-image-${{ matrix.name }}.txt
-          if-no-files-found: ignore
-
-      - name: Push image to GHCR
+      - name: Parse package and version from tag
+        id: t
         env:
-          TAGS: ${{ steps.meta.outputs.tags }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
-          echo "$TAGS" | while IFS= read -r tag; do
-            [ -n "$tag" ] && docker push "$tag"
-          done
+          case "$REF_NAME" in
+            backend-v*)  pkg="backend";  ver="${REF_NAME#backend-v}"  ;;
+            frontend-v*) pkg="frontend"; ver="${REF_NAME#frontend-v}" ;;
+            *) echo "Unexpected tag: $REF_NAME"; exit 1 ;;
+          esac
+          {
+            echo "package=$pkg"
+            echo "version=$ver"
+          } >> "$GITHUB_OUTPUT"
+
+  image:
+    needs: resolve
+    uses: ./.github/workflows/image.yml
+    with:
+      package: ${{ needs.resolve.outputs.package }}
+      push: true
+      version: ${{ needs.resolve.outputs.version }}
+    secrets: inherit

@@ -7,6 +7,7 @@ COPY . .
 RUN pnpm build
 
 FROM nginx:alpine AS run
+RUN apk upgrade --no-cache
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY env.template.js /etc/nginx/app-template/config.template.js
