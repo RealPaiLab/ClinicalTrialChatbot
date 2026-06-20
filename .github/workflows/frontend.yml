@@ -144,3 +144,12 @@ jobs:
           name: trivy-frontend-deps
           path: trivy-frontend-deps.txt
           if-no-files-found: ignore
+
+  image:
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
+    uses: ./.github/workflows/image.yml
+    with:
+      package: frontend
+      push: false
+    secrets: inherit

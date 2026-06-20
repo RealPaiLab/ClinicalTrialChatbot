@@ -1,8 +1,9 @@
 import camelcaseKeys from 'camelcase-keys';
 import { keepPreviousData, queryOptions } from '@tanstack/react-query';
+import { config } from '@/config';
 import type { Trial } from '@/types/trial';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
+const API_BASE = config.apiBaseUrl;
 
 export interface DebugSearchParams {
   cancerTypes?: string[];

@@ -133,3 +133,12 @@ jobs:
           name: trivy-backend-deps
           path: trivy-backend-deps.txt
           if-no-files-found: ignore
+
+  image:
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
+    uses: ./.github/workflows/image.yml
+    with:
+      package: backend
+      push: false
+    secrets: inherit

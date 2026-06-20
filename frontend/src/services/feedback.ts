@@ -1,4 +1,6 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
+import { config } from '@/config';
+
+const API_BASE = config.apiBaseUrl;
 
 export interface SubmitFeedbackParams {
   sessionId: string;

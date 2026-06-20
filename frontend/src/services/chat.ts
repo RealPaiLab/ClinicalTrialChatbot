@@ -1,7 +1,8 @@
 import camelcaseKeys from 'camelcase-keys';
+import { config } from '@/config';
 import type { StreamEvent } from '@/types/trial';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
+const API_BASE = config.apiBaseUrl;
 const SSE_DATA_PREFIX = 'data:';
 
 export interface StreamChatParams {

@@ -3,10 +3,11 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { createQueryClient } from '@/lib/queryClient';
 import HomePage from '@/pages/HomePage';
 import DebugPage from '@/pages/DebugPage';
+import { config } from '@/config';
 
 const queryClient = createQueryClient();
 
-const debugEnabled = import.meta.env.VITE_ENABLE_DEBUG_PAGE === 'true';
+const debugEnabled = config.enableDebugPage;
 
 function App() {
   return (

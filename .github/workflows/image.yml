@@ -1,0 +1,105 @@
+name: Image
+
+# Reusable build+scan(+push) for one package's Docker image. Called by:
+#   backend.yml / frontend.yml  -> push:false  (build + scan at PR/CI time)
+#   build.yml (release tags)     -> push:true   (build + scan + push versioned)
+on:
+  workflow_call:
+    inputs:
+      package:
+        description: "backend or frontend"
+        required: true
+        type: string
+      push:
+        description: "true = push versioned image to GHCR; false = build + scan only"
+        type: boolean
+        default: false
+      version:
+        description: "release version e.g. 1.2.3 (only used when push=true)"
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  image:
+    name: ${{ inputs.package }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/ctc-${{ inputs.package }}
+          flavor: latest=auto
+          tags: |
+            type=semver,pattern={{version}},value=${{ inputs.version }},enable=${{ inputs.push }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ inputs.version }},enable=${{ inputs.push }}
+            type=semver,pattern={{major}},value=${{ inputs.version }},enable=${{ inputs.push }}
+            type=raw,value=ci,enable=${{ !inputs.push }}
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v5
+
+      - name: Log in to GHCR
+        if: ${{ inputs.push }}
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image (load for scan)
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ inputs.package }}
+          load: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ inputs.package }}
+          cache-to: type=gha,mode=max,scope=${{ inputs.package }}
+
+      - name: Trivy image scan (full report)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          scanners: vuln
+          severity: CRITICAL,HIGH,MEDIUM,LOW
+          exit-code: "0"
+          format: table
+          output: trivy-image-${{ inputs.package }}.txt
+
+      - name: Trivy image scan (fail on fixable CRITICAL/HIGH)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          scanners: vuln
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+          format: table
+
+      - name: Upload image scan report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: trivy-image-${{ inputs.package }}
+          path: trivy-image-${{ inputs.package }}.txt
+          if-no-files-found: ignore
+
+      - name: Push image to GHCR
+        if: ${{ inputs.push }}
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          echo "$TAGS" | while IFS= read -r tag; do
+            [ -n "$tag" ] && docker push "$tag"
+          done
