@@ -1,0 +1,35 @@
+# Repetitive. Run by CI on a release tag. App VM only.
+# Connects AS the deploy user (no sudo) and talks to its rootless Docker socket.
+---
+- name: Deploy app
+  hosts: app
+  remote_user: "{{ deploy_user }}"
+  vars:
+    backend_version: "{{ image_tag | default(backend_version) }}"
+    frontend_version: "{{ image_tag | default(frontend_version) }}"
+  tasks:
+    - name: Look up the deploy user uid
+      ansible.builtin.getent:
+        database: passwd
+        key: "{{ deploy_user }}"
+
+    - name: Set the rootless Docker connection env
+      ansible.builtin.set_fact:
+        docker_env:
+          DOCKER_HOST: "unix:///run/user/{{ getent_passwd[deploy_user][1] }}/docker.sock"
+          XDG_RUNTIME_DIR: "/run/user/{{ getent_passwd[deploy_user][1] }}"
+
+    - name: Pull new images and recreate changed containers
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_dir }}"
+        pull: always
+        state: present
+      environment: "{{ docker_env | combine({'BACKEND_VERSION': backend_version, 'FRONTEND_VERSION': frontend_version}) }}"
+
+    - name: Apply database migrations
+      ansible.builtin.command:
+        cmd: docker compose run --rm backend alembic upgrade head
+        chdir: "{{ app_dir }}"
+      environment: "{{ docker_env }}"
+      register: migrate
+      changed_when: "'Running upgrade' in migrate.stdout"
