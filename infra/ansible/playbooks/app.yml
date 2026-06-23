@@ -1,0 +1,8 @@
+# One-time app first deploy on the App VM. Run locally by the operator after prepare.
+---
+- name: App first deploy
+  hosts: app
+  vars_files:
+    - "{{ playbook_dir }}/../secrets.yml"
+  roles:
+    - app

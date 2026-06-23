@@ -1,0 +1,79 @@
+# Managed by Ansible (app role). Production compose for the App VM.
+# Prebuilt GHCR images, data stores bound to localhost, edge nginx fronts 80/443.
+services:
+  postgres:
+    image: pgvector/pgvector:pg13
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: {{ postgres_user }}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: {{ postgres_db }}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U {{ postgres_user }} -d {{ postgres_db }}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    image: {{ backend_image }}:${BACKEND_VERSION:-{{ backend_version }}}
+    restart: unless-stopped
+{% if secret_backend == 'envfile' %}
+    env_file:
+      - .env
+{% endif %}
+    environment:
+      ENVIRONMENT: production
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: {{ postgres_db }}
+      POSTGRES_USER: {{ postgres_user }}
+      REDIS_URL: redis://redis:6379/0
+      LLM_PROVIDER: {{ llm_provider }}
+      LLM_MODEL: {{ llm_model }}
+      EMBEDDING_PROVIDER: {{ embedding_provider }}
+      EMBEDDING_MODEL: "{{ embedding_model }}"
+      LANGFUSE_HOST: {{ langfuse_host }}
+      CORS_ALLOW_ORIGINS: '{{ cors_allow_origins | to_json }}'
+      DEBUG_PAGE_ENABLED: "false"
+{% if restrict_to_province | default('') | length > 0 %}
+      RESTRICT_TO_PROVINCE: "{{ restrict_to_province }}"
+{% endif %}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"
+
+  frontend:
+    image: {{ frontend_image }}:${FRONTEND_VERSION:-{{ frontend_version }}}
+    restart: unless-stopped
+    environment:
+      API_BASE_URL: "{{ api_base_url }}"
+      MAPBOX_TOKEN: "{{ mapbox_token }}"
+      ENABLE_DEBUG_PAGE: "{{ enable_debug_page }}"
+    depends_on:
+      - backend
+    ports:
+      - "127.0.0.1:8080:80"
+
+volumes:
+  postgres_data:
+  redis_data:
