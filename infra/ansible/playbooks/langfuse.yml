@@ -1,0 +1,7 @@
+---
+- name: Langfuse stack
+  hosts: langfuse
+  vars_files:
+    - "{{ playbook_dir }}/../secrets.yml"
+  roles:
+    - langfuse

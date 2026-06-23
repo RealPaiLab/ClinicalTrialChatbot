@@ -1,0 +1,29 @@
+---
+- name: Create the langfuse directory
+  ansible.builtin.file:
+    path: "{{ langfuse_dir }}"
+    state: directory
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+    mode: "0750"
+
+- name: Render the prod langfuse compose file
+  ansible.builtin.template:
+    src: docker-compose.langfuse.yml.j2
+    dest: "{{ langfuse_dir }}/docker-compose.yml"
+    owner: "{{ deploy_user }}"
+    mode: "0644"
+
+- name: Render the langfuse .env
+  ansible.builtin.template:
+    src: langfuse.env.j2
+    dest: "{{ langfuse_dir }}/.env"
+    owner: "{{ deploy_user }}"
+    mode: "0600"
+
+- name: Bring up the langfuse stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ langfuse_dir }}"
+    pull: missing
+  become: true
+  become_user: "{{ deploy_user }}"
