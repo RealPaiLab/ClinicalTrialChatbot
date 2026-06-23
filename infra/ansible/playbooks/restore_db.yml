@@ -1,0 +1,9 @@
+# One-time, run locally. Restore the precomputed-embeddings DB dump (marker-guarded).
+# Pass the dump path:  -e db_restore_dump_src=/path/to/ctc_seed.dump
+---
+- name: Restore database
+  hosts: app
+  vars_files:
+    - "{{ playbook_dir }}/../secrets.yml"
+  roles:
+    - db_restore
