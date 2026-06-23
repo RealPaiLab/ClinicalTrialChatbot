@@ -1,0 +1,15 @@
+proxy_type: app
+app_dir: /opt/{{ project_name }}/app
+
+backend_image: "{{ registry }}/{{ registry_owner }}/ctc-backend"
+frontend_image: "{{ registry }}/{{ registry_owner }}/ctc-frontend"
+backend_version: latest
+frontend_version: latest
+
+postgres_db: ctc_db
+postgres_user: ctc
+
+api_base_url: "https://{{ public_domain }}/api"
+enable_debug_page: "false"
+
+langfuse_host: "https://{{ hostvars[groups['langfuse'][0]].public_domain }}"

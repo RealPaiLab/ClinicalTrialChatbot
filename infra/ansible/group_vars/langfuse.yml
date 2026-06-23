@@ -1,0 +1,8 @@
+proxy_type: langfuse
+langfuse_dir: /opt/{{ project_name }}/langfuse
+
+langfuse_web_image: langfuse/langfuse:3
+langfuse_worker_image: langfuse/langfuse-worker:3
+
+postgres_user: ctc
+postgres_db: langfuse
