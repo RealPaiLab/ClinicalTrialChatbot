@@ -1,6 +1,6 @@
 # NEVER commit real secrets or machine-specific overrides
 secrets.yml
+inventory/hosts.yml
 *.local.yml
-inventory/hosts.local.yml
 *.retry
 *.dump
