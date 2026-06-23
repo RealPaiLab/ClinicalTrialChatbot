@@ -1,0 +1,145 @@
+---
+- name: Ensure apt keyrings directory exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Add Docker GPG key
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: "0644"
+
+- name: Add Docker apt repository
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [arch={{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}
+      signed-by=/etc/apt/keyrings/docker.asc]
+      https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+    filename: docker
+    state: present
+
+- name: Install Docker Engine, the compose plugin, and rootless extras
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+      - docker-ce-rootless-extras
+    state: present
+    update_cache: true
+
+# --- Rootful path (Langfuse VM): system daemon, managed by root ---
+- name: Configure the Docker daemon (rootful)
+  ansible.builtin.template:
+    src: daemon.json.j2
+    dest: /etc/docker/daemon.json
+    mode: "0644"
+  notify: Restart docker
+  when: not (docker_rootless | default(false))
+
+- name: Ensure the system Docker daemon is running (rootful)
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+  when: not (docker_rootless | default(false))
+
+# --- Rootless path (App VM): the deploy user runs its own daemon, no root, no docker group ---
+- name: Set up rootless Docker for the deploy user
+  when: docker_rootless | default(false)
+  block:
+    - name: Install rootless Docker prerequisites
+      ansible.builtin.apt:
+        name:
+          - uidmap
+          - dbus-user-session
+          - slirp4netns
+          - fuse-overlayfs
+        state: present
+        update_cache: true
+
+    - name: Ensure subuid/subgid ranges for the deploy user
+      ansible.builtin.lineinfile:
+        path: "{{ item }}"
+        line: "{{ deploy_user }}:100000:65536"
+        regexp: "^{{ deploy_user }}:"
+        create: true
+        mode: "0644"
+      loop:
+        - /etc/subuid
+        - /etc/subgid
+
+    - name: Disable the system (rootful) Docker so only rootless is used
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+        enabled: false
+        masked: true
+      loop:
+        - docker.service
+        - docker.socket
+
+    - name: Remove the leftover rootful Docker socket
+      ansible.builtin.file:
+        path: /var/run/docker.sock
+        state: absent
+
+    - name: Enable lingering so the deploy user's services run at boot
+      ansible.builtin.command: loginctl enable-linger {{ deploy_user }}
+      args:
+        creates: /var/lib/systemd/linger/{{ deploy_user }}
+
+    - name: Look up the deploy user uid
+      ansible.builtin.getent:
+        database: passwd
+        key: "{{ deploy_user }}"
+
+    - name: Ensure the deploy user's systemd instance is running
+      ansible.builtin.systemd:
+        name: "user@{{ getent_passwd[deploy_user][1] }}.service"
+        state: started
+
+    - name: Install rootless Docker for the deploy user
+      ansible.builtin.command: /usr/bin/dockerd-rootless-setuptool.sh install
+      args:
+        creates: "{{ deploy_home }}/.config/systemd/user/docker.service"
+      become: true
+      become_user: "{{ deploy_user }}"
+      environment:
+        XDG_RUNTIME_DIR: "/run/user/{{ getent_passwd[deploy_user][1] }}"
+        DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ getent_passwd[deploy_user][1] }}/bus"
+        PATH: /usr/bin:/bin:/usr/sbin:/sbin
+
+    - name: Enable and start the rootless Docker user service
+      ansible.builtin.systemd:
+        name: docker
+        scope: user
+        enabled: true
+        state: started
+      become: true
+      become_user: "{{ deploy_user }}"
+      environment:
+        XDG_RUNTIME_DIR: "/run/user/{{ getent_passwd[deploy_user][1] }}"
+        DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ getent_passwd[deploy_user][1] }}/bus"
+
+    - name: Verify the rootless Docker socket answers as the deploy user
+      ansible.builtin.command: docker info --format '{{ "{{.ServerVersion}}" }}'
+      become: true
+      become_user: "{{ deploy_user }}"
+      environment:
+        DOCKER_HOST: "unix:///run/user/{{ getent_passwd[deploy_user][1] }}/docker.sock"
+        XDG_RUNTIME_DIR: "/run/user/{{ getent_passwd[deploy_user][1] }}"
+        PATH: /usr/bin:/bin:/usr/sbin:/sbin
+      register: docker_rootless_check
+      changed_when: false
+      retries: 5
+      delay: 3
+      until: docker_rootless_check.rc == 0
+
+    - name: Show the rootless Docker server version
+      ansible.builtin.debug:
+        msg: "Rootless Docker OK for {{ deploy_user }} (server {{ docker_rootless_check.stdout }})"

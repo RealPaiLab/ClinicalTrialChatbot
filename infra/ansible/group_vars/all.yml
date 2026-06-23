@@ -2,6 +2,7 @@
 
 project_name: ctc
 deploy_user: deploy
+deploy_home: "/home/{{ deploy_user }}"
 timezone: UTC
 
 # SSH (port 22) allow-list. Will finalize once IT confirms the platform:

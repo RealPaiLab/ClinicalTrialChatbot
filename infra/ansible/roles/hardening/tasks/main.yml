@@ -1,0 +1,52 @@
+---
+- name: Harden sshd
+  ansible.builtin.template:
+    src: sshd_hardening.conf.j2
+    dest: /etc/ssh/sshd_config.d/10-hardening.conf
+    mode: "0644"
+  notify: Restart sshd
+
+- name: Default-deny inbound traffic
+  community.general.ufw:
+    direction: incoming
+    policy: deny
+
+- name: Allow all outbound traffic
+  community.general.ufw:
+    direction: outgoing
+    policy: allow
+
+- name: Allow SSH for explicitly defined IPs
+  community.general.ufw:
+    rule: allow
+    port: "22"
+    proto: tcp
+    src: "{{ item }}"
+  loop: "{{ admin_cidrs }}"
+
+- name: Allow HTTP and HTTPS
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - "80"
+    - "443"
+
+- name: Enable the firewall
+  community.general.ufw:
+    state: enabled
+
+- name: Enable fail2ban
+  ansible.builtin.service:
+    name: fail2ban
+    enabled: true
+    state: started
+
+- name: Enable unattended security upgrades
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+    mode: "0644"

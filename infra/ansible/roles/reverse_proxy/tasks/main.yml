@@ -1,0 +1,43 @@
+---
+- name: Install nginx and certbot
+  ansible.builtin.apt:
+    name:
+      - nginx
+      - certbot
+      - python3-certbot-nginx
+    state: present
+    update_cache: true
+
+- name: Render the site config
+  ansible.builtin.template:
+    src: site.conf.j2
+    dest: /etc/nginx/sites-available/{{ project_name }}.conf
+    mode: "0644"
+  notify: Reload nginx
+
+- name: Enable the site
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/{{ project_name }}.conf
+    dest: /etc/nginx/sites-enabled/{{ project_name }}.conf
+    state: link
+  notify: Reload nginx
+
+- name: Remove the default site
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Reload nginx
+
+- name: Ensure nginx is running
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: Obtain a Let's Encrypt certificate
+  ansible.builtin.command:
+    cmd: >-
+      certbot --nginx -d {{ public_domain }}
+      --non-interactive --agree-tos -m {{ certbot_email }} --redirect
+    creates: /etc/letsencrypt/live/{{ public_domain }}/fullchain.pem
+  when: certbot_enabled | bool

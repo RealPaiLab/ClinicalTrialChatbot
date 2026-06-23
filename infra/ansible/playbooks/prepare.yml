@@ -1,0 +1,11 @@
+# One-time base setup + hardening on both VMs. Run locally by the operator.
+---
+- name: Base setup (both VMs)
+  hosts: app:langfuse
+  vars_files:
+    - "{{ playbook_dir }}/../secrets.yml"
+  roles:
+    - common
+    - hardening
+    - docker
+    - reverse_proxy

@@ -1,0 +1,32 @@
+---
+- name: Install base packages
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+      - postgresql-client
+      - python3-docker
+      - ufw
+      - fail2ban
+      - unattended-upgrades
+    state: present
+    update_cache: true
+
+- name: Set timezone
+  community.general.timezone:
+    name: "{{ timezone }}"
+
+- name: Create the deploy user
+  ansible.builtin.user:
+    name: "{{ deploy_user }}"
+    shell: /bin/bash
+    create_home: true
+
+- name: Authorize SSH public keys on the deploy user (exclusive)
+  ansible.posix.authorized_key:
+    user: "{{ deploy_user }}"
+    key: '{{ deploy_authorized_keys | default([]) | select | list | join("\n") }}'
+    state: present
+    exclusive: true
+  when: deploy_authorized_keys | default([]) | select | list | length > 0
