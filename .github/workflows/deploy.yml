@@ -1,0 +1,92 @@
+name: Deploy
+
+# Reusable + manual rollback via the Actions UI.
+# Manual runs are rollback-only: they swap the image version and skip migrations.
+on:
+  workflow_call:
+    inputs:
+      package:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Package to roll back
+        required: true
+        type: choice
+        options:
+          - backend
+          - frontend
+      version:
+        description: Image version to deploy (e.g. 1.2.3)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy ${{ inputs.package }} ${{ inputs.version }}
+    runs-on: ubuntu-latest
+    environment: production # optional approval gate (configure required reviewers in repo settings)
+    concurrency:
+      group: deploy-app
+      cancel-in-progress: false
+    defaults:
+      run:
+        working-directory: infra/ansible
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+
+      - name: Install Ansible and collections
+        run: |
+          pip install ansible-core
+          ansible-galaxy collection install -r requirements.yml
+
+      - name: Write the deploy SSH key
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+      - name: Trust the App VM host key
+        env:
+          APP_VM_HOST: ${{ secrets.APP_VM_HOST }}
+        run: ssh-keyscan -H "$APP_VM_HOST" >> ~/.ssh/known_hosts
+
+      - name: Write the inventory (App VM under the app group)
+        env:
+          APP_VM_HOST: ${{ secrets.APP_VM_HOST }}
+        run: |
+          cat > inventory/hosts.yml <<EOF
+          all:
+            children:
+              app:
+                hosts:
+                  app-vm:
+                    ansible_host: $APP_VM_HOST
+          EOF
+
+      # Release (push) runs migrations; manual rollback (workflow_dispatch) skips them.
+      - name: Deploy the package
+        env:
+          PACKAGE: ${{ inputs.package }}
+          VERSION: ${{ inputs.version }}
+          RUN_MIGRATIONS: ${{ github.event_name == 'workflow_dispatch' && 'false' || 'true' }}
+        run: |
+          ansible-playbook playbooks/deploy.yml \
+            --private-key ~/.ssh/deploy_key \
+            -e deploy_package="$PACKAGE" \
+            -e image_tag="$VERSION" \
+            -e run_migrations="$RUN_MIGRATIONS"
