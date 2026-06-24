@@ -4,15 +4,27 @@
     name:
       - nginx
       - certbot
-      - python3-certbot-nginx
     state: present
     update_cache: true
 
-- name: Render the site config
+- name: Create the ACME webroot
+  ansible.builtin.file:
+    path: "{{ reverse_proxy_certbot_webroot }}"
+    state: directory
+    mode: "0755"
+
+- name: Check whether the TLS certificate already exists
+  ansible.builtin.stat:
+    path: /etc/letsencrypt/live/{{ public_domain }}/fullchain.pem
+  register: reverse_proxy_tls_cert
+
+- name: Render the site config (HTTP bootstrap)
   ansible.builtin.template:
     src: site.conf.j2
     dest: /etc/nginx/sites-available/{{ project_name }}.conf
     mode: "0644"
+  vars:
+    tls_enabled: "{{ reverse_proxy_tls_cert.stat.exists | bool }}"
   notify: Reload nginx
 
 - name: Enable the site
@@ -34,10 +46,36 @@
     state: started
     enabled: true
 
-- name: Obtain a Let's Encrypt certificate
+- name: Apply the HTTP config so the ACME challenge is reachable
+  ansible.builtin.meta: flush_handlers
+
+- name: Obtain the certificate (webroot)
   ansible.builtin.command:
     cmd: >-
-      certbot --nginx -d {{ public_domain }}
-      --non-interactive --agree-tos -m {{ certbot_email }} --redirect
+      certbot certonly --webroot -w {{ reverse_proxy_certbot_webroot }}
+      -d {{ public_domain }} --non-interactive --agree-tos -m {{ certbot_email }}
     creates: /etc/letsencrypt/live/{{ public_domain }}/fullchain.pem
   when: certbot_enabled | bool
+
+- name: Install the nginx reload hook for cert renewals
+  ansible.builtin.copy:
+    dest: /etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh
+    content: |
+      #!/bin/sh
+      systemctl reload nginx
+    mode: "0755"
+  when: certbot_enabled | bool
+
+- name: Re-check the certificate after issuance
+  ansible.builtin.stat:
+    path: /etc/letsencrypt/live/{{ public_domain }}/fullchain.pem
+  register: reverse_proxy_tls_cert_final
+
+- name: Render the site config (final, TLS when the cert is present)
+  ansible.builtin.template:
+    src: site.conf.j2
+    dest: /etc/nginx/sites-available/{{ project_name }}.conf
+    mode: "0644"
+  vars:
+    tls_enabled: "{{ reverse_proxy_tls_cert_final.stat.exists | bool }}"
+  notify: Reload nginx

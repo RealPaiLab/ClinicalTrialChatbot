@@ -3,6 +3,7 @@
 - name: Deploy app
   hosts: app
   remote_user: "{{ deploy_user }}"
+  become: false
   vars:
     version_var: "{{ 'BACKEND_VERSION' if deploy_package == 'backend' else 'FRONTEND_VERSION' }}"
   tasks:

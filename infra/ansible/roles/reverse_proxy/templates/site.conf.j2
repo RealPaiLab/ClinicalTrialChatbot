@@ -1,18 +1,7 @@
-# Managed by Ansible (reverse_proxy role).
-# certbot rewrites this to add the :443 server block and the 80->443 redirect.
-server {
-    listen 80;
-    server_name {{ public_domain }};
-
-    client_max_body_size 10m;
-
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-
-{% if proxy_type == 'app' %}
-    # API → backend container (localhost-bound)
+# Managed by Ansible (reverse_proxy role). Single source of truth: certbot only
+# issues/renews the cert and never edits this file.
+{% macro app_locations() %}
+    # API -> backend container (localhost-bound). SSE-safe: never buffer the stream.
     location /api/ {
         proxy_pass http://127.0.0.1:8000/;
         proxy_http_version 1.1;
@@ -21,18 +10,56 @@ server {
         proxy_cache off;
         proxy_read_timeout 3600s;
     }
-
-    # SPA → frontend container (localhost-bound)
+    # SPA -> frontend container (localhost-bound).
     location / {
         proxy_pass http://127.0.0.1:8080/;
     }
-{% else %}
-    # Langfuse dashboard → langfuse-web container (localhost-bound)
+{% endmacro %}
+{% macro langfuse_locations() %}
     location / {
         proxy_pass http://127.0.0.1:3000/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
     }
+{% endmacro %}
+{% set locations = app_locations if proxy_type == 'app' else langfuse_locations %}
+server {
+    listen 80;
+    server_name {{ public_domain }};
+
+    location /.well-known/acme-challenge/ {
+        root {{ reverse_proxy_certbot_webroot }};
+    }
+
+{% if tls_enabled %}
+    location / {
+        return 301 https://$host$request_uri;
+    }
+{% else %}
+    client_max_body_size 10m;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+{{ locations() }}
 {% endif %}
 }
+{% if tls_enabled %}
+server {
+    listen 443 ssl;
+    server_name {{ public_domain }};
+
+    ssl_certificate /etc/letsencrypt/live/{{ public_domain }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ public_domain }}/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+
+    client_max_body_size 10m;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+{{ locations() }}
+}
+{% endif %}
