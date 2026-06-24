@@ -1,0 +1,6 @@
+project_name: ctc
+deploy_user: deploy
+deploy_home: "/home/{{ deploy_user }}"
+timezone: UTC
+registry: ghcr.io
+certbot_enabled: true

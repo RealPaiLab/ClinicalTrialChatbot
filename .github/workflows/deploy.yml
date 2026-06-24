@@ -31,7 +31,7 @@ permissions:
 jobs:
   deploy:
     name: Deploy ${{ inputs.package }} ${{ inputs.version }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, deploy]
     environment: production # optional approval gate (configure required reviewers in repo settings)
     concurrency:
       group: deploy-app

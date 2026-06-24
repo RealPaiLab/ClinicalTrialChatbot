@@ -9,9 +9,9 @@ Two cadences:
 
 ```bash
 ansible-galaxy install -r requirements.yml
-cp secrets.yml.example secrets.yml                    # fill in with secrets (gitignored)
-cp inventory/hosts.example.yml inventory/hosts.yml   # fill in VM IPs, SSH user, domains (gitignored)
-# edit group_vars/all.yml (registry_owner, certbot_email)
+cp secrets.yml.example secrets.yml                           # secrets (gitignored)
+cp inventory/hosts.example.yml inventory/hosts.yml          # VM IPs, SSH user, domains (gitignored)
+cp group_vars/all/local.example.yml group_vars/all/local.yml # admin_cidrs, registry_owner, certbot_email (gitignored)
 ```
 
 ## One-time bring-up (local)
@@ -45,8 +45,4 @@ Manual (dispatch) runs skip migrations and only swap the image version.
 
 ## Secrets
 
-No vault, nothing secret in git. `secret_backend` in `group_vars/all.yml`:
-
-- `envfile` (on-prem): renders a `0600 .env` on the App VM during prepare. **Implemented.**
-- `cloud`: **planned, not yet implemented.** The intent is for the VM's instance role to
-  let the app fetch secrets from the cloud secret manager at startup.
+No vault, nothing secret in git. Secrets live only in a gitignored local `secrets.yml`.

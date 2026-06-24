@@ -14,20 +14,12 @@
     owner: "{{ deploy_user }}"
     mode: "0644"
 
-- name: Render the backend .env (envfile backend)
+- name: Render the backend .env
   ansible.builtin.template:
     src: app.env.j2
     dest: "{{ app_dir }}/.env"
     owner: "{{ deploy_user }}"
     mode: "0600"
-  when: secret_backend == 'envfile'
-
-- name: Push app secrets to the cloud secret manager (cloud backend)
-  ansible.builtin.debug:
-    msg: >-
-      TODO (secret_backend=cloud): push the secret inventory to the cloud secret
-      manager and rely on the VM instance role + app startup fetch. No .env is written.
-  when: secret_backend == 'cloud'
 
 - name: Look up the deploy user uid
   ansible.builtin.getent:
