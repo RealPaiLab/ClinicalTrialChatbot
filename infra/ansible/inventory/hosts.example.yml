@@ -7,9 +7,11 @@ all:
       hosts:
         app-vm:
           ansible_host: REPLACE_WITH_APP_VM_IP
+          private_ip: REPLACE_WITH_APP_VM_PRIVATE_IP
           public_domain: chatbot.example.org
     langfuse:
       hosts:
         langfuse-vm:
           ansible_host: REPLACE_WITH_LANGFUSE_VM_IP
+          private_ip: REPLACE_WITH_LANGFUSE_VM_PRIVATE_IP
           public_domain: langfuse.example.org

@@ -21,6 +21,13 @@
     owner: root
     mode: "0600"
 
+- name: Allow trace ingest on port 3000 from the App VM only
+  community.general.ufw:
+    rule: allow
+    port: "3000"
+    proto: tcp
+    src: "{{ hostvars[groups['app'][0]].private_ip }}"
+
 - name: Bring up the langfuse stack
   community.docker.docker_compose_v2:
     project_src: "{{ langfuse_dir }}"
