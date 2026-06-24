@@ -19,5 +19,5 @@ registry_owner: REPLACE_WITH_OWNER
 certbot_enabled: true
 certbot_email: REPLACE_WITH_EMAIL
 
-# Secret gate
+# Secret backend: "envfile" (implemented) | "cloud" (planned).
 secret_backend: envfile
