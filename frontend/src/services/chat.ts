@@ -6,6 +6,12 @@ import type { StreamEvent } from '@/types/trial';
 const API_BASE = config.apiBaseUrl;
 const SSE_DATA_PREFIX = 'data:';
 
+function parseRetryAfter(value: string | null): number | undefined {
+  if (value === null || value.trim() === '') return undefined;
+  const seconds = Number(value);
+  return Number.isFinite(seconds) && seconds >= 0 ? seconds : undefined;
+}
+
 export class ChatRequestError extends Error {
   readonly status: number;
   readonly retryAfter?: number;
@@ -21,7 +27,7 @@ export class ChatRequestError extends Error {
 export function chatErrorMessage(error: unknown): string {
   if (error instanceof ChatRequestError) {
     if (error.status === 429) {
-      return error.retryAfter
+      return error.retryAfter !== undefined && error.retryAfter > 0
         ? `You're sending messages too quickly. Please wait ${error.retryAfter}s and try again.`
         : CHAT_ERROR.rateLimited;
     }
@@ -89,7 +95,7 @@ export async function* streamChat({
   });
 
   if (!response.ok || !response.body) {
-    const retryAfter = Number(response.headers.get('Retry-After')) || undefined;
+    const retryAfter = parseRetryAfter(response.headers.get('Retry-After'));
     throw new ChatRequestError(response.status, retryAfter);
   }
 
