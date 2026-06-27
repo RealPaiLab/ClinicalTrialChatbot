@@ -8,9 +8,12 @@ from agents.clinical_trials.agent import get_clinical_trials_agent
 from agents.clinical_trials.dependencies import AgentDeps, TrialSearch
 from agents.clinical_trials.output import AgentResponse
 from core.langfuse import get_langfuse_client, trace_id_from_session
+from core.logger import get_logger
 from repository.glossary_repository import GlossaryRepository
 from schemas.chat import ChatResult
 from services.conversation_service import ConversationService
+
+logger = get_logger(__name__)
 
 StreamItem = AgentResponse | ChatResult
 
@@ -45,7 +48,6 @@ class ChatService:
             trial_search=self._trial_search,
             glossary=GlossaryRepository(),
         )
-        history = await self._conversation_service.get_history(session_id)
 
         with (
             propagate_attributes(session_id=session_id),
@@ -56,20 +58,28 @@ class ChatService:
                 input=user_message,
             ) as span,
         ):
-            async with self._agent.run_stream(
-                user_message, deps=deps, message_history=history or None
-            ) as result:
-                async for partial in result.stream_output(debounce_by=0.05):
-                    yield partial
-                output = await result.get_output()
-                messages = result.all_messages()
+            try:
+                history = await self._conversation_service.get_history(session_id)
+                async with self._agent.run_stream(
+                    user_message, deps=deps, message_history=history or None
+                ) as result:
+                    async for partial in result.stream_output(debounce_by=0.05):
+                        yield partial
+                    output = await result.get_output()
+                    messages = result.all_messages()
 
-            await self._conversation_service.save_history(session_id, messages)
-            chat_result = self._to_chat_result(output, deps)
-            observation_id = self._langfuse.get_current_observation_id()
-            chat_result.observation_id = observation_id or ""
-            span.update(output=chat_result.message)
-            yield chat_result
+                await self._conversation_service.save_history(session_id, messages)
+                chat_result = self._to_chat_result(output, deps)
+                observation_id = self._langfuse.get_current_observation_id()
+                chat_result.observation_id = observation_id or ""
+                span.update(output=chat_result.message)
+                yield chat_result
+            except Exception as exc:
+                logger.exception(
+                    "Chat turn failed (session=%s): %s", session_id, type(exc).__name__
+                )
+                span.update(level="ERROR", status_message=str(exc))
+                raise
 
     async def reset(self, session_id: str) -> None:
         """Clear a session's history (e.g. the CLI 'new' command)."""
