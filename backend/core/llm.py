@@ -2,6 +2,7 @@ from collections.abc import Callable
 from enum import StrEnum
 from functools import lru_cache
 
+import httpx
 from pydantic_ai.models import Model
 from pydantic_ai.models.ollama import OllamaModel
 from pydantic_ai.models.openai import OpenAIChatModel
@@ -9,6 +10,7 @@ from pydantic_ai.providers.ollama import OllamaProvider
 from pydantic_ai.providers.openai import OpenAIProvider
 
 from core.config import Settings, get_settings
+from core.http_retry import build_retrying_client
 
 
 class LLMProvider(StrEnum):
@@ -26,11 +28,21 @@ class OpenAIModelName(StrEnum):
     GPT_5_4 = "gpt-5.4"
 
 
+def _http_client(settings: Settings) -> httpx.AsyncClient:
+    return build_retrying_client(
+        max_retries=settings.llm_max_retries,
+        max_wait=settings.llm_retry_max_wait,
+        read_timeout=settings.llm_request_timeout,
+    )
+
+
 def _build_ollama(model: str, settings: Settings) -> Model:
     name = OllamaModelName(model)
     return OllamaModel(
         name.value,
-        provider=OllamaProvider(base_url=settings.ollama_base_url),
+        provider=OllamaProvider(
+            base_url=settings.ollama_base_url, http_client=_http_client(settings)
+        ),
     )
 
 
@@ -40,7 +52,9 @@ def _build_openai(model: str, settings: Settings) -> Model:
         raise ValueError("OPENAI_API_KEY is required when LLM_PROVIDER=openai")
     return OpenAIChatModel(
         name.value,
-        provider=OpenAIProvider(api_key=settings.openai_api_key),
+        provider=OpenAIProvider(
+            api_key=settings.openai_api_key, http_client=_http_client(settings)
+        ),
     )
 
 

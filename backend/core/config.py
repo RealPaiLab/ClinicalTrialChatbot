@@ -49,6 +49,11 @@ class Settings(BaseSettings):
     debug_page_enabled: bool = False
 
     agent_tool_calls_limit: int = 10
+
+    llm_max_retries: int = 3
+    llm_retry_max_wait: float = 30.0
+    llm_request_timeout: float = 60.0
+
     nci_glossary_base_url: str = "https://webapis.cancer.gov/glossary/v1"
     nci_drug_dictionary_base_url: str = "https://webapis.cancer.gov/drugdictionary/v1"
 

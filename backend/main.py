@@ -8,6 +8,7 @@ from sqlalchemy import text
 from core.config import get_settings
 from core.database import engine, read_engine
 from core.embeddings import get_embedder
+from core.exception_handlers import register_exception_handlers
 from core.langfuse import setup_langfuse
 from routes import chat, debug, feedback, trials
 
@@ -34,6 +35,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+register_exception_handlers(app)
 
 app.include_router(chat.router)
 app.include_router(trials.router)
