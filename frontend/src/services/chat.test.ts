@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { parseEventStream, streamChat } from './chat';
-import { StreamEventType } from '@/constants/chat';
+import { ChatRequestError, chatErrorMessage, parseEventStream, streamChat } from './chat';
+import { CHAT_ERROR, StreamEventType } from '@/constants/chat';
 import type { StreamEvent } from '@/types/trial';
 import { createSseStream, mockWireStreamLines } from '@/test/fixtures/trials';
 
@@ -65,8 +65,39 @@ describe('streamChat', () => {
     expect(events).toHaveLength(3);
   });
 
-  it('throws when the response is not ok', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('nope', { status: 500 })));
-    await expect(collect(streamChat({ sessionId: 's', message: 'm' }))).rejects.toThrow(/500/);
+  it('throws a ChatRequestError carrying the status and Retry-After', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValue(
+          new Response('slow down', { status: 429, headers: { 'Retry-After': '12' } })
+        )
+    );
+    await expect(collect(streamChat({ sessionId: 's', message: 'm' }))).rejects.toMatchObject({
+      status: 429,
+      retryAfter: 12,
+    });
+  });
+});
+
+describe('chatErrorMessage', () => {
+  it('returns a rate-limit message for 429, with the retry delay when present', () => {
+    expect(chatErrorMessage(new ChatRequestError(429))).toBe(CHAT_ERROR.rateLimited);
+    expect(chatErrorMessage(new ChatRequestError(429, 12))).toContain('12s');
+  });
+
+  it('distinguishes unavailable (5xx gateway) from generic server errors', () => {
+    expect(chatErrorMessage(new ChatRequestError(503))).toBe(CHAT_ERROR.unavailable);
+    expect(chatErrorMessage(new ChatRequestError(500))).toBe(CHAT_ERROR.serverError);
+  });
+
+  it('treats a failed fetch (TypeError) as a network error', () => {
+    expect(chatErrorMessage(new TypeError('Failed to fetch'))).toBe(CHAT_ERROR.network);
+  });
+
+  it('falls back to a generic message for unknown errors and 4xx', () => {
+    expect(chatErrorMessage(new ChatRequestError(400))).toBe(CHAT_ERROR.generic);
+    expect(chatErrorMessage(new Error('boom'))).toBe(CHAT_ERROR.generic);
   });
 });

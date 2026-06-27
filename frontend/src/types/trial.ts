@@ -61,4 +61,5 @@ export interface ChatMessage {
   trials?: Trial[];
   followUpQuestions?: string[];
   observationId?: string;
+  isError?: boolean;
 }

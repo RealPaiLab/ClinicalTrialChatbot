@@ -1,9 +1,39 @@
 import camelcaseKeys from 'camelcase-keys';
 import { config } from '@/config';
+import { CHAT_ERROR } from '@/constants/chat';
 import type { StreamEvent } from '@/types/trial';
 
 const API_BASE = config.apiBaseUrl;
 const SSE_DATA_PREFIX = 'data:';
+
+export class ChatRequestError extends Error {
+  readonly status: number;
+  readonly retryAfter?: number;
+
+  constructor(status: number, retryAfter?: number) {
+    super(`Chat request failed with status ${status}`);
+    this.name = 'ChatRequestError';
+    this.status = status;
+    this.retryAfter = retryAfter;
+  }
+}
+
+export function chatErrorMessage(error: unknown): string {
+  if (error instanceof ChatRequestError) {
+    if (error.status === 429) {
+      return error.retryAfter
+        ? `You're sending messages too quickly. Please wait ${error.retryAfter}s and try again.`
+        : CHAT_ERROR.rateLimited;
+    }
+    if (error.status === 502 || error.status === 503 || error.status === 504) {
+      return CHAT_ERROR.unavailable;
+    }
+    if (error.status >= 500) return CHAT_ERROR.serverError;
+    return CHAT_ERROR.generic;
+  }
+  if (error instanceof TypeError) return CHAT_ERROR.network;
+  return CHAT_ERROR.generic;
+}
 
 export interface StreamChatParams {
   sessionId: string;
@@ -59,7 +89,8 @@ export async function* streamChat({
   });
 
   if (!response.ok || !response.body) {
-    throw new Error(`Chat request failed with status ${response.status}`);
+    const retryAfter = Number(response.headers.get('Retry-After')) || undefined;
+    throw new ChatRequestError(response.status, retryAfter);
   }
 
   yield* parseEventStream(response.body);

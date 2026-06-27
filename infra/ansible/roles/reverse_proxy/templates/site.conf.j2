@@ -1,8 +1,25 @@
 # Managed by Ansible (reverse_proxy role). Single source of truth: certbot only
 # issues/renews the cert and never edits this file.
 {% macro app_locations() %}
-    # API -> backend container (localhost-bound). SSE-safe: never buffer the stream.
+    # Chat API -> backend. Tighter rate limit (each turn is an expensive LLM call).
+    location /api/chat/ {
+{% if reverse_proxy_rate_limit_enabled | default(true) %}
+        limit_req zone=chat burst={{ reverse_proxy_chat_burst }} nodelay;
+        limit_req_status 429;
+{% endif %}
+        proxy_pass http://127.0.0.1:8000/chat/;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 3600s;
+    }
+    # Rest of the API -> backend (localhost-bound). Looser volumetric limit.
     location /api/ {
+{% if reverse_proxy_rate_limit_enabled | default(true) %}
+        limit_req zone=api burst={{ reverse_proxy_api_burst }} nodelay;
+        limit_req_status 429;
+{% endif %}
         proxy_pass http://127.0.0.1:8000/;
         proxy_http_version 1.1;
         proxy_set_header Connection "";
@@ -24,6 +41,11 @@
     }
 {% endmacro %}
 {% set locations = app_locations if proxy_type == 'app' else langfuse_locations %}
+{% if proxy_type == 'app' and reverse_proxy_rate_limit_enabled | default(true) %}
+# Rate-limit zones (http context).
+limit_req_zone $binary_remote_addr zone=chat:10m rate={{ reverse_proxy_chat_rate }};
+limit_req_zone $binary_remote_addr zone=api:10m rate={{ reverse_proxy_api_rate }};
+{% endif %}
 server {
     listen 80;
     server_name {{ public_domain }};

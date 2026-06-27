@@ -25,6 +25,14 @@ export const FEEDBACK = {
   submittedLabel: 'Thanks for the feedback',
 } as const;
 
+export const CHAT_ERROR = {
+  rateLimited: "You're sending messages too quickly. Please wait a moment and try again.",
+  unavailable: 'The assistant is temporarily unavailable. Please try again shortly.',
+  serverError: 'Something went wrong on our end. Please try again in a moment.',
+  network: "Couldn't reach the server. Check your connection and try again.",
+  generic: 'Something went wrong. Please try again.',
+} as const;
+
 export const StreamEventType = {
   AgentResponse: 'AgentResponse',
   ChatResult: 'ChatResult',

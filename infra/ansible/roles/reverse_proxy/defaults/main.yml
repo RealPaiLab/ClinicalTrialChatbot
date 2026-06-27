@@ -1,2 +1,10 @@
 ---
 reverse_proxy_certbot_webroot: /var/www/certbot
+
+reverse_proxy_rate_limit_enabled: true
+
+reverse_proxy_chat_rate: 10r/m
+reverse_proxy_chat_burst: 10
+
+reverse_proxy_api_rate: 10r/s
+reverse_proxy_api_burst: 20
