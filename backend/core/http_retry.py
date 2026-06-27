@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+from functools import lru_cache
+
 import httpx
 from pydantic_ai.retries import AsyncTenacityTransport, RetryConfig, wait_retry_after
 from tenacity import retry_if_exception, stop_after_attempt, wait_exponential
 
-_RETRYABLE_STATUS = {408, 409, 429, 500, 502, 503, 504}
+from core.config import get_settings
+
+_RETRYABLE_STATUS = {408, 429, 502, 503, 504}
 _RETRYABLE_NETWORK = (
     httpx.TimeoutException,
     httpx.ConnectError,
@@ -39,3 +43,21 @@ def build_retrying_client(
         transport=transport,
         timeout=httpx.Timeout(read_timeout, connect=10.0),
     )
+
+
+@lru_cache
+def get_retrying_client() -> httpx.AsyncClient:
+    """Process-wide shared retrying client (injected into all model providers)."""
+    settings = get_settings()
+    return build_retrying_client(
+        max_retries=settings.llm_max_retries,
+        max_wait=settings.llm_retry_max_wait,
+        read_timeout=settings.llm_request_timeout,
+    )
+
+
+async def aclose_retrying_client() -> None:
+    """Close the shared client (call on app shutdown). No-op if never created."""
+    if get_retrying_client.cache_info().currsize:
+        await get_retrying_client().aclose()
+        get_retrying_client.cache_clear()

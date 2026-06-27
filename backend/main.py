@@ -9,6 +9,7 @@ from core.config import get_settings
 from core.database import engine, read_engine
 from core.embeddings import get_embedder
 from core.exception_handlers import register_exception_handlers
+from core.http_retry import aclose_retrying_client
 from core.langfuse import setup_langfuse
 from routes import chat, debug, feedback, trials
 
@@ -22,7 +23,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     if get_settings().embedding_warmup:
         await get_embedder().embed_query("warmup")
     yield
-    # Shutdown: dispose both connection pools
+    # Shutdown: close the shared HTTP client and dispose both connection pools
+    await aclose_retrying_client()
     await engine.dispose()
     await read_engine.dispose()
 

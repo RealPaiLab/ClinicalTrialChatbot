@@ -2,7 +2,6 @@ from collections.abc import Callable
 from enum import StrEnum
 from functools import lru_cache
 
-import httpx
 from pydantic_ai.embeddings import Embedder, EmbeddingSettings
 from pydantic_ai.embeddings.openai import OpenAIEmbeddingModel
 from pydantic_ai.providers.ollama import OllamaProvider
@@ -11,7 +10,7 @@ from pydantic_ai.providers.openai import OpenAIProvider
 from core.config import Settings, get_settings
 from core.embeddings.base import EXPECTED_DIMENSIONS
 from core.embeddings.pydantic_ai_embedder import PydanticAIEmbedder
-from core.http_retry import build_retrying_client
+from core.http_retry import get_retrying_client
 
 
 def _resolve_model[E: StrEnum](options: type[E], configured: str, default: E) -> E:
@@ -45,14 +44,6 @@ QUERY_PREFIXES: dict[OllamaEmbeddingModelName, str] = {
 }
 
 
-def _http_client(settings: Settings) -> httpx.AsyncClient:
-    return build_retrying_client(
-        max_retries=settings.llm_max_retries,
-        max_wait=settings.llm_retry_max_wait,
-        read_timeout=settings.llm_request_timeout,
-    )
-
-
 def _build_ollama(
     model: str | None, settings: Settings, instrument: bool | None
 ) -> PydanticAIEmbedder:
@@ -65,7 +56,7 @@ def _build_ollama(
         OpenAIEmbeddingModel(
             name.value,
             provider=OllamaProvider(
-                base_url=settings.ollama_base_url, http_client=_http_client(settings)
+                base_url=settings.ollama_base_url, http_client=get_retrying_client()
             ),
         ),
         instrument=instrument,
@@ -87,7 +78,7 @@ def _build_openai(
         OpenAIEmbeddingModel(
             name.value,
             provider=OpenAIProvider(
-                api_key=settings.openai_api_key, http_client=_http_client(settings)
+                api_key=settings.openai_api_key, http_client=get_retrying_client()
             ),
         ),
         settings=EmbeddingSettings(dimensions=EXPECTED_DIMENSIONS),
