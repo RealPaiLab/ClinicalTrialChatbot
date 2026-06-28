@@ -38,7 +38,7 @@ exclude = ["alembic/versions/*"]
 select = ["E", "F", "I", "UP", "B", "SIM"]
 ignore = ["UP043"]
 [tool.ruff.lint.isort]
-known-first-party = ["core", "models", "schemas", "repository", "services", "routes", "scripts", "utils"]
+known-first-party = ["core", "models", "schemas", "repository", "services", "routes", "scripts", "utils", "evals"]
 
 [tool.mypy]
 python_version = "3.14"
