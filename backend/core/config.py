@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434/v1"
     openai_api_key: str | None = None
 
+    eval_llm_model: str = "gpt-5.4-mini"
+
     embedding_provider: str = "openai"
     embedding_model: str = "text-embedding-3-large"
     embedding_batch_size: int = 16
