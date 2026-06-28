@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from evals.metrics.types import GenerationCase, RetrievalCase
+from evals.metrics.generic.types import GenerationCase, RetrievalCase
 from evals.schemas.expected import ExpectedOutput
 from evals.schemas.output import AgentEvalOutput
 from evals.schemas.turn import Turn
