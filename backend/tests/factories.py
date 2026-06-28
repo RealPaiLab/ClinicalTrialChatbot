@@ -10,6 +10,10 @@ from pydantic_ai.models.test import TestModel
 from pydantic_ai.usage import RunUsage
 
 from agents.clinical_trials.dependencies import AgentDeps
+from evals.schemas.expected import ExpectedOutput
+from evals.schemas.sample import EvalSample
+from evals.schemas.tool_call import ToolCall
+from evals.schemas.turn import Turn
 from models.location import Location
 from models.trial import Trial
 from models.trial_site import TrialSite
@@ -181,3 +185,32 @@ def make_test_model(
 def make_run_context(deps: AgentDeps) -> RunContext[AgentDeps]:
     """A minimal RunContext for calling tools directly."""
     return RunContext(deps=deps, model=TestModel(), usage=RunUsage())
+
+
+def make_eval_sample(
+    *,
+    question: str = "breast cancer trials recruiting in Quebec",
+    nct_numbers: Sequence[str] = ("NCT01", "NCT02"),
+    expected_tools: Sequence[ToolCall] | None = None,
+    glossary_terms: Sequence[str] = ("metastatic",),
+    reference_facts: Sequence[str] | None = ("NCT01 is recruiting in Quebec.",),
+) -> EvalSample:
+    """Build a fully-populated single-turn EvalSample for eval-schema tests."""
+    if expected_tools is None:
+        expected_tools = [
+            ToolCall(
+                name="syntactic_search",
+                args={"cancer_types": ["breast"], "locations": ["Quebec"]},
+            )
+        ]
+    return EvalSample(
+        input=[Turn(role="user", content=question)],
+        expected=ExpectedOutput(
+            nct_numbers=list(nct_numbers),
+            expected_tools=list(expected_tools),
+            glossary_terms=list(glossary_terms),
+            reference_facts=list(reference_facts)
+            if reference_facts is not None
+            else None,
+        ),
+    )
