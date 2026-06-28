@@ -1,16 +1,14 @@
 from __future__ import annotations
 
-from evals.metrics.generic.base import MetricResult
-from evals.metrics.generic.types import GenerationCase
+from deepeval.metrics import BaseMetric, FaithfulnessMetric
+
+from evals.metrics.generic.llm_judged.base import DeepEvalMetric
 
 
-class Faithfulness:
+class Faithfulness(DeepEvalMetric):
     """Are the answer's claims grounded in the provided contexts?"""
 
     name = "faithfulness"
 
-    def __init__(self, model: str) -> None:
-        self._model = model
-
-    async def score(self, case: GenerationCase) -> MetricResult:
-        raise NotImplementedError
+    def _build(self) -> BaseMetric:
+        return FaithfulnessMetric(model=self._model, include_reason=True)

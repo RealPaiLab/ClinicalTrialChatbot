@@ -1,16 +1,14 @@
 from __future__ import annotations
 
-from evals.metrics.generic.base import MetricResult
-from evals.metrics.generic.types import GenerationCase
+from deepeval.metrics import BaseMetric, ContextualRelevancyMetric
+
+from evals.metrics.generic.llm_judged.base import DeepEvalMetric
 
 
-class ContextualRelevancy:
+class ContextualRelevancy(DeepEvalMetric):
     """Are the retrieved contexts relevant to the question?"""
 
     name = "contextual_relevancy"
 
-    def __init__(self, model: str) -> None:
-        self._model = model
-
-    async def score(self, case: GenerationCase) -> MetricResult:
-        raise NotImplementedError
+    def _build(self) -> BaseMetric:
+        return ContextualRelevancyMetric(model=self._model, include_reason=True)
