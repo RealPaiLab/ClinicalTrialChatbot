@@ -15,3 +15,6 @@ build/
 .pytest_cache/
 cli/
 scripts/compare_ontario.py
+.deepeval/
+.deepeval-cache.json
+.deepeval_telemetry.txt
