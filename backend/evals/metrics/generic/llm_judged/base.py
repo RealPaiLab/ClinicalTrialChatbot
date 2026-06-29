@@ -3,10 +3,13 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 
 from deepeval.metrics import BaseMetric
+from deepeval.models.base_model import DeepEvalBaseLLM
 from deepeval.test_case import LLMTestCase
 
 from evals.metrics.generic.base import MetricResult
 from evals.metrics.generic.types import GenerationCase
+
+JudgeModel = str | DeepEvalBaseLLM
 
 
 class DeepEvalMetric(ABC):
@@ -14,7 +17,7 @@ class DeepEvalMetric(ABC):
 
     name: str
 
-    def __init__(self, model: str) -> None:
+    def __init__(self, model: JudgeModel) -> None:
         self._model = model
 
     @abstractmethod

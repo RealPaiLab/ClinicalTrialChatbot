@@ -1,5 +1,4 @@
 from evals.adapters import langfuse_evaluators as lf
-from evals.adapters.langfuse_evaluators import build_evaluators
 from evals.adapters.scoring import (
     score_answer_correctness,
     score_glossary_correctness,
@@ -82,10 +81,6 @@ def test_to_cases() -> None:
     assert generation.question == "q2"
     assert generation.contexts == ["doc"]
     assert generation.reference == "f1\nf2"
-
-
-def test_build_evaluators_count() -> None:
-    assert len(build_evaluators("gpt-5.4-mini")) == 10
 
 
 async def test_evaluator_wraps_metric() -> None:

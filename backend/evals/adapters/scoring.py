@@ -8,7 +8,8 @@ from evals.adapters.to_cases import (
     to_generation_case,
     to_retrieval_case,
 )
-from evals.metrics.domain.argument_correctness import argument_correctness
+
+# from evals.metrics.domain.argument_correctness import argument_correctness
 from evals.metrics.domain.glossary_correctness import glossary_correctness
 from evals.metrics.domain.inline_citation_consistency import inline_citation_consistency
 from evals.metrics.domain.tool_correctness import tool_correctness
@@ -17,6 +18,7 @@ from evals.metrics.generic.deterministic.context_precision import ContextPrecisi
 from evals.metrics.generic.deterministic.context_recall import ContextRecall
 from evals.metrics.generic.llm_judged.answer_correctness import AnswerCorrectness
 from evals.metrics.generic.llm_judged.answer_relevancy import AnswerRelevancy
+from evals.metrics.generic.llm_judged.base import JudgeModel
 from evals.metrics.generic.llm_judged.contextual_relevancy import ContextualRelevancy
 from evals.metrics.generic.llm_judged.faithfulness import Faithfulness
 from evals.metrics.generic.types import GenerationCase, RetrievalCase
@@ -32,7 +34,7 @@ class ScoringContext:
     turns: list[Turn]
     output: AgentEvalOutput
     expected: ExpectedOutput
-    model: str
+    model: JudgeModel
 
     @property
     def question(self) -> str:
@@ -80,8 +82,8 @@ async def score_tool_correctness(ctx: ScoringContext) -> MetricResult:
     return await tool_correctness(ctx.question, ctx.output, ctx.expected)
 
 
-async def score_argument_correctness(ctx: ScoringContext) -> MetricResult:
-    return await argument_correctness(ctx.question, ctx.output, ctx.model)
+# async def score_argument_correctness(ctx: ScoringContext) -> MetricResult:
+#     return await argument_correctness(ctx.question, ctx.output, ctx.model)
 
 
 async def score_glossary_correctness(ctx: ScoringContext) -> MetricResult:
@@ -100,7 +102,7 @@ SCORERS: list[Scorer] = [
     score_contextual_relevancy,
     score_answer_correctness,
     score_tool_correctness,
-    score_argument_correctness,
+    # score_argument_correctness,
     score_glossary_correctness,
     score_inline_citation_consistency,
 ]

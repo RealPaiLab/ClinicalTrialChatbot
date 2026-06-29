@@ -7,6 +7,7 @@ from langfuse import Evaluation
 from langfuse.experiment import EvaluatorFunction
 
 from evals.adapters.scoring import SCORERS, Scorer, ScoringContext
+from evals.metrics.generic.llm_judged.base import JudgeModel
 from evals.schemas.expected import ExpectedOutput
 from evals.schemas.output import AgentEvalOutput
 from evals.schemas.turn import Turn
@@ -27,7 +28,7 @@ def _parse(
     return turns, out, expected
 
 
-def _make(scorer: Scorer, model: str) -> EvaluatorImpl:
+def _make(scorer: Scorer, model: JudgeModel) -> EvaluatorImpl:
     async def evaluator(
         *,
         input: Any,
@@ -45,6 +46,6 @@ def _make(scorer: Scorer, model: str) -> EvaluatorImpl:
     return evaluator
 
 
-def build_evaluators(model: str) -> list[EvaluatorFunction]:
+def build_evaluators(model: JudgeModel) -> list[EvaluatorFunction]:
     """Wrap each metric in the scoring index as a Langfuse item-level evaluator."""
     return [_make(scorer, model) for scorer in SCORERS]
