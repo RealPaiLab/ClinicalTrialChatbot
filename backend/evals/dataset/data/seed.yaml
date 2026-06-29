@@ -1,2 +1,65 @@
-# Evaluation dataset seed samples.
-[]
+# Evaluation dataset seed samples (4 — pipeline shakeout, not the real benchmark).
+# Gold `nct_numbers` are left empty for the team to fill in Langfuse on query-based items.
+
+- input:
+    - role: user
+      content: Show me breast cancer trials that are recruiting in Quebec.
+  expected:
+    nct_numbers: []
+    expected_tools:
+      - name: syntactic_search
+        args:
+          cancer_types: [breast cancer]
+          locations: [Quebec]
+          statuses: [recruiting]
+    glossary_terms: []
+    reference_facts: null
+
+- input:
+    - role: user
+      content: >-
+        I have stage IV non-small-cell lung cancer that progressed after
+        chemotherapy. Are there immunotherapy trials for me?
+  expected:
+    nct_numbers: []
+    expected_tools:
+      - name: semantic_search
+        args:
+          query: >-
+            stage IV non-small-cell lung cancer progressed after chemotherapy
+            seeking immunotherapy
+          cancer_types: [lung cancer]
+    glossary_terms: []
+    reference_facts: null
+
+- input:
+    - role: user
+      content: What does metastatic mean, and are there trials for metastatic breast cancer?
+  expected:
+    nct_numbers: []
+    expected_tools:
+      - name: define_term
+        args:
+          term: metastatic
+      - name: syntactic_search
+        args:
+          cancer_types: [breast cancer]
+    glossary_terms: [metastatic]
+    reference_facts: null
+
+- input:
+    - role: user
+      content: Tell me about breast cancer trials in Ontario.
+    - role: assistant
+      content: Here are a few breast cancer trials recruiting in Ontario.
+    - role: user
+      content: Tell me more about the first one.
+  expected:
+    nct_numbers: []
+    expected_tools:
+      - name: get_trial_details
+        args:
+          nct_numbers: [NCT00000000]
+    glossary_terms: []
+    reference_facts:
+      - The trial is recruiting patients with breast cancer.
