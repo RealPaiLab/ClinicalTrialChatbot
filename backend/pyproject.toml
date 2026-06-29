@@ -15,7 +15,6 @@ dependencies = [
     "pgvector>=0.4.2",
     "pydantic>=2.13.4",
     "pydantic-ai>=1.104.0",
-    "pydantic-evals>=1.107.0",
     "pydantic-settings>=2.14.1",
     "redis>=8.0.0",
     "rich>=13.6.0,<15",
