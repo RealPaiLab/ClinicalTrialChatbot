@@ -15,6 +15,7 @@ from agents.clinical_trials.tools import (
     semantic_search,
     syntactic_search,
 )
+from schemas.cancer_types import CancerType
 from schemas.glossary import GlossaryDefinition, GlossarySource
 from tests.factories import (
     StubGlossary,
@@ -30,7 +31,8 @@ async def test_syntactic_search_records_and_summarizes() -> None:
     ctx = make_run_context(deps)
 
     hits = await syntactic_search(
-        ctx, SyntacticSearchInput(reasoning="r", cancer_types=["Breast Cancer"])
+        ctx,
+        SyntacticSearchInput(reasoning="r", cancer_types=[CancerType("Breast Cancer")]),
     )
 
     assert hits[0].nct_number == "NCT-1"
@@ -44,11 +46,15 @@ async def test_duplicate_call_is_rejected_and_still_counts() -> None:
     ctx = make_run_context(deps)
 
     await syntactic_search(
-        ctx, SyntacticSearchInput(reasoning="a", cancer_types=["Breast Cancer"])
+        ctx,
+        SyntacticSearchInput(reasoning="a", cancer_types=[CancerType("Breast Cancer")]),
     )
     with pytest.raises(ModelRetry):
         await syntactic_search(
-            ctx, SyntacticSearchInput(reasoning="b", cancer_types=["Breast Cancer"])
+            ctx,
+            SyntacticSearchInput(
+                reasoning="b", cancer_types=[CancerType("Breast Cancer")]
+            ),
         )
 
     assert deps.tool_calls == 2
@@ -69,7 +75,9 @@ async def test_semantic_search_records_and_summarizes() -> None:
     hits = await semantic_search(
         ctx,
         SemanticSearchInput(
-            reasoning="r", query="metastatic lung cancer", cancer_types=["Lung Cancer"]
+            reasoning="r",
+            query="metastatic lung cancer",
+            cancer_types=[CancerType("Lung Cancer")],
         ),
     )
 
@@ -94,11 +102,14 @@ async def test_same_filters_allowed_across_search_tools() -> None:
     ctx = make_run_context(deps)
 
     await syntactic_search(
-        ctx, SyntacticSearchInput(reasoning="a", cancer_types=["Lung Cancer"])
+        ctx,
+        SyntacticSearchInput(reasoning="a", cancer_types=[CancerType("Lung Cancer")]),
     )
     await semantic_search(
         ctx,
-        SemanticSearchInput(reasoning="b", query="lung", cancer_types=["Lung Cancer"]),
+        SemanticSearchInput(
+            reasoning="b", query="lung", cancer_types=[CancerType("Lung Cancer")]
+        ),
     )
 
     assert deps.tool_calls == 2
@@ -109,12 +120,13 @@ async def test_query_makes_search_distinct_from_filters_only() -> None:
     ctx = make_run_context(deps)
 
     await syntactic_search(
-        ctx, SyntacticSearchInput(reasoning="a", cancer_types=["Breast Cancer"])
+        ctx,
+        SyntacticSearchInput(reasoning="a", cancer_types=[CancerType("Breast Cancer")]),
     )
     await syntactic_search(
         ctx,
         SyntacticSearchInput(
-            reasoning="a", cancer_types=["Breast Cancer"], query="immuno"
+            reasoning="a", cancer_types=[CancerType("Breast Cancer")], query="immuno"
         ),
     )
 
