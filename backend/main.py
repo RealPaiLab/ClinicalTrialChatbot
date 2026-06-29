@@ -11,7 +11,7 @@ from core.embeddings import get_embedder
 from core.exception_handlers import register_exception_handlers
 from core.http_retry import aclose_retrying_client
 from core.langfuse import setup_langfuse
-from routes import chat, debug, feedback, trials
+from routes import chat, debug, evals, feedback, trials
 
 
 @asynccontextmanager
@@ -44,6 +44,7 @@ register_exception_handlers(app)
 app.include_router(chat.router)
 app.include_router(trials.router)
 app.include_router(feedback.router)
+app.include_router(evals.router)
 
 if get_settings().debug_page_enabled:
     app.include_router(debug.router)
