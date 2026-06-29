@@ -1,13 +1,50 @@
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
+from typing import Any
+
+from langfuse import Evaluation
 from langfuse.experiment import EvaluatorFunction
-from pydantic_ai.models import Model
+
+from evals.adapters.scoring import SCORERS, Scorer, ScoringContext
+from evals.schemas.expected import ExpectedOutput
+from evals.schemas.output import AgentEvalOutput
+from evals.schemas.turn import Turn
+
+EvaluatorImpl = Callable[..., Awaitable[list[Evaluation]]]
 
 
-def build_evaluators(model: Model) -> list[EvaluatorFunction]:
-    """Wrap every metric (generic + domain) as Langfuse item-level evaluators.
+def _parse(
+    input: Any, output: Any, expected_output: Any
+) -> tuple[list[Turn], AgentEvalOutput, ExpectedOutput]:
+    turns = [Turn.model_validate(t) for t in (input or [])]
+    out = (
+        output
+        if isinstance(output, AgentEvalOutput)
+        else AgentEvalOutput.model_validate(output)
+    )
+    expected = ExpectedOutput.model_validate(expected_output or {})
+    return turns, out, expected
 
-    Each wrapped function has the signature
-    ``(*, input, output, expected_output, metadata) -> Evaluation``.
-    """
-    raise NotImplementedError
+
+def _make(scorer: Scorer, model: str) -> EvaluatorImpl:
+    async def evaluator(
+        *,
+        input: Any,
+        output: Any,
+        expected_output: Any,
+        metadata: dict[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> list[Evaluation]:
+        turns, out, expected = _parse(input, output, expected_output)
+        result = await scorer(ScoringContext(turns, out, expected, model))
+        if result is None:
+            return []
+        return [Evaluation(name=result.name, value=result.value, comment=result.reason)]
+
+    return evaluator
+
+
+def build_evaluators(model: str) -> list[EvaluatorFunction]:
+    """Wrap each metric in the scoring index as a Langfuse item-level evaluator."""
+    return [_make(scorer, model) for scorer in SCORERS]
