@@ -1,5 +1,4 @@
-# Evaluation dataset seed samples (4 — pipeline shakeout, not the real benchmark).
-# Gold `nct_numbers` are left empty for the team to fill in Langfuse on query-based items.
+# Evaluation dataset seed samples
 
 - input:
     - role: user
@@ -9,7 +8,7 @@
     expected_tools:
       - name: syntactic_search
         args:
-          cancer_types: [breast cancer]
+          cancer_types: [Breast Cancer]
           locations: [Quebec]
           statuses: [recruiting]
     glossary_terms: []
@@ -28,7 +27,7 @@
           query: >-
             stage IV non-small-cell lung cancer progressed after chemotherapy
             seeking immunotherapy
-          cancer_types: [lung cancer]
+          cancer_types: [Lung Cancer]
     glossary_terms: []
     reference_facts: null
 
@@ -43,7 +42,7 @@
           term: metastatic
       - name: syntactic_search
         args:
-          cancer_types: [breast cancer]
+          cancer_types: [Breast Cancer]
     glossary_terms: [metastatic]
     reference_facts: null
 

@@ -4,7 +4,14 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
+from schemas.cancer_types import CancerType
 from schemas.glossary import GlossarySource
+
+_CANCER_TYPES_DESC = (
+    "Cancer-type buckets to match, from the controlled vocabulary, e.g. "
+    '["Breast Cancer", "Lung Cancer"]. Pick the closest bucket(s); put clinical '
+    "subtype, stage, or treatment detail in the semantic query instead."
+)
 
 
 class ToolInput(BaseModel):
@@ -16,9 +23,9 @@ class ToolInput(BaseModel):
 
 
 class SyntacticSearchInput(ToolInput):
-    cancer_types: list[str] = Field(
+    cancer_types: list[CancerType] = Field(
         default_factory=list,
-        description='Cancer types to match, e.g. ["breast cancer", "lung"].',
+        description=_CANCER_TYPES_DESC,
     )
     locations: list[str] = Field(
         default_factory=list,
@@ -61,9 +68,9 @@ class SemanticSearchInput(ToolInput):
         "non-small-cell lung cancer, progressed after chemotherapy, seeking "
         'immunotherapy".'
     )
-    cancer_types: list[str] = Field(
+    cancer_types: list[CancerType] = Field(
         default_factory=list,
-        description='Cancer types to require, e.g. ["breast cancer", "lung"].',
+        description=_CANCER_TYPES_DESC,
     )
     locations: list[str] = Field(
         default_factory=list,
