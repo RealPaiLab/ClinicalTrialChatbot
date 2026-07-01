@@ -40,7 +40,7 @@ Manual (dispatch) runs skip migrations and only swap the image version.
 - `prepare` / `langfuse` / `restore_db` run as the **admin/bootstrap user** (has sudo) → inventory
   `ansible_user`.
 - `deploy.yml` connects as the **`deploy` user** (no sudo). On the App VM `deploy` runs containers
-  via **rootless Docker** (no docker group), so the CI account is not root-capable.
+  via **rootful Docker** using the `docker` group.
 - The Langfuse VM is rootful/root-managed.
 
 ## Secrets

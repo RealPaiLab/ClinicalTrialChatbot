@@ -1,8 +1,6 @@
 proxy_type: app
 app_dir: /opt/{{ project_name }}/app
 
-docker_rootless: true
-
 backend_image: "{{ registry }}/{{ registry_owner }}/ctc-backend"
 frontend_image: "{{ registry }}/{{ registry_owner }}/ctc-frontend"
 backend_version: latest

@@ -4,17 +4,6 @@
     that: db_restore_dump_src | length > 0
     fail_msg: "Pass the dump path: -e db_restore_dump_src=/path/to/ctc_seed.dump"
 
-- name: Look up the deploy user uid
-  ansible.builtin.getent:
-    database: passwd
-    key: "{{ deploy_user }}"
-
-- name: Set the rootless Docker connection env
-  ansible.builtin.set_fact:
-    db_restore_docker_env:
-      DOCKER_HOST: "unix:///run/user/{{ getent_passwd[deploy_user][1] }}/docker.sock"
-      XDG_RUNTIME_DIR: "/run/user/{{ getent_passwd[deploy_user][1] }}"
-
 - name: Check the restore marker
   ansible.builtin.stat:
     path: "{{ app_dir }}/.seed_applied"
@@ -39,7 +28,6 @@
         chdir: "{{ app_dir }}"
       become: true
       become_user: "{{ deploy_user }}"
-      environment: "{{ db_restore_docker_env }}"
       changed_when: true
 
     - name: Stamp alembic at head (the dump is authoritative)
@@ -48,7 +36,6 @@
         chdir: "{{ app_dir }}"
       become: true
       become_user: "{{ deploy_user }}"
-      environment: "{{ db_restore_docker_env }}"
       changed_when: true
 
     - name: Write the restore marker
