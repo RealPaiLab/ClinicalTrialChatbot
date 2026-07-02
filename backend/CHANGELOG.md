@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.2.1...backend-v0.3.0) (2026-07-02)
+
+
+### Features
+
+* implement prompt seeding functionality on first run ([087b944](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/087b944a60c9c0f62db89a81c3b771c7eb254b78))
+* implement prompt seeding functionality on first run ([5bc8498](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/5bc8498b8edb06f5320ff5bee621853a1e53f421))
+
 ## [0.2.1](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.2.0...backend-v0.2.1) (2026-07-02)
 
 
