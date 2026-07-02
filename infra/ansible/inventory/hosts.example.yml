@@ -8,7 +8,8 @@ all:
         app-vm:
           ansible_host: REPLACE_WITH_APP_VM_IP
           private_ip: REPLACE_WITH_APP_VM_PRIVATE_IP
-          public_domain: chatbot.example.org
+          public_domain: chatbot.example.org      # internal name, has the dehydrated cert; canonical origin
+          external_domain: chat.example.org       # edge-terminated name; added to server_name + CORS
     langfuse:
       hosts:
         langfuse-vm:

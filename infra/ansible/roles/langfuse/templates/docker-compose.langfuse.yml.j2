@@ -86,7 +86,7 @@ services:
         condition: service_healthy
     environment: &langfuse-env
       DATABASE_URL: postgresql://{{ postgres_user }}:${POSTGRES_PASSWORD}@postgres:5432/{{ postgres_db }}
-      NEXTAUTH_URL: https://{{ public_domain }}
+      NEXTAUTH_URL: http://{{ public_domain }}:3000
       SALT: ${LANGFUSE_SALT}
       ENCRYPTION_KEY: ${LANGFUSE_ENCRYPTION_KEY}
       CLICKHOUSE_MIGRATION_URL: clickhouse://clickhouse:9000
@@ -108,8 +108,7 @@ services:
     restart: unless-stopped
     depends_on: *langfuse-depends-on
     ports:
-      - "127.0.0.1:3000:3000"
-      - "{{ private_ip }}:3000:3000"
+      - "3000:3000"
     environment:
       <<: *langfuse-env
       NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET}

@@ -4,6 +4,3 @@ admin_cidrs:
 
 # GHCR owner (lowercase) that hosts the images
 registry_owner: ""
-
-# Maintainer email
-certbot_email: ""
