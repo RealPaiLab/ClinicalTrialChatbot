@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
+from agents.clinical_trials.prompts import ensure_prompt_seeded
 from core.config import get_settings
 from core.database import engine, read_engine
 from core.embeddings import get_embedder
@@ -18,6 +19,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     async with engine.connect() as conn:
         await conn.execute(text("SELECT 1"))
     setup_langfuse(get_settings().environment)
+    ensure_prompt_seeded()
     if get_settings().embedding_warmup:
         await get_embedder().embed_query("warmup")
     yield
