@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.2.0...frontend-v0.2.1) (2026-07-02)
+
+
+### Bug Fixes
+
+* update environment setup and add runtime configuration files ([fc79804](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/fc7980461c746f8852db7a3ba25e302cc040ac67))
+* update environment setup and add runtime configuration files ([d47c7ed](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/d47c7edeedda954162b9a4961b603c99e91700aa))
+
 ## [0.2.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.1.0...frontend-v0.2.0) (2026-07-02)
 
 
