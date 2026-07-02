@@ -8,11 +8,12 @@ import TrialCluster from '@/components/map/TrialCluster/TrialCluster';
 import { useClusterDisclosure } from '@/hooks/useClusterDisclosure';
 import { useMapViewSync } from '@/hooks/useMapViewSync';
 import { useTrialPins } from '@/hooks/useTrialPins';
+import { config } from '@/config';
 import type { Trial } from '@/types/trial';
 
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
-const LIGHT_STYLE = import.meta.env.VITE_MAPBOX_STYLE_LIGHT ?? 'mapbox://styles/mapbox/light-v11';
-const DARK_STYLE = import.meta.env.VITE_MAPBOX_STYLE_DARK ?? 'mapbox://styles/mapbox/dark-v11';
+const MAPBOX_TOKEN = config.mapboxToken;
+const LIGHT_STYLE = config.mapboxStyleLight;
+const DARK_STYLE = config.mapboxStyleDark;
 const INITIAL_VIEW = { longitude: -96.5, latitude: 56, zoom: 3.4 };
 const EMPTY_HINT = 'Trials will appear here as you chat.';
 

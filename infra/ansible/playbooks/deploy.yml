@@ -1,0 +1,39 @@
+# Repetitive. Run by CI on a release tag. App VM only
+---
+- name: Deploy app
+  hosts: app
+  remote_user: "{{ deploy_user }}"
+  become: false
+  vars:
+    version_var: "{{ 'BACKEND_VERSION' if deploy_package == 'backend' else 'FRONTEND_VERSION' }}"
+  tasks:
+    - name: Validate inputs
+      ansible.builtin.assert:
+        that:
+          - deploy_package | default('') in ['backend', 'frontend']
+          - image_tag | default('') | length > 0
+        fail_msg: "Pass -e deploy_package=backend|frontend and -e image_tag=X.Y.Z"
+
+    - name: Pin the released version for compose interpolation
+      ansible.builtin.lineinfile:
+        path: "{{ app_dir }}/.env"
+        regexp: "^{{ version_var }}="
+        line: "{{ version_var }}={{ image_tag }}"
+        create: true
+        mode: "0600"
+
+    - name: Pull the released image and recreate changed containers
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_dir }}"
+        pull: missing
+        state: present
+
+    - name: Apply database migrations (backend releases only)
+      ansible.builtin.command:
+        cmd: docker compose run --rm backend alembic upgrade head
+        chdir: "{{ app_dir }}"
+      register: migrate
+      changed_when: "'Running upgrade' in migrate.stdout"
+      when:
+        - deploy_package == 'backend'
+        - run_migrations | default(true) | bool

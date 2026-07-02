@@ -1,0 +1,34 @@
+---
+- name: Create the langfuse directory
+  ansible.builtin.file:
+    path: "{{ langfuse_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Render the prod langfuse compose file
+  ansible.builtin.template:
+    src: docker-compose.langfuse.yml.j2
+    dest: "{{ langfuse_dir }}/docker-compose.yml"
+    owner: root
+    mode: "0644"
+
+- name: Render the langfuse .env
+  ansible.builtin.template:
+    src: langfuse.env.j2
+    dest: "{{ langfuse_dir }}/.env"
+    owner: root
+    mode: "0600"
+
+- name: Allow trace ingest on port 3000 from the App VM only
+  community.general.ufw:
+    rule: allow
+    port: "3000"
+    proto: tcp
+    src: "{{ hostvars[groups['app'][0]].private_ip }}"
+
+- name: Bring up the langfuse stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ langfuse_dir }}"
+    pull: missing

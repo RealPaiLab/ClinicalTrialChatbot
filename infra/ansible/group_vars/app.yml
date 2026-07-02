@@ -1,0 +1,25 @@
+app_dir: /opt/{{ project_name }}/app
+
+backend_image: "{{ registry }}/{{ registry_owner }}/ctc-backend"
+frontend_image: "{{ registry }}/{{ registry_owner }}/ctc-frontend"
+backend_version: latest
+frontend_version: latest
+
+postgres_db: ctc_db
+postgres_user: ctc
+
+api_base_url: "https://{{ public_domain }}/api"
+enable_debug_page: "true"
+
+cors_allow_origins:
+  - "https://{{ public_domain }}"
+  - "https://{{ external_domain }}"
+
+langfuse_host: "http://{{ hostvars[groups['langfuse'][0]].public_domain }}:3000"
+
+llm_provider: openai
+llm_model: gpt-5.4-mini
+embedding_provider: openai
+embedding_model: text-embedding-3-large
+
+restrict_to_province: "Ontario"

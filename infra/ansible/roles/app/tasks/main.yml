@@ -1,0 +1,42 @@
+---
+- name: Create the app directory
+  ansible.builtin.file:
+    path: "{{ app_dir }}"
+    state: directory
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+    mode: "0750"
+
+- name: Render the prod app compose file
+  ansible.builtin.template:
+    src: docker-compose.app.yml.j2
+    dest: "{{ app_dir }}/docker-compose.yml"
+    owner: "{{ deploy_user }}"
+    mode: "0644"
+
+- name: Render the backend .env
+  ansible.builtin.template:
+    src: app.env.j2
+    dest: "{{ app_dir }}/.env"
+    owner: "{{ deploy_user }}"
+    mode: "0600"
+
+- name: Log in to GHCR (persists in the deploy user's docker config)
+  community.docker.docker_login:
+    registry: "{{ registry }}"
+    username: "{{ ghcr_pull_username }}"
+    password: "{{ ghcr_pull_token }}"
+  become: true
+  become_user: "{{ deploy_user }}"
+  when: ghcr_pull_token | default('') | length > 0
+
+- name: Bring up the app stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ app_dir }}"
+    pull: always
+    state: present
+  become: true
+  become_user: "{{ deploy_user }}"
+  environment:
+    BACKEND_VERSION: "{{ backend_version }}"
+    FRONTEND_VERSION: "{{ frontend_version }}"

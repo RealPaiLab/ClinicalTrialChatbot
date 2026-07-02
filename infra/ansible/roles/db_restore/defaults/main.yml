@@ -1,0 +1,5 @@
+---
+# Path to the pg_dump on the operator's machine (pass with -e db_restore_dump_src=...).
+db_restore_dump_src: ""
+# Optional sha256 of the dump, stored in the marker for traceability.
+db_restore_dump_sha256: applied

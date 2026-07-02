@@ -2,21 +2,65 @@ name: Backend CI
 
 on:
   push:
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend.yml"
   pull_request:
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend.yml"
 
-defaults:
-  run:
-    working-directory: backend
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: backend-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  gate:
+    name: Gate
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.decide.outputs.run }}
+    steps:
+      - name: Decide whether to run
+        id: decide
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          open_prs=$(gh pr list --repo "$REPO" \
+            --head "$BRANCH" --state open --json number --jq 'length')
+          if [ "${open_prs:-0}" -gt 0 ]; then
+            echo "Branch $BRANCH has an open PR; skipping push CI."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
   lint:
     name: Lint
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - uses: actions/checkout@v6
 
       - name: Install uv
         uses: astral-sh/setup-uv@v8.0.0
+        with:
+          enable-cache: true
 
       - name: Install dependencies
         run: uv sync --dev
@@ -32,16 +76,114 @@ jobs:
 
   test:
     name: Test
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - uses: actions/checkout@v6
 
       - name: Install uv
         uses: astral-sh/setup-uv@v8.0.0
+        with:
+          enable-cache: true
 
       - name: Install dependencies
         run: uv sync --dev
 
       - name: Pytest
-        run: |
-          uv run pytest; code=$?; [ $code -eq 0 ] || [ $code -eq 5 ]
+        run: uv run pytest || [ $? -eq 5 ]
+
+  migrations:
+    name: Migration check
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: pgvector/pgvector:pg13 # migrations CREATE EXTENSION vector
+        env:
+          POSTGRES_USER: ctc_test
+          POSTGRES_PASSWORD: ctc_test
+          POSTGRES_DB: ctc_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      POSTGRES_USER: ctc_test
+      POSTGRES_PASSWORD: ctc_test
+      POSTGRES_DB: ctc_test
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.0.0
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --dev
+
+      - name: Apply migrations
+        run: uv run alembic upgrade head
+
+      - name: Check for model/migration drift
+        run: uv run alembic check
+
+  deps-scan:
+    name: Dependency scan
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Trivy dependency scan (full report)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: backend
+          scanners: vuln
+          severity: CRITICAL,HIGH,MEDIUM,LOW
+          exit-code: "0"
+          format: table
+          output: trivy-backend-deps.txt
+
+      - name: Trivy dependency scan (fail on fixable CRITICAL/HIGH)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: backend
+          scanners: vuln
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+          format: table
+
+      - name: Upload dependency scan report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: trivy-backend-deps
+          path: trivy-backend-deps.txt
+          if-no-files-found: ignore
+
+  image:
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
+    uses: ./.github/workflows/image.yml
+    with:
+      package: backend
+      push: false
+    secrets: inherit
