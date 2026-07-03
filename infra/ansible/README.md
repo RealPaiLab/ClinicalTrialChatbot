@@ -11,7 +11,7 @@ Two cadences:
 ansible-galaxy install -r requirements.yml
 cp secrets.yml.example secrets.yml                           # secrets (gitignored)
 cp inventory/hosts.example.yml inventory/hosts.yml          # VM IPs, SSH user, domains (gitignored)
-cp group_vars/all/local.example.yml group_vars/all/local.yml # admin_cidrs, registry_owner (gitignored)
+cp inventory/group_vars/all/local.example.yml inventory/group_vars/all/local.yml # admin_cidrs, registry_owner (gitignored)
 ```
 
 ## One-time bring-up (local)

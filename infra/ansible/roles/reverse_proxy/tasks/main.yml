@@ -25,6 +25,16 @@
     state: absent
   notify: Reload nginx
 
+- name: Detect installed services
+  ansible.builtin.service_facts:
+
+- name: Stop and disable apache2 if it's running
+  ansible.builtin.service:
+    name: apache2
+    state: stopped
+    enabled: false
+  when: "'apache2.service' in (ansible_facts.services | default({}))"
+
 - name: Ensure nginx is running
   ansible.builtin.service:
     name: nginx
