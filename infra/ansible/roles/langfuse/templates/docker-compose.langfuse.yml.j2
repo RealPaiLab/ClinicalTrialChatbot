@@ -75,14 +75,18 @@ services:
   langfuse-worker:
     image: {{ langfuse_worker_image }}
     restart: unless-stopped
-    depends_on: &langfuse-depends-on
-      postgres:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      clickhouse:
+    # Must start after langfuse-web: web runs the DB migrations, worker seeds model prices into them.
+    depends_on:
+      <<: &langfuse-datastores
+        postgres:
+          condition: service_healthy
+        minio:
+          condition: service_healthy
+        redis:
+          condition: service_healthy
+        clickhouse:
+          condition: service_healthy
+      langfuse-web:
         condition: service_healthy
     environment: &langfuse-env
       DATABASE_URL: postgresql://{{ postgres_user }}:${POSTGRES_PASSWORD}@postgres:5432/{{ postgres_db }}
@@ -106,7 +110,13 @@ services:
   langfuse-web:
     image: {{ langfuse_web_image }}
     restart: unless-stopped
-    depends_on: *langfuse-depends-on
+    depends_on: *langfuse-datastores
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/public/health?failIfDatabaseUnavailable=true',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
     ports:
       - "3000:3000"
     environment:
