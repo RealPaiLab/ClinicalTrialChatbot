@@ -21,13 +21,12 @@
     owner: "{{ deploy_user }}"
     mode: "0600"
 
-- name: Log in to GHCR (persists in the deploy user's docker config)
+- name: Log in to GHCR (rootful Docker; persists in root's docker config)
   community.docker.docker_login:
     registry: "{{ registry }}"
     username: "{{ ghcr_pull_username }}"
     password: "{{ ghcr_pull_token }}"
   become: true
-  become_user: "{{ deploy_user }}"
   when: ghcr_pull_token | default('') | length > 0
 
 - name: Bring up the app stack
@@ -36,7 +35,6 @@
     pull: always
     state: present
   become: true
-  become_user: "{{ deploy_user }}"
   environment:
     BACKEND_VERSION: "{{ backend_version }}"
     FRONTEND_VERSION: "{{ frontend_version }}"
