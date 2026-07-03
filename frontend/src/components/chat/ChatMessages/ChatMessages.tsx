@@ -83,6 +83,8 @@ function ChatMessages({
                     message.content
                   ) : message.content === '' ? (
                     <SearchingIndicator />
+                  ) : message.isError ? (
+                    <span className="text-destructive">{message.content}</span>
                   ) : (
                     <MessageResponse
                       components={createMarkdownComponents(fetchTrial, onCitationClick)}

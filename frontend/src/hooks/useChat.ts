@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ChatStatus } from 'ai';
 import { ChatRole, SELECTED_TRIALS_PROMPT, StreamEventType } from '@/constants/chat';
-import { streamChat } from '@/services/chat';
+import { chatErrorForCode, chatErrorMessage, streamChat } from '@/services/chat';
 import type { ChatMessage, StreamEvent, Trial } from '@/types/trial';
 
 type CreateStream = (text: string, signal?: AbortSignal) => AsyncGenerator<StreamEvent>;
@@ -74,8 +74,17 @@ export function useChat({ createStream, onTrialsChange }: UseChatOptions = {}): 
             onTrialsChange?.(event.data.trials);
           }
         } else {
-          patchMessage(assistantId, { content: event.data });
+          patchMessage(assistantId, {
+            content: chatErrorForCode(event.data),
+            isError: true,
+          });
         }
+      }
+    } catch (error) {
+      if (controller.signal.aborted) {
+        setMessages((prev) => prev.filter((m) => !(m.id === assistantId && m.content === '')));
+      } else {
+        patchMessage(assistantId, { content: chatErrorMessage(error), isError: true });
       }
     } finally {
       setStatus('ready');
