@@ -1,5 +1,7 @@
 ---
-reverse_proxy_certbot_webroot: /var/www/certbot
+reverse_proxy_cert_fullchain: "/var/lib/dehydrated/certs/{{ public_domain }}/fullchain.pem"
+reverse_proxy_cert_privkey: "/var/lib/dehydrated/certs/{{ public_domain }}/privkey.pem"
+reverse_proxy_acme_webroot: /var/lib/dehydrated/acme-challenges
 
 reverse_proxy_rate_limit_enabled: true
 

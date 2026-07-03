@@ -48,7 +48,7 @@ services:
       EMBEDDING_MODEL: "{{ embedding_model }}"
       LANGFUSE_HOST: {{ langfuse_host }}
       CORS_ALLOW_ORIGINS: '{{ cors_allow_origins | to_json }}'
-      DEBUG_PAGE_ENABLED: "false"
+      DEBUG_PAGE_ENABLED: "{{ enable_debug_page }}"
 {% if restrict_to_province | default('') | length > 0 %}
       RESTRICT_TO_PROVINCE: "{{ restrict_to_province }}"
 {% endif %}
