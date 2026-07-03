@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.2.1...frontend-v0.3.0) (2026-07-03)
+
+
+### Features
+
+* implement rate limiting for chat API and enhance error handling ([a1bec2b](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/a1bec2ba1f0d2b562d8d3c80d33dd5997e79b6c7))
+
 ## [0.2.1](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.2.0...frontend-v0.2.1) (2026-07-02)
 
 
