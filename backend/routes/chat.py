@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 
 from core.dependencies import get_chat_service
+from core.errors import error_code
 from schemas.chat import ChatRequest, ChatResult
 from services.chat_service import ChatService
 
@@ -33,7 +34,7 @@ async def stream_chat(
                 )
                 yield _sse({"type": event_type, "data": item.model_dump()})
         except Exception as exc:
-            yield _sse({"type": "error", "data": str(exc)})
+            yield _sse({"type": "error", "data": error_code(exc).value})
 
     return StreamingResponse(
         event_stream(),

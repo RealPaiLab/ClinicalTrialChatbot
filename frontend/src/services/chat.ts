@@ -1,6 +1,6 @@
 import camelcaseKeys from 'camelcase-keys';
 import { config } from '@/config';
-import { CHAT_ERROR } from '@/constants/chat';
+import { CHAT_ERROR, CHAT_ERROR_BY_CODE } from '@/constants/chat';
 import type { StreamEvent } from '@/types/trial';
 
 const API_BASE = config.apiBaseUrl;
@@ -39,6 +39,10 @@ export function chatErrorMessage(error: unknown): string {
   }
   if (error instanceof TypeError) return CHAT_ERROR.network;
   return CHAT_ERROR.generic;
+}
+
+export function chatErrorForCode(code: string): string {
+  return CHAT_ERROR_BY_CODE[code] ?? CHAT_ERROR.generic;
 }
 
 export interface StreamChatParams {

@@ -9,6 +9,7 @@ from pydantic_ai.providers.ollama import OllamaProvider
 from pydantic_ai.providers.openai import OpenAIProvider
 
 from core.config import Settings, get_settings
+from core.http_retry import get_retrying_client
 
 
 class LLMProvider(StrEnum):
@@ -30,7 +31,9 @@ def _build_ollama(model: str, settings: Settings) -> Model:
     name = OllamaModelName(model)
     return OllamaModel(
         name.value,
-        provider=OllamaProvider(base_url=settings.ollama_base_url),
+        provider=OllamaProvider(
+            base_url=settings.ollama_base_url, http_client=get_retrying_client()
+        ),
     )
 
 
@@ -40,7 +43,9 @@ def _build_openai(model: str, settings: Settings) -> Model:
         raise ValueError("OPENAI_API_KEY is required when LLM_PROVIDER=openai")
     return OpenAIChatModel(
         name.value,
-        provider=OpenAIProvider(api_key=settings.openai_api_key),
+        provider=OpenAIProvider(
+            api_key=settings.openai_api_key, http_client=get_retrying_client()
+        ),
     )
 
 

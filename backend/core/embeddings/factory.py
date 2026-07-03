@@ -10,6 +10,7 @@ from pydantic_ai.providers.openai import OpenAIProvider
 from core.config import Settings, get_settings
 from core.embeddings.base import EXPECTED_DIMENSIONS
 from core.embeddings.pydantic_ai_embedder import PydanticAIEmbedder
+from core.http_retry import get_retrying_client
 
 
 def _resolve_model[E: StrEnum](options: type[E], configured: str, default: E) -> E:
@@ -54,7 +55,9 @@ def _build_ollama(
     embedder = Embedder(
         OpenAIEmbeddingModel(
             name.value,
-            provider=OllamaProvider(base_url=settings.ollama_base_url),
+            provider=OllamaProvider(
+                base_url=settings.ollama_base_url, http_client=get_retrying_client()
+            ),
         ),
         instrument=instrument,
     )
@@ -74,7 +77,9 @@ def _build_openai(
     embedder = Embedder(
         OpenAIEmbeddingModel(
             name.value,
-            provider=OpenAIProvider(api_key=settings.openai_api_key),
+            provider=OpenAIProvider(
+                api_key=settings.openai_api_key, http_client=get_retrying_client()
+            ),
         ),
         settings=EmbeddingSettings(dimensions=EXPECTED_DIMENSIONS),
         instrument=instrument,

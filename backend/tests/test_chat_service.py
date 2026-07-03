@@ -1,3 +1,7 @@
+from unittest.mock import AsyncMock
+
+import pytest
+
 from agents.clinical_trials.agent import get_clinical_trials_agent
 from agents.clinical_trials.output import AgentResponse
 from repository.conversation.memory_repository import InMemoryConversationRepository
@@ -56,6 +60,16 @@ async def test_history_persists_across_turns() -> None:
 
     assert after_first >= 2
     assert after_second > after_first
+
+
+async def test_stream_reraises_on_failure() -> None:
+    conversation = AsyncMock()
+    conversation.get_history.side_effect = RuntimeError("store down")
+    chat = ChatService(conversation, trial_search=StubTrialSearch())
+
+    with pytest.raises(RuntimeError, match="store down"):
+        async for _ in chat.stream_chat("s1", "hello"):
+            pass
 
 
 async def test_reset_clears_history() -> None:
