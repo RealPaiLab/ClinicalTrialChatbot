@@ -30,8 +30,17 @@ export const CHAT_ERROR = {
   unavailable: 'The assistant is temporarily unavailable. Please try again shortly.',
   serverError: 'Something went wrong on our end. Please try again in a moment.',
   network: "Couldn't reach the server. Check your connection and try again.",
+  usageLimit: 'This conversation reached its processing limit. Please start a new message.',
+  modelError: "I couldn't complete that request. Please try rephrasing.",
   generic: 'Something went wrong. Please try again.',
 } as const;
+
+export const CHAT_ERROR_BY_CODE: Record<string, string> = {
+  usage_limit: CHAT_ERROR.usageLimit,
+  model_unavailable: CHAT_ERROR.unavailable,
+  model_error: CHAT_ERROR.modelError,
+  generic: CHAT_ERROR.generic,
+};
 
 export const StreamEventType = {
   AgentResponse: 'AgentResponse',

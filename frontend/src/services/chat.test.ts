@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ChatRequestError, chatErrorMessage, parseEventStream, streamChat } from './chat';
+import {
+  ChatRequestError,
+  chatErrorForCode,
+  chatErrorMessage,
+  parseEventStream,
+  streamChat,
+} from './chat';
 import { CHAT_ERROR, StreamEventType } from '@/constants/chat';
 import type { StreamEvent } from '@/types/trial';
 import { createSseStream, mockWireStreamLines } from '@/test/fixtures/trials';
@@ -99,5 +105,16 @@ describe('chatErrorMessage', () => {
   it('falls back to a generic message for unknown errors and 4xx', () => {
     expect(chatErrorMessage(new ChatRequestError(400))).toBe(CHAT_ERROR.generic);
     expect(chatErrorMessage(new Error('boom'))).toBe(CHAT_ERROR.generic);
+  });
+});
+
+describe('chatErrorForCode', () => {
+  it('maps known backend error codes to copy', () => {
+    expect(chatErrorForCode('model_unavailable')).toBe(CHAT_ERROR.unavailable);
+    expect(chatErrorForCode('model_error')).toContain('rephrasing');
+  });
+
+  it('falls back to generic for an unknown code', () => {
+    expect(chatErrorForCode('something_new')).toBe(CHAT_ERROR.generic);
   });
 });
