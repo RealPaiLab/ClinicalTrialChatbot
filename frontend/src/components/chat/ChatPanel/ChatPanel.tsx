@@ -61,7 +61,7 @@ function ChatPanel({
   }, [messages]);
 
   return (
-    <div className="bg-background flex h-full flex-col">
+    <div className="bg-card flex h-full flex-col">
       <ChatHeader onNewConversation={handleNewConversation} />
       <ChatMessages
         messages={messages}

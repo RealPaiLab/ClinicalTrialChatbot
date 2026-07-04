@@ -41,7 +41,12 @@ function HomePage() {
     <div className="text-foreground flex h-screen w-screen flex-col overflow-hidden">
       <header className="bg-header text-header-foreground border-border after:bg-amber relative flex h-12 shrink-0 items-center justify-between border-b px-4 after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:content-['']">
         <span className="text-eyebrow">Clinical Trial Navigator</span>
-        <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleTheme}
+          aria-label={dark ? 'Switch to Light theme' : 'Switch to Dark theme'}
+        >
           {dark ? <Sun /> : <Moon />}
         </Button>
       </header>
@@ -60,7 +65,7 @@ function HomePage() {
 
         <ResizableHandle withHandle />
 
-        <ResizablePanel defaultSize="68%" className="bg-secondary/60">
+        <ResizablePanel defaultSize="68%" className="bg-canvas">
           <ResizablePanelGroup orientation="vertical">
             <ResizablePanel defaultSize="66%">
               <div className="h-full p-2 pb-1">

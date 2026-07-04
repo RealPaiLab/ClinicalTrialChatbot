@@ -18,7 +18,7 @@ interface TrialSummaryPanelProps {
 function TrialSummaryPanel({ trial, onClose }: TrialSummaryPanelProps) {
   if (!trial) {
     return (
-      <div className="bg-background text-muted-foreground flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
+      <div className="bg-card text-muted-foreground flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
         <ClipboardList className="size-6" />
         <p className="text-sm">{EMPTY_TITLE}</p>
         <p className="text-caption max-w-xs">{EMPTY_DESCRIPTION}</p>
@@ -27,7 +27,7 @@ function TrialSummaryPanel({ trial, onClose }: TrialSummaryPanelProps) {
   }
 
   return (
-    <div className="bg-background flex h-full flex-col">
+    <div className="bg-card flex h-full flex-col">
       <TrialSummaryHeader trial={trial} onClose={onClose} />
       <ScrollArea className="min-h-0 flex-1">
         <div className="flex flex-col gap-5 p-4">

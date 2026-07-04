@@ -47,6 +47,8 @@
   --color-background: var(--background);
   --color-header: var(--header);
   --color-header-foreground: var(--header-foreground);
+  /* Page canvas behind the panels: soft blue tint in light, darkest base in dark. */
+  --color-canvas: var(--canvas);
 
   /* Brand highlight + trial-site status colors (reused by map pins and badges).
      Cool-toned (blue/yellow) so the map harmonizes with the clinical white/navy palette. */
@@ -114,42 +116,46 @@
   /* Header surface (kept as its own token so the bar color is easy to tweak) */
   --header: #ffffff;
   --header-foreground: #16203f;
+
+  /* Page canvas behind the panels (soft blue tint) */
+  --canvas: #eef2f9;
 }
 
 /* ===========================================================================
-   Clinical trials - deep navy (dark)
+   Clinical trials - Darker (near-black navy)
+   Base anchor: #000518 · surfaces stepped up from it · blue #7E9CE6 · amber #FBD813
    =========================================================================== */
 .dark {
-  --background: #0e1730;
+  --background: #000518;
   --foreground: #e6ecf8;
-  --card: #16213f;
+  --card: #070d24;
   --card-foreground: #e6ecf8;
-  --popover: #16213f;
+  --popover: #070d24;
   --popover-foreground: #e6ecf8;
   --primary: #7e9ce6;
-  --primary-foreground: #0e1730;
-  --secondary: #243154;
+  --primary-foreground: #000518;
+  --secondary: #101b3c;
   --secondary-foreground: #e6ecf8;
-  --muted: #1d2945;
+  --muted: #0b1330;
   --muted-foreground: #9fb0d2;
-  --accent: #283762;
+  --accent: #16234c;
   --accent-foreground: #e6ecf8;
   --destructive: #e0584a;
-  --border: #2d3c63;
-  --input: #2d3c63;
+  --border: #1c2a4e;
+  --input: #1c2a4e;
   --ring: #7e9ce6;
   --chart-1: #7e9ce6;
   --chart-2: #fbd813;
   --chart-3: #91abda;
   --chart-4: #4fb088;
   --chart-5: #9fb0d2;
-  --sidebar: #0b1227;
+  --sidebar: #00030f;
   --sidebar-foreground: #e6ecf8;
   --sidebar-primary: #7e9ce6;
-  --sidebar-primary-foreground: #0e1730;
-  --sidebar-accent: #283762;
+  --sidebar-primary-foreground: #000518;
+  --sidebar-accent: #16234c;
   --sidebar-accent-foreground: #e6ecf8;
-  --sidebar-border: #2d3c63;
+  --sidebar-border: #1c2a4e;
   --sidebar-ring: #7e9ce6;
 
   --amber: #fbd813;
@@ -158,8 +164,11 @@
   --completed: #93a6cc;
   --closed: #e0584a;
 
-  --header: #16213f;
+  --header: #070d24;
   --header-foreground: #e6ecf8;
+
+  /* Page canvas behind the panels (darkest base in Darker mode) */
+  --canvas: #000518;
 }
 
 @layer base {
@@ -211,13 +220,13 @@
   .dark body {
     background-image:
       radial-gradient(
-        58% 44% at 50% -14%,
-        color-mix(in oklch, var(--primary) 12%, transparent),
+        60% 46% at 50% -14%,
+        color-mix(in oklch, var(--primary) 18%, transparent),
         transparent 72%
       ),
       radial-gradient(
         44% 30% at 50% -10%,
-        color-mix(in oklch, var(--amber) 22%, transparent),
+        color-mix(in oklch, var(--amber) 16%, transparent),
         transparent 74%
       );
   }
