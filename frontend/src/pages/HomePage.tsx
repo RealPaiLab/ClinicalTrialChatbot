@@ -1,44 +1,40 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import ChatPanel from '@/components/chat/ChatPanel/ChatPanel';
 import MapPanel from '@/components/map/MapPanel/MapPanel';
 import TrialSummaryPanel from '@/components/summary/TrialSummaryPanel/TrialSummaryPanel';
+import { useAppStore } from '@/store/appStore';
 import type { Trial } from '@/types/trial';
 
 function HomePage() {
-  const [dark, setDark] = useState(false);
-  const [trials, setTrials] = useState<Trial[]>([]);
-  const [selectedNctNumber, setSelectedNctNumber] = useState<string | null>(null);
-  const [contextNctNumbers, setContextNctNumbers] = useState<string[]>([]);
+  const trials = useAppStore((state) => state.trials);
+  const selectedNctNumber = useAppStore((state) => state.selectedNctNumber);
+  const contextNctNumbers = useAppStore((state) => state.contextNctNumbers);
+  const theme = useAppStore((state) => state.theme);
+  const setTrials = useAppStore((state) => state.setTrials);
+  const selectTrial = useAppStore((state) => state.selectTrial);
+  const addToContext = useAppStore((state) => state.addToContext);
+  const removeFromContext = useAppStore((state) => state.removeFromContext);
+  const clearContext = useAppStore((state) => state.clearContext);
+  const reset = useAppStore((state) => state.reset);
+  const toggleTheme = useAppStore((state) => state.toggleTheme);
+
+  const dark = theme === 'dark';
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', dark);
+  }, [dark]);
 
   const selectedTrial = trials.find((trial) => trial.nctNumber === selectedNctNumber) ?? null;
   const contextTrials = contextNctNumbers
     .map((nct) => trials.find((trial) => trial.nctNumber === nct))
     .filter((trial): trial is Trial => Boolean(trial));
 
-  const toggleTheme = () => {
-    setDark((prev) => {
-      const next = !prev;
-      document.documentElement.classList.toggle('dark', next);
-      return next;
-    });
-  };
-
   const handleSelectTrial = (nctNumber: string) => {
-    setSelectedNctNumber(nctNumber);
-    setContextNctNumbers((prev) => (prev.includes(nctNumber) ? prev : [...prev, nctNumber]));
-  };
-
-  const removeFromContext = (nctNumber: string) => {
-    setContextNctNumbers((prev) => prev.filter((nct) => nct !== nctNumber));
-  };
-
-  const handleReset = () => {
-    setTrials([]);
-    setSelectedNctNumber(null);
-    setContextNctNumbers([]);
+    selectTrial(nctNumber);
+    addToContext(nctNumber);
   };
 
   return (
@@ -55,10 +51,10 @@ function HomePage() {
           <ChatPanel
             onTrialsChange={setTrials}
             onCitationClick={handleSelectTrial}
-            onReset={handleReset}
+            onReset={reset}
             contextTrials={contextTrials}
             onRemoveContext={removeFromContext}
-            onClearContext={() => setContextNctNumbers([])}
+            onClearContext={clearContext}
           />
         </ResizablePanel>
 
@@ -84,10 +80,7 @@ function HomePage() {
             <ResizablePanel defaultSize="34%" minSize="20%">
               <div className="h-full p-2 pt-1">
                 <div className="border-border h-full overflow-hidden rounded-lg border shadow-sm">
-                  <TrialSummaryPanel
-                    trial={selectedTrial}
-                    onClose={() => setSelectedNctNumber(null)}
-                  />
+                  <TrialSummaryPanel trial={selectedTrial} onClose={() => selectTrial(null)} />
                 </div>
               </div>
             </ResizablePanel>
