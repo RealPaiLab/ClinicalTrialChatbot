@@ -38,7 +38,7 @@ function ChatInput({ onSend, onStop, status = 'ready' }: ChatInputProps) {
         <AskAiHint />
       </div>
       <PromptInputBody>
-        <PromptInputTextarea placeholder={PLACEHOLDER} />
+        <PromptInputTextarea placeholder={PLACEHOLDER} className="min-h-14" />
       </PromptInputBody>
       <PromptInputFooter>
         <PromptInputTools>

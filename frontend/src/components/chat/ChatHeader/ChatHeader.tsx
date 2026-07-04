@@ -2,7 +2,6 @@ import { SquarePen, Stethoscope } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const TITLE = 'Trial Navigator';
-const TAGLINE = 'Cancer clinical trials, in plain language';
 const NEW_CONVERSATION_LABEL = 'New conversation';
 
 interface ChatHeaderProps {
@@ -11,15 +10,12 @@ interface ChatHeaderProps {
 
 function ChatHeader({ onNewConversation }: ChatHeaderProps) {
   return (
-    <header className="border-border flex items-center justify-between gap-3 border-b px-4 py-3">
-      <div className="flex items-center gap-3">
-        <div className="bg-primary/10 text-primary flex size-9 shrink-0 items-center justify-center rounded-lg">
-          <Stethoscope className="size-5" />
+    <header className="border-border flex items-center justify-between gap-2.5 border-b px-4 py-2">
+      <div className="flex items-center gap-2.5">
+        <div className="bg-primary/10 text-primary flex size-7 shrink-0 items-center justify-center rounded-md">
+          <Stethoscope className="size-4" />
         </div>
-        <div className="flex flex-col">
-          <span className="font-display text-base leading-tight font-semibold">{TITLE}</span>
-          <span className="text-caption text-muted-foreground">{TAGLINE}</span>
-        </div>
+        <span className="font-display text-sm leading-tight font-semibold">{TITLE}</span>
       </div>
       <Button
         variant="ghost"
