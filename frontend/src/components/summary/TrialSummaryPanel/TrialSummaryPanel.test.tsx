@@ -30,4 +30,16 @@ describe('TrialSummaryPanel', () => {
     await userEvent.click(screen.getByRole('button', { name: /close/i }));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  it('adds the trial to context when the AI button is clicked', async () => {
+    const onAddToContext = vi.fn();
+    render(<TrialSummaryPanel trial={mockTrials[0]} onAddToContext={onAddToContext} />);
+    await userEvent.click(screen.getByRole('button', { name: /ask camille about this trial/i }));
+    expect(onAddToContext).toHaveBeenCalledWith('NCT04267848');
+  });
+
+  it('disables the AI button once the trial is in context', () => {
+    render(<TrialSummaryPanel trial={mockTrials[0]} onAddToContext={vi.fn()} isInContext />);
+    expect(screen.getByRole('button', { name: /added to your chat/i })).toBeDisabled();
+  });
 });

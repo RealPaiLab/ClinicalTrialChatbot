@@ -4,7 +4,6 @@ import ChatHeader from '@/components/chat/ChatHeader/ChatHeader';
 import ChatInput from '@/components/chat/ChatInput/ChatInput';
 import ChatMessages from '@/components/chat/ChatMessages/ChatMessages';
 import FollowUpChips from '@/components/chat/FollowUpChips/FollowUpChips';
-import SelectedTrials from '@/components/chat/SelectedTrials/SelectedTrials';
 import { ASK_AI_PROMPT_PREFIX, ASK_AI_PROMPT_SUFFIX, ChatRole } from '@/constants/chat';
 import { useChat } from '@/hooks/useChat';
 import { getTrialSummary } from '@/services/trials';
@@ -71,9 +70,14 @@ function ChatPanel({
         onAskAi={handleAskAi}
       />
       <div className="border-border bg-secondary/60 before:bg-amber/80 relative flex flex-col gap-3 border-t p-2 before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:content-['']">
-        <SelectedTrials trials={contextTrials} onRemove={onRemoveContext} />
         <FollowUpChips questions={suggestions} onSelect={handleSend} />
-        <ChatInput onSend={handleSend} onStop={stop} status={status} />
+        <ChatInput
+          onSend={handleSend}
+          onStop={stop}
+          status={status}
+          contextTrials={contextTrials}
+          onRemoveContext={onRemoveContext}
+        />
         <ChatDisclaimer />
       </div>
     </div>

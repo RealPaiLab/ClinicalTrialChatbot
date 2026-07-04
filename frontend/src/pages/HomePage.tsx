@@ -31,11 +31,9 @@ function HomePage() {
   const contextTrials = contextNctNumbers
     .map((nct) => trials.find((trial) => trial.nctNumber === nct))
     .filter((trial): trial is Trial => Boolean(trial));
-
-  const handleSelectTrial = (nctNumber: string) => {
-    selectTrial(nctNumber);
-    addToContext(nctNumber);
-  };
+  const selectedInContext = selectedNctNumber
+    ? contextNctNumbers.includes(selectedNctNumber)
+    : false;
 
   return (
     <div className="text-foreground flex h-screen w-screen flex-col overflow-hidden">
@@ -55,7 +53,7 @@ function HomePage() {
         <ResizablePanel defaultSize="32%" minSize="22%" maxSize="46%">
           <ChatPanel
             onTrialsChange={setTrials}
-            onCitationClick={handleSelectTrial}
+            onCitationClick={selectTrial}
             onReset={reset}
             contextTrials={contextTrials}
             onRemoveContext={removeFromContext}
@@ -73,7 +71,7 @@ function HomePage() {
                   <MapPanel
                     trials={trials}
                     selectedNctNumber={selectedNctNumber}
-                    onSelectTrial={handleSelectTrial}
+                    onSelectTrial={selectTrial}
                     dark={dark}
                   />
                 </div>
@@ -85,7 +83,12 @@ function HomePage() {
             <ResizablePanel defaultSize="34%" minSize="20%">
               <div className="h-full p-2 pt-1">
                 <div className="border-border h-full overflow-hidden rounded-lg border shadow-sm">
-                  <TrialSummaryPanel trial={selectedTrial} onClose={() => selectTrial(null)} />
+                  <TrialSummaryPanel
+                    trial={selectedTrial}
+                    onClose={() => selectTrial(null)}
+                    onAddToContext={addToContext}
+                    isInContext={selectedInContext}
+                  />
                 </div>
               </div>
             </ResizablePanel>

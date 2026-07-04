@@ -3,12 +3,15 @@ import {
   PromptInput,
   PromptInputBody,
   PromptInputFooter,
+  PromptInputHeader,
   PromptInputSubmit,
   PromptInputTextarea,
   PromptInputTools,
   type PromptInputMessage,
 } from '@/components/ai-elements/prompt-input';
 import AskAiHint from '@/components/chat/AskAiHint/AskAiHint';
+import SelectedTrials from '@/components/chat/SelectedTrials/SelectedTrials';
+import type { Trial } from '@/types/trial';
 
 const PLACEHOLDER = 'Describe your situation or ask about a trial...';
 const SEND_HINT = 'Enter to send';
@@ -17,9 +20,17 @@ interface ChatInputProps {
   onSend: (text: string) => void;
   onStop?: () => void;
   status?: ChatStatus;
+  contextTrials?: Trial[];
+  onRemoveContext?: (nctNumber: string) => void;
 }
 
-function ChatInput({ onSend, onStop, status = 'ready' }: ChatInputProps) {
+function ChatInput({
+  onSend,
+  onStop,
+  status = 'ready',
+  contextTrials = [],
+  onRemoveContext,
+}: ChatInputProps) {
   const handleSubmit = (message: PromptInputMessage) => {
     if (status === 'streaming') {
       onStop?.();
@@ -37,6 +48,11 @@ function ChatInput({ onSend, onStop, status = 'ready' }: ChatInputProps) {
       <div className="absolute top-2 right-2 z-10">
         <AskAiHint />
       </div>
+      {contextTrials.length > 0 && (
+        <PromptInputHeader>
+          <SelectedTrials trials={contextTrials} onRemove={onRemoveContext} />
+        </PromptInputHeader>
+      )}
       <PromptInputBody>
         <PromptInputTextarea placeholder={PLACEHOLDER} className="min-h-14" />
       </PromptInputBody>

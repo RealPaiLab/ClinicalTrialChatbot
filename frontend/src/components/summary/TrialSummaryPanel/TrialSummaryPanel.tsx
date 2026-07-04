@@ -13,9 +13,16 @@ const EMPTY_DESCRIPTION =
 interface TrialSummaryPanelProps {
   trial: Trial | null;
   onClose?: () => void;
+  onAddToContext?: (nctNumber: string) => void;
+  isInContext?: boolean;
 }
 
-function TrialSummaryPanel({ trial, onClose }: TrialSummaryPanelProps) {
+function TrialSummaryPanel({
+  trial,
+  onClose,
+  onAddToContext,
+  isInContext,
+}: TrialSummaryPanelProps) {
   if (!trial) {
     return (
       <div className="bg-card text-muted-foreground flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
@@ -28,7 +35,12 @@ function TrialSummaryPanel({ trial, onClose }: TrialSummaryPanelProps) {
 
   return (
     <div className="bg-card flex h-full flex-col">
-      <TrialSummaryHeader trial={trial} onClose={onClose} />
+      <TrialSummaryHeader
+        trial={trial}
+        onClose={onClose}
+        onAddToContext={onAddToContext}
+        isInContext={isInContext}
+      />
       <ScrollArea className="min-h-0 flex-1">
         <div className="flex flex-col gap-5 p-4">
           <TrialFacts trial={trial} />
