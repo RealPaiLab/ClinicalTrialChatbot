@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Trial } from '@/types/trial';
+import type { ChatMessage, Trial } from '@/types/trial';
 
 export type Theme = 'light' | 'dark';
 
@@ -10,6 +10,7 @@ interface AppState {
   contextNctNumbers: string[];
   theme: Theme;
   hasSeenTour: boolean;
+  tourMessages: ChatMessage[];
 
   setTrials: (trials: Trial[]) => void;
   selectTrial: (nctNumber: string | null) => void;
@@ -20,6 +21,7 @@ interface AppState {
   toggleTheme: () => void;
   setTheme: (theme: Theme) => void;
   markTourSeen: () => void;
+  setTourMessages: (messages: ChatMessage[]) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -30,6 +32,7 @@ export const useAppStore = create<AppState>()(
       contextNctNumbers: [],
       theme: 'light',
       hasSeenTour: false,
+      tourMessages: [],
 
       setTrials: (trials) => set({ trials }),
       selectTrial: (selectedNctNumber) => set({ selectedNctNumber }),
@@ -48,6 +51,7 @@ export const useAppStore = create<AppState>()(
       toggleTheme: () => set((state) => ({ theme: state.theme === 'dark' ? 'light' : 'dark' })),
       setTheme: (theme) => set({ theme }),
       markTourSeen: () => set({ hasSeenTour: true }),
+      setTourMessages: (tourMessages) => set({ tourMessages }),
     }),
     {
       name: 'ctc-app',
