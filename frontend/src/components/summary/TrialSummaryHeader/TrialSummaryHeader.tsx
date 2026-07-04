@@ -39,6 +39,7 @@ function TrialSummaryHeader({
                 <Button
                   variant="ghost"
                   size="icon"
+                  data-tour="add-context"
                   aria-label={isInContext ? 'Added to your chat' : 'Ask Camille about this trial'}
                   disabled={isInContext}
                   onClick={() => onAddToContext(trial.nctNumber as string)}
@@ -55,7 +56,13 @@ function TrialSummaryHeader({
           </TooltipProvider>
         )}
         {trialUrl && (
-          <Button asChild variant="ghost" size="icon" aria-label="View on Cancer Trials Canada">
+          <Button
+            asChild
+            variant="ghost"
+            size="icon"
+            data-tour="trial-link"
+            aria-label="View on Cancer Trials Canada"
+          >
             <a href={trialUrl} target="_blank" rel="noreferrer">
               <ExternalLink />
             </a>

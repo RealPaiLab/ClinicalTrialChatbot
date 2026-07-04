@@ -44,7 +44,11 @@ function ChatInput({
   };
 
   return (
-    <PromptInput onSubmit={handleSubmit} className="bg-background relative rounded-lg shadow-sm">
+    <PromptInput
+      onSubmit={handleSubmit}
+      data-tour="chat-input"
+      className="bg-background relative rounded-lg shadow-sm"
+    >
       <div className="absolute top-2 right-2 z-10">
         <AskAiHint />
       </div>

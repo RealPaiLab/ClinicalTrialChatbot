@@ -67,7 +67,7 @@ function ChatMessages({
   return (
     <div ref={rootRef} className="contents">
       {onAskAi && <AskAiSelection rootRef={rootRef} onAsk={onAskAi} />}
-      <Conversation className="min-h-0 flex-1">
+      <Conversation data-tour="chat-messages" className="min-h-0 flex-1">
         <ConversationContent>
           {messages.length === 0 ? (
             <ConversationEmptyState

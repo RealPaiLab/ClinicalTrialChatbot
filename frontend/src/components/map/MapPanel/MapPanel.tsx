@@ -34,7 +34,15 @@ function MapPanel({ trials, selectedNctNumber, onSelectTrial, dark }: MapPanelPr
 
   const { markers, units } = useTrialPins(trials);
   const { openKey, toggle, close } = useClusterDisclosure(units, selectedNctNumber);
-  useMapViewSync({ mapRef, containerRef, loaded, markers, units, selectedNctNumber });
+  useMapViewSync({
+    mapRef,
+    containerRef,
+    loaded,
+    markers,
+    units,
+    selectedNctNumber,
+    initialView: INITIAL_VIEW,
+  });
 
   if (!MAPBOX_TOKEN) {
     return (

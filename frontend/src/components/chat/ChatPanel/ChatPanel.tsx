@@ -7,6 +7,7 @@ import FollowUpChips from '@/components/chat/FollowUpChips/FollowUpChips';
 import { ASK_AI_PROMPT_PREFIX, ASK_AI_PROMPT_SUFFIX, ChatRole } from '@/constants/chat';
 import { useChat } from '@/hooks/useChat';
 import { getTrialSummary } from '@/services/trials';
+import { useAppStore } from '@/store/appStore';
 import type { StreamEvent, Trial, TrialSummary } from '@/types/trial';
 
 interface ChatPanelProps {
@@ -35,6 +36,9 @@ function ChatPanel({
     onTrialsChange,
   });
 
+  const tourMessages = useAppStore((state) => state.tourMessages);
+  const displayMessages = tourMessages.length > 0 ? tourMessages : messages;
+
   const handleSend = (text: string) => {
     const contextNctNumbers = contextTrials
       .map((trial) => trial.nctNumber)
@@ -53,17 +57,17 @@ function ChatPanel({
   };
 
   const suggestions = useMemo(() => {
-    const lastAssistant = [...messages]
+    const lastAssistant = [...displayMessages]
       .reverse()
       .find((message) => message.role === ChatRole.Assistant);
     return lastAssistant?.followUpQuestions ?? [];
-  }, [messages]);
+  }, [displayMessages]);
 
   return (
     <div className="bg-card flex h-full flex-col">
       <ChatHeader onNewConversation={handleNewConversation} />
       <ChatMessages
-        messages={messages}
+        messages={displayMessages}
         sessionId={sessionId}
         fetchTrial={fetchTrial}
         onCitationClick={onCitationClick}
