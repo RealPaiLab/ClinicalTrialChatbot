@@ -21,25 +21,12 @@
     owner: "{{ deploy_user }}"
     mode: "0600"
 
-- name: Look up the deploy user uid
-  ansible.builtin.getent:
-    database: passwd
-    key: "{{ deploy_user }}"
-
-- name: Set the rootless Docker connection env
-  ansible.builtin.set_fact:
-    app_docker_env:
-      DOCKER_HOST: "unix:///run/user/{{ getent_passwd[deploy_user][1] }}/docker.sock"
-      XDG_RUNTIME_DIR: "/run/user/{{ getent_passwd[deploy_user][1] }}"
-
-- name: Log in to GHCR (persists in the deploy user's docker config)
+- name: Log in to GHCR (rootful Docker; persists in root's docker config)
   community.docker.docker_login:
     registry: "{{ registry }}"
     username: "{{ ghcr_pull_username }}"
     password: "{{ ghcr_pull_token }}"
   become: true
-  become_user: "{{ deploy_user }}"
-  environment: "{{ app_docker_env }}"
   when: ghcr_pull_token | default('') | length > 0
 
 - name: Bring up the app stack
@@ -48,5 +35,6 @@
     pull: always
     state: present
   become: true
-  become_user: "{{ deploy_user }}"
-  environment: "{{ app_docker_env | combine({'BACKEND_VERSION': backend_version, 'FRONTEND_VERSION': frontend_version}) }}"
+  environment:
+    BACKEND_VERSION: "{{ backend_version }}"
+    FRONTEND_VERSION: "{{ frontend_version }}"

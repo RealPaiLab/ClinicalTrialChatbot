@@ -14,17 +14,6 @@
           - image_tag | default('') | length > 0
         fail_msg: "Pass -e deploy_package=backend|frontend and -e image_tag=X.Y.Z"
 
-    - name: Look up the deploy user uid
-      ansible.builtin.getent:
-        database: passwd
-        key: "{{ deploy_user }}"
-
-    - name: Set the rootless Docker connection env
-      ansible.builtin.set_fact:
-        deploy_docker_env:
-          DOCKER_HOST: "unix:///run/user/{{ getent_passwd[deploy_user][1] }}/docker.sock"
-          XDG_RUNTIME_DIR: "/run/user/{{ getent_passwd[deploy_user][1] }}"
-
     - name: Pin the released version for compose interpolation
       ansible.builtin.lineinfile:
         path: "{{ app_dir }}/.env"
@@ -38,13 +27,11 @@
         project_src: "{{ app_dir }}"
         pull: missing
         state: present
-      environment: "{{ deploy_docker_env }}"
 
     - name: Apply database migrations (backend releases only)
       ansible.builtin.command:
         cmd: docker compose run --rm backend alembic upgrade head
         chdir: "{{ app_dir }}"
-      environment: "{{ deploy_docker_env }}"
       register: migrate
       changed_when: "'Running upgrade' in migrate.stdout"
       when:

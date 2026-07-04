@@ -43,6 +43,7 @@ class Settings(BaseSettings):
     langfuse_host: str = "http://localhost:3000"
     langfuse_prompt_name: str = "clinical-trial-chatbot-system"
     langfuse_prompt_label: str = "production"
+    langfuse_seed_prompt: bool = True
 
     conversation_store: str = "memory"
     redis_url: str = "redis://localhost:6379/0"

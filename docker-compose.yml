@@ -162,6 +162,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "80:80"
+    env_file:
+      - ./frontend/.env.runtime
     depends_on:
       - backend
     restart: unless-stopped

@@ -11,7 +11,7 @@ Two cadences:
 ansible-galaxy install -r requirements.yml
 cp secrets.yml.example secrets.yml                           # secrets (gitignored)
 cp inventory/hosts.example.yml inventory/hosts.yml          # VM IPs, SSH user, domains (gitignored)
-cp group_vars/all/local.example.yml group_vars/all/local.yml # admin_cidrs, registry_owner, certbot_email (gitignored)
+cp inventory/group_vars/all/local.example.yml inventory/group_vars/all/local.yml # admin_cidrs, registry_owner (gitignored)
 ```
 
 ## One-time bring-up (local)
@@ -40,7 +40,7 @@ Manual (dispatch) runs skip migrations and only swap the image version.
 - `prepare` / `langfuse` / `restore_db` run as the **admin/bootstrap user** (has sudo) → inventory
   `ansible_user`.
 - `deploy.yml` connects as the **`deploy` user** (no sudo). On the App VM `deploy` runs containers
-  via **rootless Docker** (no docker group), so the CI account is not root-capable.
+  via **rootful Docker** using the `docker` group.
 - The Langfuse VM is rootful/root-managed.
 
 ## Secrets

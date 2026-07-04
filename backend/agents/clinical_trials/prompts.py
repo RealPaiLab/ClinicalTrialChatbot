@@ -238,3 +238,28 @@ def get_system_prompt() -> str:
     except Exception as exc:
         logger.warning("Using local system prompt (Langfuse fetch failed): %s", exc)
         return LOCAL_SYSTEM_PROMPT
+
+
+def ensure_prompt_seeded() -> None:
+    """Seed the Langfuse prompt on first run if it is not there yet."""
+    settings = get_settings()
+    if not settings.langfuse_seed_prompt:
+        return
+    client = get_langfuse_client()
+    name = settings.langfuse_prompt_name
+    label = settings.langfuse_prompt_label
+    try:
+        client.get_prompt(name, label=label)
+        return
+    except Exception:
+        pass
+    try:
+        if not client.auth_check():
+            logger.warning("Prompt seed skipped: Langfuse is not reachable.")
+            return
+        client.create_prompt(
+            name=name, prompt=LOCAL_SYSTEM_PROMPT, labels=[label], type="text"
+        )
+        logger.info("Seeded Langfuse prompt %r with label %r.", name, label)
+    except Exception as exc:
+        logger.warning("Prompt seed skipped (Langfuse unavailable): %s", exc)

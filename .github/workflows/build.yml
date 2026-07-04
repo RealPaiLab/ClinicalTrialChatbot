@@ -47,10 +47,11 @@ jobs:
       version: ${{ needs.resolve.outputs.version }}
     secrets: inherit
 
-  deploy:
-    needs: [resolve, image]
-    uses: ./.github/workflows/deploy.yml
-    with:
-      package: ${{ needs.resolve.outputs.package }}
-      version: ${{ needs.resolve.outputs.version }}
-    secrets: inherit
+  # Deploy is disabled: no self-hosted runner can reach now
+  # deploy:
+  #   needs: [resolve, image]
+  #   uses: ./.github/workflows/deploy.yml
+  #   with:
+  #     package: ${{ needs.resolve.outputs.package }}
+  #     version: ${{ needs.resolve.outputs.version }}
+  #   secrets: inherit

@@ -1,4 +1,3 @@
-proxy_type: langfuse
 langfuse_dir: /opt/{{ project_name }}/langfuse
 
 langfuse_web_image: langfuse/langfuse:3
