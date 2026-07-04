@@ -20,7 +20,8 @@ class RemoteExperimentTrigger(BaseModel):
     def _parse_payload(cls, value: Any) -> Any:
         if isinstance(value, str):
             try:
-                return json.loads(value) if value.strip() else {}
+                parsed = json.loads(value) if value.strip() else {}
             except json.JSONDecodeError:
                 return {}
-        return value or {}
+            return parsed if isinstance(parsed, dict) else {}
+        return value if isinstance(value, dict) else {}
