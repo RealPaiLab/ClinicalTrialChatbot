@@ -54,7 +54,7 @@ async def syntactic_search(
     surgery"); it searches only within trials that already match the filters.
     """
     flt = TrialFilter(
-        cancer_types=args.cancer_types,
+        cancer_types=[c.value for c in args.cancer_types],
         locations=args.locations,
         statuses=args.statuses,
         phases=args.phases,
@@ -81,7 +81,7 @@ async def semantic_search(
     rather than rephrasing the same query.
     """
     flt = TrialFilter(
-        cancer_types=args.cancer_types,
+        cancer_types=[c.value for c in args.cancer_types],
         locations=args.locations,
         statuses=args.statuses,
         phases=args.phases,
@@ -123,3 +123,14 @@ async def define_term(
     source, but do not keep retrying.
     """
     return await ctx.deps.glossary.define(args.term, args.source)
+
+
+def _first_line(doc: str | None) -> str:
+    lines = (doc or "").strip().splitlines()
+    return lines[0] if lines else ""
+
+
+TOOL_DESCRIPTIONS: dict[str, str] = {
+    tool.__name__: _first_line(tool.__doc__)
+    for tool in (syntactic_search, semantic_search, get_trial_details, define_term)
+}
