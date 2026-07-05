@@ -2,6 +2,12 @@ import { useEffect, type RefObject } from 'react';
 import type { MapRef } from 'react-map-gl/mapbox';
 import type { PinUnit, SiteMarker } from '@/types/map';
 
+interface MapView {
+  longitude: number;
+  latitude: number;
+  zoom: number;
+}
+
 interface MapViewSyncOptions {
   mapRef: RefObject<MapRef | null>;
   containerRef: RefObject<HTMLDivElement | null>;
@@ -9,6 +15,7 @@ interface MapViewSyncOptions {
   markers: SiteMarker[];
   units: PinUnit[];
   selectedNctNumber?: string | null;
+  initialView: MapView;
 }
 
 export function useMapViewSync({
@@ -18,6 +25,7 @@ export function useMapViewSync({
   markers,
   units,
   selectedNctNumber,
+  initialView,
 }: MapViewSyncOptions) {
   useEffect(() => {
     if (!loaded) return;
@@ -29,6 +37,16 @@ export function useMapViewSync({
     observer.observe(container);
     return () => observer.disconnect();
   }, [loaded, mapRef, containerRef]);
+
+  useEffect(() => {
+    if (!loaded || markers.length > 0) return;
+    mapRef.current?.flyTo({
+      center: [initialView.longitude, initialView.latitude],
+      zoom: initialView.zoom,
+      duration: 900,
+      essential: true,
+    });
+  }, [loaded, markers, initialView, mapRef]);
 
   useEffect(() => {
     if (!loaded || markers.length === 0) return;

@@ -4,10 +4,10 @@ import ChatHeader from '@/components/chat/ChatHeader/ChatHeader';
 import ChatInput from '@/components/chat/ChatInput/ChatInput';
 import ChatMessages from '@/components/chat/ChatMessages/ChatMessages';
 import FollowUpChips from '@/components/chat/FollowUpChips/FollowUpChips';
-import SelectedTrials from '@/components/chat/SelectedTrials/SelectedTrials';
 import { ASK_AI_PROMPT_PREFIX, ASK_AI_PROMPT_SUFFIX, ChatRole } from '@/constants/chat';
 import { useChat } from '@/hooks/useChat';
 import { getTrialSummary } from '@/services/trials';
+import { useAppStore } from '@/store/appStore';
 import type { StreamEvent, Trial, TrialSummary } from '@/types/trial';
 
 interface ChatPanelProps {
@@ -36,6 +36,9 @@ function ChatPanel({
     onTrialsChange,
   });
 
+  const tourMessages = useAppStore((state) => state.tourMessages);
+  const displayMessages = tourMessages.length > 0 ? tourMessages : messages;
+
   const handleSend = (text: string) => {
     const contextNctNumbers = contextTrials
       .map((trial) => trial.nctNumber)
@@ -54,26 +57,31 @@ function ChatPanel({
   };
 
   const suggestions = useMemo(() => {
-    const lastAssistant = [...messages]
+    const lastAssistant = [...displayMessages]
       .reverse()
       .find((message) => message.role === ChatRole.Assistant);
     return lastAssistant?.followUpQuestions ?? [];
-  }, [messages]);
+  }, [displayMessages]);
 
   return (
-    <div className="bg-background flex h-full flex-col">
+    <div className="bg-card flex h-full flex-col">
       <ChatHeader onNewConversation={handleNewConversation} />
       <ChatMessages
-        messages={messages}
+        messages={displayMessages}
         sessionId={sessionId}
         fetchTrial={fetchTrial}
         onCitationClick={onCitationClick}
         onAskAi={handleAskAi}
       />
       <div className="border-border bg-secondary/60 before:bg-amber/80 relative flex flex-col gap-3 border-t p-2 before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:content-['']">
-        <SelectedTrials trials={contextTrials} onRemove={onRemoveContext} />
         <FollowUpChips questions={suggestions} onSelect={handleSend} />
-        <ChatInput onSend={handleSend} onStop={stop} status={status} />
+        <ChatInput
+          onSend={handleSend}
+          onStop={stop}
+          status={status}
+          contextTrials={contextTrials}
+          onRemoveContext={onRemoveContext}
+        />
         <ChatDisclaimer />
       </div>
     </div>
