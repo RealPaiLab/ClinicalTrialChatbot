@@ -28,6 +28,7 @@ function AskAiSelection({ rootRef, onAsk }: AskAiSelectionProps) {
       <Button
         type="button"
         size="sm"
+        data-tour="ask-ai"
         onMouseDown={(event) => event.preventDefault()}
         onClick={handleAsk}
         className="bg-secondary text-foreground hover:bg-secondary h-7 gap-1.5 rounded-full px-3 text-xs shadow-md transition-transform duration-150 ease-out hover:scale-110"

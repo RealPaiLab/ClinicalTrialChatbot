@@ -72,7 +72,7 @@ function MessageFeedback({
 
   return (
     <div className="mt-1 flex flex-col gap-2">
-      <MessageActions>
+      <MessageActions data-tour="feedback" className="w-fit">
         <MessageAction
           tooltip={FEEDBACK.helpfulLabel}
           aria-pressed={score === 1}
