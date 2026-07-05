@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.4.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.3.0...frontend-v0.4.0) (2026-07-05)
+
+
+### Features
+
+* add driver.js dependency and implement tour data attributes in chat components ([b8bb26b](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/b8bb26b72017ae353061331aeefb1878320a2b75))
+* add Ontario boundary geojson and integrate it into the map with hover info ([009b17e](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/009b17edc25e84d241143166b2f7a2c30a1ee60e))
+* adjust ResizablePanel sizes for improved layout on HomePage ([ab1187a](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/ab1187aef6ed724ca41d5466fdb10ff650de9f07))
+* enhance chat input and trial summary components with context management and improved UI interactions ([5da8db6](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/5da8db6ec728a6d78402cbec8b94a0ac56d382db))
+* implement onboarding tour with demo trials and UI enhancements ([454b4c1](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/454b4c1cd18d405d6bddcd5bb7b6a914d217ad6c))
+* implement onboarding tour with demo trials, UI enhancements, and tour blur effects ([c864bd0](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/c864bd03bf4c7dbcd141a3097d470160829c52fe))
+* implement Zustand store for app state management and update HomePage component ([76c9048](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/76c904813576e673fe618655bb7018d0d1edb678))
+* swap tour popover titles and descriptions for trial link and add context elements ([6ccc4c3](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/6ccc4c3777b46ae2f0f3a7851c07baf5485ebd81))
+* update HomePage to use useLayoutEffect for theme toggling ([03f3520](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/03f352034d71b87cf31f31a8cb9a6444345fb892))
+
+
+### Bug Fixes
+
+* update theme toggle button accessibility and adjust background colors for consistency ([67e9adc](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/67e9adcc7efff5f761206e8127925eba43c74f6e))
+
 ## [0.3.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.2.1...frontend-v0.3.0) (2026-07-03)
 
 
