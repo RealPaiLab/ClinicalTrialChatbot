@@ -115,21 +115,21 @@ export function useOnboardingTour() {
         },
       },
       {
-        element: '[data-tour="add-context"]',
-        popover: {
-          title: 'Ask about a trial',
-          description:
-            'Curious about a specific trial? Add it to your chat with this button, then ask the assistant anything about it.',
-          side: 'bottom',
-          align: 'end',
-        },
-      },
-      {
         element: '[data-tour="trial-link"]',
         popover: {
           title: 'Open the official page',
           description:
             'This opens the trial on the Cancer Trials Canada website, where you can read the full listing and find out how to get in touch.',
+          side: 'bottom',
+          align: 'end',
+        },
+      },
+      {
+        element: '[data-tour="add-context"]',
+        popover: {
+          title: 'Ask about a trial',
+          description:
+            'Curious about a specific trial? Add it to your chat with this button, then ask the assistant anything about it.',
           side: 'bottom',
           align: 'end',
         },
