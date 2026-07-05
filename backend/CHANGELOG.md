@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.4.0...backend-v0.4.1) (2026-07-05)
+
+
+### Bug Fixes
+
+* improve payload parsing logic in RemoteExperimentTrigger ([65e74d4](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/65e74d49eb37617ee220ec4415b81ad1306820f0))
+
 ## [0.4.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.3.0...backend-v0.4.0) (2026-07-03)
 
 
