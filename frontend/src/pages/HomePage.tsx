@@ -5,7 +5,7 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/componen
 import ChatPanel from '@/components/chat/ChatPanel/ChatPanel';
 import MapPanel from '@/components/map/MapPanel/MapPanel';
 import TrialSummaryPanel from '@/components/summary/TrialSummaryPanel/TrialSummaryPanel';
-import { useOnboardingTour } from '@/onboarding/useOnboardingTour';
+import { useOnboardingTour } from '@/components/onboarding/tour/useOnboardingTour';
 import { useAppStore } from '@/store/appStore';
 import type { Trial } from '@/types/trial';
 

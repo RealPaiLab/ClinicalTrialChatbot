@@ -11,8 +11,8 @@
   position: fixed;
   inset: 0;
   background-color: rgb(255 255 255 / 0.45);
-  backdrop-filter: blur(7px);
   -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
   pointer-events: auto;
   transition: clip-path 0.3s ease;
 }
