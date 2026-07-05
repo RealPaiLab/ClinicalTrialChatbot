@@ -68,7 +68,7 @@ function HomePage() {
       </header>
 
       <ResizablePanelGroup orientation="horizontal" className="min-h-0 flex-1">
-        <ResizablePanel defaultSize="32%" minSize="22%" maxSize="46%">
+        <ResizablePanel defaultSize="37%" minSize="22%" maxSize="50%">
           <ChatPanel
             onTrialsChange={setTrials}
             onCitationClick={selectTrial}
@@ -81,7 +81,7 @@ function HomePage() {
 
         <ResizableHandle withHandle />
 
-        <ResizablePanel defaultSize="68%" className="bg-canvas">
+        <ResizablePanel defaultSize="63%" className="bg-canvas">
           <ResizablePanelGroup orientation="vertical">
             <ResizablePanel defaultSize="66%">
               <div className="h-full p-2 pb-1">
@@ -101,7 +101,7 @@ function HomePage() {
 
             <ResizableHandle withHandle className="bg-transparent" />
 
-            <ResizablePanel defaultSize="34%" minSize="20%">
+            <ResizablePanel defaultSize="34%" minSize="20%" maxSize="80%">
               <div className="h-full p-2 pt-1">
                 <div
                   data-tour="summary"
