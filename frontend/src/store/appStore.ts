@@ -47,7 +47,8 @@ export const useAppStore = create<AppState>()(
           contextNctNumbers: state.contextNctNumbers.filter((nct) => nct !== nctNumber),
         })),
       clearContext: () => set({ contextNctNumbers: [] }),
-      reset: () => set({ trials: [], selectedNctNumber: null, contextNctNumbers: [] }),
+      reset: () =>
+        set({ trials: [], selectedNctNumber: null, contextNctNumbers: [], tourMessages: [] }),
       toggleTheme: () => set((state) => ({ theme: state.theme === 'dark' ? 'light' : 'dark' })),
       setTheme: (theme) => set({ theme }),
       markTourSeen: () => set({ hasSeenTour: true }),

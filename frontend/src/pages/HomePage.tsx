@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { HelpCircle, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
@@ -26,7 +26,7 @@ function HomePage() {
 
   const { startTour } = useOnboardingTour();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
   }, [dark]);
 
