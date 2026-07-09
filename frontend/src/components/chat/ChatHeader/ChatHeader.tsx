@@ -1,7 +1,7 @@
 import { SquarePen, Stethoscope } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-const TITLE = 'Trial Navigator';
+const TITLE = 'Cancer Trial Navigator';
 const NEW_CONVERSATION_LABEL = 'New conversation';
 
 interface ChatHeaderProps {

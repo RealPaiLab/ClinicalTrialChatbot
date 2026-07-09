@@ -51,7 +51,7 @@ function HomePage() {
       className="text-foreground flex h-screen w-screen flex-col overflow-hidden"
     >
       <header className="bg-header text-header-foreground border-border after:bg-amber relative flex h-12 shrink-0 items-center justify-between border-b px-4 after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:content-['']">
-        <span className="text-eyebrow">Clinical Trial Navigator</span>
+        <span className="text-eyebrow">Cancer Clinical Trial Navigator</span>
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" onClick={startTour} aria-label="Take a tour">
             <HelpCircle />
