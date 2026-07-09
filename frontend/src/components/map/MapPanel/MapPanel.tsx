@@ -74,7 +74,7 @@ function MapPanel({ trials, selectedNctNumber, onSelectTrial, dark }: MapPanelPr
             type="fill"
             paint={{
               'fill-color': dark ? '#7e9ce6' : '#2f3f7b',
-              'fill-opacity': dark ? 0.08 : 0.05,
+              'fill-opacity': ['interpolate', ['linear'], ['zoom'], 5, dark ? 0.08 : 0.05, 7, 0],
             }}
           />
           <Layer
@@ -83,7 +83,7 @@ function MapPanel({ trials, selectedNctNumber, onSelectTrial, dark }: MapPanelPr
             paint={{
               'line-color': dark ? '#7e9ce6' : '#2f3f7b',
               'line-width': 1.5,
-              'line-opacity': 0.6,
+              'line-opacity': ['interpolate', ['linear'], ['zoom'], 5, 0.6, 7, 0],
             }}
           />
         </Source>
