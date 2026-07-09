@@ -1,10 +1,10 @@
 import { useEffect, useLayoutEffect } from 'react';
-import { HelpCircle, Moon, Sun } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import ChatPanel from '@/components/chat/ChatPanel/ChatPanel';
 import MapPanel from '@/components/map/MapPanel/MapPanel';
 import TrialSummaryPanel from '@/components/summary/TrialSummaryPanel/TrialSummaryPanel';
+import AppHeader from '@/components/layout/AppHeader/AppHeader';
+import AppFooter from '@/components/layout/AppFooter/AppFooter';
 import { useOnboardingTour } from '@/components/onboarding/tour/useOnboardingTour';
 import { useAppStore } from '@/store/appStore';
 import type { Trial } from '@/types/trial';
@@ -50,22 +50,7 @@ function HomePage() {
       data-tour="app"
       className="text-foreground flex h-screen w-screen flex-col overflow-hidden"
     >
-      <header className="bg-header text-header-foreground border-border after:bg-amber relative flex h-12 shrink-0 items-center justify-between border-b px-4 after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:content-['']">
-        <span className="text-eyebrow">Clinical Trial Navigator</span>
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" onClick={startTour} aria-label="Take a tour">
-            <HelpCircle />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleTheme}
-            aria-label={dark ? 'Switch to Light theme' : 'Switch to Dark theme'}
-          >
-            {dark ? <Sun /> : <Moon />}
-          </Button>
-        </div>
-      </header>
+      <AppHeader dark={dark} onStartTour={startTour} onToggleTheme={toggleTheme} />
 
       <ResizablePanelGroup orientation="horizontal" className="min-h-0 flex-1">
         <ResizablePanel defaultSize="37%" minSize="22%" maxSize="50%">
@@ -119,6 +104,8 @@ function HomePage() {
           </ResizablePanelGroup>
         </ResizablePanel>
       </ResizablePanelGroup>
+
+      <AppFooter />
     </div>
   );
 }

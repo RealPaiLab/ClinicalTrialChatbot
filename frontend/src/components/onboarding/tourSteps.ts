@@ -80,9 +80,9 @@ export function buildTourSteps(getTour: () => Driver): DriveStep[] {
   return [
     {
       popover: {
-        title: 'Welcome to Trial Navigator',
+        title: 'Welcome to Cancer Trial Navigator',
         description:
-          'This quick tour shows you how to find clinical trials by chatting, exploring the map, and asking about the ones that interest you. It only takes a moment.',
+          'This quick tour shows you how to find cancer clinical trials by chatting, exploring the map, and asking about the ones that interest you. It only takes a moment.',
       },
     },
     {

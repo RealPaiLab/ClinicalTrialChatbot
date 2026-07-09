@@ -6,7 +6,7 @@ import ChatHeader from './ChatHeader';
 describe('ChatHeader', () => {
   it('renders the title', () => {
     render(<ChatHeader />);
-    expect(screen.getByText('Trial Navigator')).toBeInTheDocument();
+    expect(screen.getByText('Cancer Trial Navigator')).toBeInTheDocument();
   });
 
   it('triggers a new conversation when the button is clicked', async () => {

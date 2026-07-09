@@ -4,7 +4,7 @@ import Spinner from '@/components/Spinner/Spinner';
 const ROTATE_INTERVAL_MS = 5000;
 
 const SEARCH_MESSAGES = [
-  'Searching clinical trials…',
+  'Searching cancer clinical trials…',
   'Matching your details to eligibility criteria…',
   'Scanning recruiting sites near you…',
   'Reviewing trial phases and treatments…',
