@@ -6,12 +6,14 @@ from pydantic import BaseModel, Field
 
 from schemas.trial import TrialCitation
 
+MAX_USER_MESSAGE_LENGTH = 1000
+
 
 class ChatRequest(BaseModel):
     """Incoming chat turn request."""
 
     session_id: str
-    user_message: str
+    user_message: str = Field(min_length=1, max_length=MAX_USER_MESSAGE_LENGTH)
 
 
 class ChatResult(BaseModel):
