@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.4.2](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.4.1...backend-v0.4.2) (2026-07-10)
+
+
+### Bug Fixes
+
+* enforce maximum message length in chat and handle error messaging ([e4181c5](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/e4181c5f35f3c7fcc36736496c5f2500afaa9432))
+* enforce maximum message length in chat and handle error messaging ([47da11f](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/47da11fde60ba17919b402d63c547665a243c842))
+* refine define_term usage guidelines and clarify scope limitation… ([6f620b1](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/6f620b1c3f0747004d3da847e44cd25e59d58cff))
+* refine define_term usage guidelines and clarify scope limitations for patient interactions ([a93fb0c](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/a93fb0c475a6f9ad14194767225ae9a914d4318d))
+
 ## [0.4.1](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.4.0...backend-v0.4.1) (2026-07-05)
 
 
