@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.1](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.4.0...frontend-v0.4.1) (2026-07-10)
+
+
+### Bug Fixes
+
+* add c-ares dependency fix ([247f6ad](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/247f6adb3705b634ae4e9d4da8d0363198e349bf))
+* adjust AccordionTrigger layout ([1b1973e](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/1b1973ef43bb883e51a7f18b4d9a1d8165ccf915))
+* adjust fill and line opacity based on zoom level in MapPanel ([94bcd38](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/94bcd3870c64b27e768709ce7f37c96062a3b5a3))
+* enforce maximum message length in chat and handle error messaging ([e4181c5](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/e4181c5f35f3c7fcc36736496c5f2500afaa9432))
+* enforce maximum message length in chat and handle error messaging ([47da11f](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/47da11fde60ba17919b402d63c547665a243c842))
+* update test assertions to include 'Cancer' in the title ([fb17690](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/fb176909504b55c7aee638b984e98c76ba59b042))
+* update titles and messages to include 'Cancer' for consistency ([5cab764](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/5cab7647beffc2e52cac516d57e4adf6e9d8fea9))
+
 ## [0.4.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.3.0...frontend-v0.4.0) (2026-07-05)
 
 
