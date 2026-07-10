@@ -1,7 +1,13 @@
 import { useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ChatStatus } from 'ai';
-import { ChatRole, SELECTED_TRIALS_PROMPT, StreamEventType } from '@/constants/chat';
+import {
+  CHAT_ERROR,
+  ChatRole,
+  MAX_MESSAGE_LENGTH,
+  SELECTED_TRIALS_PROMPT,
+  StreamEventType,
+} from '@/constants/chat';
 import { chatErrorForCode, chatErrorMessage, streamChat } from '@/services/chat';
 import type { ChatMessage, StreamEvent, Trial } from '@/types/trial';
 
@@ -36,6 +42,20 @@ export function useChat({ createStream, onTrialsChange }: UseChatOptions = {}): 
 
   const sendMessage = async (text: string, contextNctNumbers?: string[]) => {
     if (status === 'streaming') return;
+
+    if (text.length > MAX_MESSAGE_LENGTH) {
+      setMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), role: ChatRole.User, content: text },
+        {
+          id: crypto.randomUUID(),
+          role: ChatRole.Assistant,
+          content: CHAT_ERROR.messageTooLong,
+          isError: true,
+        },
+      ]);
+      return;
+    }
 
     const stream =
       createStream ?? ((message, signal) => streamChat({ sessionId, message, signal }));

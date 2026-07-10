@@ -15,6 +15,8 @@ export const ASK_AI_PROMPT_PREFIX = 'What does ';
 
 export const ASK_AI_PROMPT_SUFFIX = ' mean?';
 
+export const MAX_MESSAGE_LENGTH = 1000;
+
 export const FEEDBACK = {
   helpfulLabel: 'Helpful',
   notHelpfulLabel: 'Not helpful',
@@ -33,6 +35,7 @@ export const CHAT_ERROR = {
   usageLimit: 'This conversation reached its processing limit. Please start a new message.',
   modelError: "I couldn't complete that request. Please try rephrasing.",
   generic: 'Something went wrong. Please try again.',
+  messageTooLong: `Your message is too long. Please keep it under ${MAX_MESSAGE_LENGTH.toLocaleString()} characters and try again.`,
 } as const;
 
 export const CHAT_ERROR_BY_CODE: Record<string, string> = {
