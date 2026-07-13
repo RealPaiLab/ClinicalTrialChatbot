@@ -1,6 +1,13 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import type { ReactNode } from 'react';
 import App from './App';
+
+// The Turnstile gate depends on Cloudflare's script, which can't load in jsdom.
+// This is a layout test, so render the gate as a transparent pass-through.
+vi.mock('@/components/turnstile/TurnstileGate', () => ({
+  default: ({ children }: { children: ReactNode }) => children,
+}));
 
 describe('App', () => {
   it('renders the chat panel, map region, summary placeholder, and theme toggle', () => {

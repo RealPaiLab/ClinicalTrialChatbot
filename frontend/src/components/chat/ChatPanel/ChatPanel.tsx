@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import ChatDisclaimer from '@/components/chat/ChatDisclaimer/ChatDisclaimer';
 import ChatHeader from '@/components/chat/ChatHeader/ChatHeader';
 import ChatInput from '@/components/chat/ChatInput/ChatInput';
 import ChatMessages from '@/components/chat/ChatMessages/ChatMessages';
 import FollowUpChips from '@/components/chat/FollowUpChips/FollowUpChips';
+import { useTurnstile } from '@/components/turnstile/TurnstileContext';
 import { ASK_AI_PROMPT_PREFIX, ASK_AI_PROMPT_SUFFIX, ChatRole } from '@/constants/chat';
 import { useChat } from '@/hooks/useChat';
 import { getTrialSummary } from '@/services/trials';
@@ -31,9 +32,13 @@ function ChatPanel({
   createStream,
   fetchTrial = getTrialSummary,
 }: ChatPanelProps) {
+  const turnstile = useTurnstile();
+  const getTurnstileToken = useCallback(() => turnstile.token, [turnstile.token]);
+
   const { messages, status, sessionId, sendMessage, stop, reset } = useChat({
     createStream,
     onTrialsChange,
+    getTurnstileToken,
   });
 
   const tourMessages = useAppStore((state) => state.tourMessages);
@@ -48,6 +53,7 @@ function ChatPanel({
   };
 
   const handleNewConversation = () => {
+    turnstile.reset();
     reset();
     onReset?.();
   };

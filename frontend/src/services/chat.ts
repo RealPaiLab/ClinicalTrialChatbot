@@ -48,6 +48,7 @@ export function chatErrorForCode(code: string): string {
 export interface StreamChatParams {
   sessionId: string;
   message: string;
+  turnstileToken?: string | null;
   signal?: AbortSignal;
 }
 
@@ -89,12 +90,17 @@ export async function* parseEventStream(
 export async function* streamChat({
   sessionId,
   message,
+  turnstileToken,
   signal,
 }: StreamChatParams): AsyncGenerator<StreamEvent> {
   const response = await fetch(`${API_BASE}/chat/stream`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
-    body: JSON.stringify({ session_id: sessionId, user_message: message }),
+    body: JSON.stringify({
+      session_id: sessionId,
+      user_message: message,
+      ...(turnstileToken ? { turnstile_token: turnstileToken } : {}),
+    }),
     signal,
   });
 

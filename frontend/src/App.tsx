@@ -1,6 +1,7 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { createQueryClient } from '@/lib/queryClient';
+import TurnstileGate from '@/components/turnstile/TurnstileGate';
 import HomePage from '@/pages/HomePage';
 import DebugPage from '@/pages/DebugPage';
 import { config } from '@/config';
@@ -14,7 +15,14 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route
+            path="/"
+            element={
+              <TurnstileGate>
+                <HomePage />
+              </TurnstileGate>
+            }
+          />
           {debugEnabled && <Route path="/debug" element={<DebugPage />} />}
         </Routes>
       </BrowserRouter>

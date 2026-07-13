@@ -34,6 +34,7 @@ export const CHAT_ERROR = {
   network: "Couldn't reach the server. Check your connection and try again.",
   usageLimit: 'This conversation reached its processing limit. Please start a new message.',
   modelError: "I couldn't complete that request. Please try rephrasing.",
+  turnstileFailed: "We couldn't verify that you're human. Please refresh the page and try again.",
   generic: 'Something went wrong. Please try again.',
   messageTooLong: `Your message is too long. Please keep it under ${MAX_MESSAGE_LENGTH.toLocaleString()} characters and try again.`,
 } as const;
@@ -42,6 +43,7 @@ export const CHAT_ERROR_BY_CODE: Record<string, string> = {
   usage_limit: CHAT_ERROR.usageLimit,
   model_unavailable: CHAT_ERROR.unavailable,
   model_error: CHAT_ERROR.modelError,
+  turnstile_failed: CHAT_ERROR.turnstileFailed,
   generic: CHAT_ERROR.generic,
 };
 

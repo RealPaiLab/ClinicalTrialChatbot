@@ -14,6 +14,7 @@ class ChatRequest(BaseModel):
 
     session_id: str
     user_message: str = Field(min_length=1, max_length=MAX_USER_MESSAGE_LENGTH)
+    turnstile_token: str | None = None
 
 
 class ChatResult(BaseModel):

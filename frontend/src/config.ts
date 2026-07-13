@@ -12,6 +12,7 @@ interface AppConfig {
   mapboxStyleLight: string;
   mapboxStyleDark: string;
   enableDebugPage: boolean;
+  turnstileSiteKey: string;
 }
 
 export const config: AppConfig = {
@@ -20,4 +21,5 @@ export const config: AppConfig = {
   mapboxStyleLight: import.meta.env.VITE_MAPBOX_STYLE_LIGHT || 'mapbox://styles/mapbox/light-v11',
   mapboxStyleDark: import.meta.env.VITE_MAPBOX_STYLE_DARK || 'mapbox://styles/mapbox/dark-v11',
   enableDebugPage: (env.ENABLE_DEBUG_PAGE || import.meta.env.VITE_ENABLE_DEBUG_PAGE) === 'true',
+  turnstileSiteKey: env.TURNSTILE_SITE_KEY || import.meta.env.VITE_TURNSTILE_SITE_KEY || '',
 };

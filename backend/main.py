@@ -12,6 +12,7 @@ from core.embeddings import get_embedder
 from core.exception_handlers import register_exception_handlers
 from core.http_retry import aclose_retrying_client
 from core.langfuse import setup_langfuse
+from core.middleware import ClientIPMiddleware
 from routes import chat, debug, evals, feedback, trials
 
 
@@ -39,6 +40,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(ClientIPMiddleware)
 
 
 register_exception_handlers(app)
