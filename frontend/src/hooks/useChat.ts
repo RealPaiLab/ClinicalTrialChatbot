@@ -17,6 +17,7 @@ interface UseChatOptions {
   createStream?: CreateStream;
   onTrialsChange?: (trials: Trial[]) => void;
   getTurnstileToken?: () => string | null;
+  verificationId?: string;
 }
 
 interface UseChatResult {
@@ -32,6 +33,7 @@ export function useChat({
   createStream,
   onTrialsChange,
   getTurnstileToken,
+  verificationId,
 }: UseChatOptions = {}): UseChatResult {
   const queryClient = useQueryClient();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -65,7 +67,13 @@ export function useChat({
     const stream =
       createStream ??
       ((message, signal) =>
-        streamChat({ sessionId, message, turnstileToken: getTurnstileToken?.(), signal }));
+        streamChat({
+          sessionId,
+          message,
+          turnstileToken: getTurnstileToken?.(),
+          verificationId,
+          signal,
+        }));
 
     const payload =
       contextNctNumbers && contextNctNumbers.length > 0

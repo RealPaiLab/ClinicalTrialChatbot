@@ -39,6 +39,7 @@ function ChatPanel({
     createStream,
     onTrialsChange,
     getTurnstileToken,
+    verificationId: turnstile.verificationId,
   });
 
   const tourMessages = useAppStore((state) => state.tourMessages);
@@ -53,7 +54,6 @@ function ChatPanel({
   };
 
   const handleNewConversation = () => {
-    turnstile.reset();
     reset();
     onReset?.();
   };

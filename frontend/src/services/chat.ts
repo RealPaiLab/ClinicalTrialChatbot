@@ -49,6 +49,7 @@ export interface StreamChatParams {
   sessionId: string;
   message: string;
   turnstileToken?: string | null;
+  verificationId?: string;
   signal?: AbortSignal;
 }
 
@@ -91,6 +92,7 @@ export async function* streamChat({
   sessionId,
   message,
   turnstileToken,
+  verificationId,
   signal,
 }: StreamChatParams): AsyncGenerator<StreamEvent> {
   const response = await fetch(`${API_BASE}/chat/stream`, {
@@ -100,6 +102,7 @@ export async function* streamChat({
       session_id: sessionId,
       user_message: message,
       ...(turnstileToken ? { turnstile_token: turnstileToken } : {}),
+      ...(verificationId ? { verification_id: verificationId } : {}),
     }),
     signal,
   });

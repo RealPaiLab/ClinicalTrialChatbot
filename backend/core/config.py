@@ -54,7 +54,6 @@ class Settings(BaseSettings):
 
     debug_page_enabled: bool = False
 
-    turnstile_enabled: bool = False
     turnstile_secret_key: str = ""
     turnstile_verify_ttl_seconds: int = 3600
 

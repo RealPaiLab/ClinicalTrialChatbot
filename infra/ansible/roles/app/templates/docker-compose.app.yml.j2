@@ -49,7 +49,6 @@ services:
       LANGFUSE_HOST: {{ langfuse_host }}
       CORS_ALLOW_ORIGINS: '{{ cors_allow_origins | to_json }}'
       DEBUG_PAGE_ENABLED: "{{ enable_debug_page }}"
-      TURNSTILE_ENABLED: "{{ turnstile_enabled }}"
 {% if restrict_to_province | default('') | length > 0 %}
       RESTRICT_TO_PROVINCE: "{{ restrict_to_province }}"
 {% endif %}

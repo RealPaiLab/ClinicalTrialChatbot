@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import Spinner from '@/components/Spinner/Spinner';
 import { Button } from '@/components/ui/button';
 import { config } from '@/config';
+import { getVerificationId } from '@/lib/verification';
 import { TurnstileContext, type TurnstileContextValue } from './TurnstileContext';
 import TurnstileWidget from './TurnstileWidget';
 
@@ -11,6 +12,7 @@ interface TurnstileGateProps {
 
 function TurnstileGate({ children }: TurnstileGateProps) {
   const enabled = Boolean(config.turnstileSiteKey);
+  const [verificationId] = useState(getVerificationId);
   const [token, setToken] = useState<string | null>(null);
   const [verified, setVerified] = useState(!enabled);
   const [failed, setFailed] = useState(false);
@@ -27,24 +29,28 @@ function TurnstileGate({ children }: TurnstileGateProps) {
   const handleFailed = useCallback(() => setFailed(true), []);
 
   const reset = useCallback(() => {
+    if (!enabled) return;
     setToken(null);
+    setVerified(false);
+    setFailed(false);
     setAttempt((n) => n + 1);
-  }, []);
+  }, [enabled]);
 
   const retry = useCallback(() => {
     setFailed(false);
     setToken(null);
+    setVerified(false);
     setAttempt((n) => n + 1);
   }, []);
 
   const value = useMemo<TurnstileContextValue>(
-    () => ({ enabled, ready: verified, token, reset }),
-    [enabled, verified, token, reset]
+    () => ({ enabled, ready: verified, token, verificationId, reset }),
+    [enabled, verified, token, verificationId, reset]
   );
 
   return (
     <TurnstileContext.Provider value={value}>
-      {enabled && token === null && (
+      {enabled && !verified && (
         <TurnstileWidget
           key={attempt}
           siteKey={config.turnstileSiteKey}

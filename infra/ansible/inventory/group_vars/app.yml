@@ -23,5 +23,3 @@ embedding_provider: openai
 embedding_model: text-embedding-3-large
 
 restrict_to_province: "Ontario"
-
-turnstile_enabled: true

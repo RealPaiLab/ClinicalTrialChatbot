@@ -29,7 +29,9 @@ async def stream_chat(
 ) -> StreamingResponse:
     client_ip: str | None = getattr(http_request.state, "client_ip", None)
     verified = await turnstile.ensure_verified(
-        request.session_id, request.turnstile_token, client_ip
+        request.verification_id or request.session_id,
+        request.turnstile_token,
+        client_ip,
     )
 
     async def event_stream() -> AsyncIterator[str]:

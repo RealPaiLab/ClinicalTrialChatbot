@@ -25,7 +25,6 @@ def get_chat_service() -> ChatService:
 def get_turnstile_service() -> TurnstileService:
     settings = get_settings()
     return TurnstileService(
-        enabled=settings.turnstile_enabled,
         secret_key=settings.turnstile_secret_key,
         client=get_retrying_client(),
         ttl_seconds=settings.turnstile_verify_ttl_seconds,
