@@ -16,6 +16,8 @@ type CreateStream = (text: string, signal?: AbortSignal) => AsyncGenerator<Strea
 interface UseChatOptions {
   createStream?: CreateStream;
   onTrialsChange?: (trials: Trial[]) => void;
+  getTurnstileToken?: () => string | null;
+  verificationId?: string;
 }
 
 interface UseChatResult {
@@ -27,7 +29,12 @@ interface UseChatResult {
   reset: () => void;
 }
 
-export function useChat({ createStream, onTrialsChange }: UseChatOptions = {}): UseChatResult {
+export function useChat({
+  createStream,
+  onTrialsChange,
+  getTurnstileToken,
+  verificationId,
+}: UseChatOptions = {}): UseChatResult {
   const queryClient = useQueryClient();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [status, setStatus] = useState<ChatStatus>('ready');
@@ -58,7 +65,15 @@ export function useChat({ createStream, onTrialsChange }: UseChatOptions = {}): 
     }
 
     const stream =
-      createStream ?? ((message, signal) => streamChat({ sessionId, message, signal }));
+      createStream ??
+      ((message, signal) =>
+        streamChat({
+          sessionId,
+          message,
+          turnstileToken: getTurnstileToken?.(),
+          verificationId,
+          signal,
+        }));
 
     const payload =
       contextNctNumbers && contextNctNumbers.length > 0

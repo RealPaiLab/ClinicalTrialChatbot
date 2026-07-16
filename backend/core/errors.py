@@ -15,6 +15,7 @@ class ChatErrorCode(StrEnum):
     USAGE_LIMIT = "usage_limit"
     MODEL_UNAVAILABLE = "model_unavailable"
     MODEL_ERROR = "model_error"
+    TURNSTILE_FAILED = "turnstile_failed"
     GENERIC = "generic"
 
 

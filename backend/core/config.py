@@ -54,6 +54,9 @@ class Settings(BaseSettings):
 
     debug_page_enabled: bool = False
 
+    turnstile_secret_key: str = ""
+    turnstile_verify_ttl_seconds: int = 3600
+
     agent_tool_calls_limit: int = 10
 
     llm_max_retries: int = 3

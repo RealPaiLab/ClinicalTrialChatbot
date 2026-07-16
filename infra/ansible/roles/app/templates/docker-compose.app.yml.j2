@@ -67,6 +67,7 @@ services:
       API_BASE_URL: "{{ api_base_url }}"
       MAPBOX_TOKEN: "{{ mapbox_token }}"
       ENABLE_DEBUG_PAGE: "{{ enable_debug_page }}"
+      TURNSTILE_SITE_KEY: "{{ turnstile_site_key }}"
     depends_on:
       - backend
     ports:
