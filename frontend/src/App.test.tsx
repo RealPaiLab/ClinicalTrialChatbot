@@ -9,6 +9,11 @@ vi.mock('@/components/turnstile/TurnstileGate', () => ({
   default: ({ children }: { children: ReactNode }) => children,
 }));
 
+// Same for the consent gate: its own test covers it, and this test is about layout.
+vi.mock('@/components/consent/ConsentGate', () => ({
+  default: ({ children }: { children: ReactNode }) => children,
+}));
+
 describe('App', () => {
   it('renders the chat panel, map region, summary placeholder, and theme toggle', () => {
     render(<App />);

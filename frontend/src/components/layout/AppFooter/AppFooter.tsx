@@ -1,5 +1,6 @@
 const LINKS = [
-  { label: 'Terms and Conditions', href: 'https://oicr.on.ca/terms-and-conditions/' },
+  { label: 'Terms of Use', href: '/terms' },
+  { label: 'OICR Terms and Conditions', href: 'https://oicr.on.ca/terms-and-conditions/' },
   { label: 'OICR Privacy Statement', href: 'https://oicr.on.ca/website-privacy-statement/' },
 ] as const;
 

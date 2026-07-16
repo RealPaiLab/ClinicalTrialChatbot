@@ -48,7 +48,7 @@ async function* streamWithoutTrials(): AsyncGenerator<StreamEvent> {
 const fetchTrial = vi.fn().mockResolvedValue(mockTrials[0]);
 
 describe('ChatPanel', () => {
-  it('starts on the empty state', () => {
+  it('starts on the starter message', () => {
     renderWithClient(<ChatPanel createStream={() => streamWithTrials()} fetchTrial={fetchTrial} />);
     expect(screen.getByText(/how can i help/i)).toBeInTheDocument();
   });
