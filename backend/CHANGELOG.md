@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.5.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.4.2...backend-v0.5.0) (2026-07-16)
+
+
+### Features
+
+* enhance TurnstileService and TurnstileGate to conditionally enable based on environment settings ([b2cdb87](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/b2cdb87949414f1cd9c26e17cef58ffb12dcf3df))
+* implement consent gate with terms acceptance and related UI components ([354ed7e](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/354ed7e76e8e9ca08634744dad2475210741468b))
+* implement Turnstile verification for enhanced security ([bd552ac](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/bd552acbb9d28a599679fc29be77955c8bb29201))
+* implement Turnstile verification for enhanced security ([176ad6c](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/176ad6c9a7bee6871439d9e34655da6406ac733e))
+* implement Turnstile verification with session management and local storage handling ([fec80d7](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/fec80d79fc0c76c497a12a3861d5f67f867afa5a))
+* improve environment configuration and Langfuse integration for development and production ([cf93069](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/cf93069aee241f904408c0eaa85a48393a4f5775))
+* refine agent persona and response guidelines for clinical-trials navigator ([db332d2](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/db332d28e820bed767717a4b3d7d800f489d19f4))
+
 ## [0.4.2](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.4.1...backend-v0.4.2) (2026-07-10)
 
 
