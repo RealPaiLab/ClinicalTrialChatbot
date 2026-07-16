@@ -37,7 +37,7 @@ function ConsentGate({ children }: ConsentGateProps) {
             </DialogTitle>
 
             <DialogDescription className="mt-4 text-xs leading-relaxed">
-              By using this website, you are agreeing to our{' '}
+              Please read our{' '}
               <a
                 href="/terms"
                 target="_blank"
@@ -45,23 +45,14 @@ function ConsentGate({ children }: ConsentGateProps) {
                 className="text-primary font-medium underline underline-offset-4"
               >
                 terms and conditions
-              </a>
-              .
+              </a>{' '}
+              before you start.
             </DialogDescription>
 
-            <label className="border-border hover:bg-secondary/40 mt-5 flex cursor-pointer flex-col gap-1.5 rounded-lg border p-3 transition-colors">
-              <span className="flex items-center gap-3">
-                <Checkbox
-                  checked={checked}
-                  onCheckedChange={(value) => setChecked(value === true)}
-                  aria-describedby="consent-help"
-                />
-                <span className="text-xs font-semibold">
-                  I agree to the C3TMC terms and conditions
-                </span>
-              </span>
-              <span id="consent-help" className="text-muted-foreground pl-7 text-[11px]">
-                You must agree to the terms and conditions to continue.
+            <label className="border-border hover:bg-secondary/40 mt-5 flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors">
+              <Checkbox checked={checked} onCheckedChange={(value) => setChecked(value === true)} />
+              <span className="text-xs font-semibold">
+                I have read and agree to the C3TMC terms and conditions
               </span>
             </label>
 
