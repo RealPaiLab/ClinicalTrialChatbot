@@ -1,6 +1,7 @@
 import { Check, ExternalLink, Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { AGENT_NAME } from '@/constants/chat';
 import type { Trial } from '@/types/trial';
 
 const TRIAL_URL_BASE = 'https://www.cancertrialscanada.ca/trial/';
@@ -40,7 +41,9 @@ function TrialSummaryHeader({
                   variant="ghost"
                   size="icon"
                   data-tour="add-context"
-                  aria-label={isInContext ? 'Added to your chat' : 'Ask Camille about this trial'}
+                  aria-label={
+                    isInContext ? 'Added to your chat' : `Ask ${AGENT_NAME} about this trial`
+                  }
                   disabled={isInContext}
                   onClick={() => onAddToContext(trial.nctNumber as string)}
                 >
@@ -49,8 +52,8 @@ function TrialSummaryHeader({
               </TooltipTrigger>
               <TooltipContent>
                 {isInContext
-                  ? 'Added, ask Camille anything about it'
-                  : 'Ask Camille about this trial'}
+                  ? `Added, ask ${AGENT_NAME} anything about it`
+                  : `Ask ${AGENT_NAME} about this trial`}
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

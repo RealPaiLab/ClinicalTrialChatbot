@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import TrialSummaryPanel from './TrialSummaryPanel';
+import { AGENT_NAME } from '@/constants/chat';
 import { mockTrials } from '@/test/fixtures/trials';
 
 describe('TrialSummaryPanel', () => {
@@ -34,7 +35,9 @@ describe('TrialSummaryPanel', () => {
   it('adds the trial to context when the AI button is clicked', async () => {
     const onAddToContext = vi.fn();
     render(<TrialSummaryPanel trial={mockTrials[0]} onAddToContext={onAddToContext} />);
-    await userEvent.click(screen.getByRole('button', { name: /ask camille about this trial/i }));
+    await userEvent.click(
+      screen.getByRole('button', { name: new RegExp(`ask ${AGENT_NAME} about this trial`, 'i') })
+    );
     expect(onAddToContext).toHaveBeenCalledWith('NCT04267848');
   });
 

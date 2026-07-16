@@ -1,7 +1,13 @@
+from enum import StrEnum
 from functools import lru_cache
 
 from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Environment(StrEnum):
+    DEVELOPMENT = "development"
+    PRODUCTION = "production"
 
 
 class Settings(BaseSettings):
@@ -33,7 +39,7 @@ class Settings(BaseSettings):
     embedding_batch_size: int = 16
     embedding_warmup: bool = False
 
-    environment: str = "development"
+    environment: Environment = Environment.DEVELOPMENT
     cors_allow_origins: list[str] = [
         "http://localhost:5173",
         "http://localhost:4173",
@@ -52,8 +58,6 @@ class Settings(BaseSettings):
     search_default_limit: int = 5
     restrict_to_province: str | None = None
 
-    debug_page_enabled: bool = False
-
     turnstile_secret_key: str = ""
     turnstile_verify_ttl_seconds: int = 3600
 
@@ -65,6 +69,10 @@ class Settings(BaseSettings):
 
     nci_glossary_base_url: str = "https://webapis.cancer.gov/glossary/v1"
     nci_drug_dictionary_base_url: str = "https://webapis.cancer.gov/drugdictionary/v1"
+
+    @property
+    def is_development(self) -> bool:
+        return self.environment is Environment.DEVELOPMENT
 
     @computed_field  # type: ignore[prop-decorator]
     @property

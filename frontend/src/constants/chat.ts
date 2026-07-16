@@ -1,3 +1,5 @@
+export const AGENT_NAME = 'Camille';
+
 export const ChatRole = {
   User: 'user',
   Assistant: 'assistant',

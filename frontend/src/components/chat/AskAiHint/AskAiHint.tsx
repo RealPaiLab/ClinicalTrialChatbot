@@ -1,5 +1,6 @@
 import { HelpCircle, Sparkles } from 'lucide-react';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { AGENT_NAME } from '@/constants/chat';
 
 function AskAiHint() {
   return (
@@ -21,7 +22,7 @@ function AskAiHint() {
           <Sparkles className="size-3" />
           Ask AI
         </span>{' '}
-        button that appears, and Camille will explain it.
+        button that appears, and {AGENT_NAME} will explain it.
       </HoverCardContent>
     </HoverCard>
   );

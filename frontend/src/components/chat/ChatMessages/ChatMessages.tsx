@@ -1,10 +1,8 @@
 import { useRef } from 'react';
-import { MessagesSquare } from 'lucide-react';
 import type { Components } from 'streamdown';
 import {
   Conversation,
   ConversationContent,
-  ConversationEmptyState,
   ConversationScrollButton,
 } from '@/components/ai-elements/conversation';
 import { Message, MessageContent, MessageResponse } from '@/components/ai-elements/message';
@@ -13,13 +11,16 @@ import MessageFeedback from '@/components/chat/MessageFeedback/MessageFeedback';
 import SearchingIndicator from '@/components/chat/SearchingIndicator/SearchingIndicator';
 import TermDefinition from '@/components/chat/TermDefinition/TermDefinition';
 import TrialCitation from '@/components/chat/TrialCitation/TrialCitation';
-import { ChatRole, CITATION_HREF_PREFIX, DEFINITION_HREF_PREFIX } from '@/constants/chat';
+import {
+  AGENT_NAME,
+  ChatRole,
+  CITATION_HREF_PREFIX,
+  DEFINITION_HREF_PREFIX,
+} from '@/constants/chat';
 import { linkifyCitations, linkifyDefinitions } from '@/lib/citations';
 import type { ChatMessage, TrialSummary } from '@/types/trial';
 
-const EMPTY_TITLE = 'How can I help?';
-const EMPTY_DESCRIPTION =
-  "Tell me about the cancer type, stage, and where you live, and I'll look for matching trials.";
+const STARTER_MESSAGE = `Hello, I'm ${AGENT_NAME}. I help people find cancer clinical trials in Ontario. How can I help you today?`;
 
 type FetchTrial = (nctNumber: string, signal?: AbortSignal) => Promise<TrialSummary>;
 
@@ -70,11 +71,9 @@ function ChatMessages({
       <Conversation data-tour="chat-messages" className="min-h-0 flex-1">
         <ConversationContent>
           {messages.length === 0 ? (
-            <ConversationEmptyState
-              icon={<MessagesSquare className="size-6" />}
-              title={EMPTY_TITLE}
-              description={EMPTY_DESCRIPTION}
-            />
+            <Message from={ChatRole.Assistant}>
+              <MessageContent>{STARTER_MESSAGE}</MessageContent>
+            </Message>
           ) : (
             messages.map((message) => (
               <Message from={message.role} key={message.id}>

@@ -1,6 +1,5 @@
 import argparse
 
-from core.config import get_settings
 from core.langfuse import setup_langfuse
 from evals.dataset import DATASET_NAME
 from evals.runner.experiment import run_experiment
@@ -15,7 +14,7 @@ def main() -> None:
     parser.add_argument("--run-name", default=None)
     args = parser.parse_args()
 
-    setup_langfuse(get_settings().environment)
+    setup_langfuse()
     result = run_experiment(
         dataset_name=args.dataset,
         judge_model=args.judge_model,

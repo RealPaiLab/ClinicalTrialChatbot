@@ -15,11 +15,12 @@ class TurnstileService:
     def __init__(
         self,
         *,
+        enabled: bool,
         secret_key: str,
         client: httpx.AsyncClient,
         ttl_seconds: int,
     ) -> None:
-        self._enabled = bool(secret_key)
+        self._enabled = enabled
         self._secret_key = secret_key
         self._client = client
         self._ttl_seconds = ttl_seconds

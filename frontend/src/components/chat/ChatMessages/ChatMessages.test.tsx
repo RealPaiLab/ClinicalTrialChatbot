@@ -3,16 +3,17 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import ChatMessages from './ChatMessages';
 import { renderWithClient } from '@/test/render';
-import { ChatRole } from '@/constants/chat';
+import { AGENT_NAME, ChatRole } from '@/constants/chat';
 import type { ChatMessage } from '@/types/trial';
 import { mockTrials } from '@/test/fixtures/trials';
 
 const fetchTrial = vi.fn().mockResolvedValue(mockTrials[0]);
 
 describe('ChatMessages', () => {
-  it('shows the empty state when there are no messages', () => {
+  it("greets with the assistant's starter message when there are no messages", () => {
     renderWithClient(<ChatMessages messages={[]} sessionId="s1" fetchTrial={fetchTrial} />);
-    expect(screen.getByText(/how can i help/i)).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(`I'm ${AGENT_NAME}`, 'i'))).toBeInTheDocument();
+    expect(screen.getByText(/how can i help you today/i)).toBeInTheDocument();
   });
 
   it('renders user and assistant message content', () => {
