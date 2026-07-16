@@ -38,6 +38,18 @@ describe('MessageFeedback', () => {
     });
   });
 
+  it('sends only the score, with no detail fields, when details are hidden', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    renderWithClient(<MessageFeedback {...base} onSubmit={onSubmit} showDetails={false} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Not helpful' }));
+
+    expect(onSubmit).toHaveBeenCalledWith({ sessionId: 's1', observationId: 'obs-1', score: 0 });
+    expect(screen.queryByPlaceholderText(/comment/i)).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(/nct/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/thanks for the feedback/i)).toBeInTheDocument();
+  });
+
   it('removes a suggested NCT chip', async () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
     renderWithClient(<MessageFeedback {...base} onSubmit={onSubmit} />);

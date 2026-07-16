@@ -7,6 +7,7 @@ from langfuse import propagate_attributes
 from agents.clinical_trials.agent import get_clinical_trials_agent
 from agents.clinical_trials.dependencies import AgentDeps, TrialSearch
 from agents.clinical_trials.output import AgentResponse
+from core.config import get_settings
 from core.langfuse import get_langfuse_client, trace_id_from_session
 from core.logger import get_logger
 from repository.glossary_repository import GlossaryRepository
@@ -28,6 +29,7 @@ class ChatService:
         self._trial_search = trial_search
         self._agent = get_clinical_trials_agent()
         self._langfuse = get_langfuse_client()
+        self._capture_content = get_settings().is_development
 
     def _to_chat_result(self, output: AgentResponse, deps: AgentDeps) -> ChatResult:
         trials = [
@@ -55,7 +57,7 @@ class ChatService:
                 trace_context={"trace_id": trace_id_from_session(session_id)},
                 name="chat-turn",
                 as_type="span",
-                input=user_message,
+                input=user_message if self._capture_content else None,
             ) as span,
         ):
             try:
@@ -72,13 +74,19 @@ class ChatService:
                 chat_result = self._to_chat_result(output, deps)
                 observation_id = self._langfuse.get_current_observation_id()
                 chat_result.observation_id = observation_id or ""
-                span.update(output=chat_result.message)
+                if self._capture_content:
+                    span.update(output=chat_result.message)
                 yield chat_result
             except Exception as exc:
                 logger.exception(
                     "Chat turn failed (session=%s): %s", session_id, type(exc).__name__
                 )
-                span.update(level="ERROR", status_message=str(exc))
+                span.update(
+                    level="ERROR",
+                    status_message=(
+                        str(exc) if self._capture_content else type(exc).__name__
+                    ),
+                )
                 raise
 
     async def reset(self, session_id: str) -> None:

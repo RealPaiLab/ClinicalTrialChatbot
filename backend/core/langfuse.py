@@ -5,6 +5,7 @@ from langfuse import Langfuse, get_client
 from pydantic_ai import Agent, InstrumentationSettings
 from pydantic_ai.embeddings import Embedder
 
+from core.config import get_settings
 from core.logger import get_logger
 
 load_dotenv()
@@ -12,17 +13,27 @@ load_dotenv()
 logger = get_logger(__name__)
 
 
-def setup_langfuse(environment: str) -> bool:
+def setup_langfuse() -> bool:
     """Initialise Langfuse tracing and instrument all pydantic-ai agents."""
-    os.environ["LANGFUSE_TRACING_ENVIRONMENT"] = environment
+    settings = get_settings()
+    os.environ["LANGFUSE_TRACING_ENVIRONMENT"] = settings.environment.value
+    capture_content = settings.is_development
     langfuse = get_client()
     try:
         connected = langfuse.auth_check()
-        instrumentation = InstrumentationSettings(include_content=True)
+        instrumentation = InstrumentationSettings(
+            include_content=capture_content,
+            include_binary_content=capture_content,
+        )
         Agent.instrument_all(instrument=instrumentation)
         Embedder.instrument_all(instrument=instrumentation)
         if connected:
-            logger.info("Langfuse client is authenticated and ready!")
+            logger.info(
+                "Langfuse client is authenticated and ready! "
+                "(environment=%s, trace content capture=%s)",
+                settings.environment.value,
+                "on" if capture_content else "off",
+            )
         else:
             logger.warning(
                 "Langfuse authentication failed. "

@@ -14,8 +14,14 @@ from agents.clinical_trials.tool_schemas import (
     SyntacticSearchInput,
     TrialSearchHit,
 )
+from core.config import get_settings
 from schemas.glossary import GlossaryDefinition
 from schemas.trial import TrialCitation, TrialFilter
+
+observed = observe(
+    capture_input=get_settings().is_development,
+    capture_output=get_settings().is_development,
+)
 
 
 def _record(
@@ -41,7 +47,7 @@ def _record(
     return hits
 
 
-@observe
+@observed
 @guarded
 async def syntactic_search(
     ctx: RunContext[AgentDeps], args: SyntacticSearchInput
@@ -65,7 +71,7 @@ async def syntactic_search(
     return _record(ctx, citations)
 
 
-@observe
+@observed
 @guarded
 async def semantic_search(
     ctx: RunContext[AgentDeps], args: SemanticSearchInput
@@ -92,7 +98,7 @@ async def semantic_search(
     return _record(ctx, citations)
 
 
-@observe
+@observed
 @guarded
 async def get_trial_details(
     ctx: RunContext[AgentDeps], args: GetTrialDetailsInput
@@ -109,7 +115,7 @@ async def get_trial_details(
     return citations
 
 
-@observe
+@observed
 @guarded
 async def define_term(
     ctx: RunContext[AgentDeps], args: DefineTermInput

@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Startup: verify DB connectivity
     async with engine.connect() as conn:
         await conn.execute(text("SELECT 1"))
-    setup_langfuse(get_settings().environment)
+    setup_langfuse()
     ensure_prompt_seeded()
     if get_settings().embedding_warmup:
         await get_embedder().embed_query("warmup")
@@ -50,7 +50,7 @@ app.include_router(trials.router)
 app.include_router(feedback.router)
 app.include_router(evals.router)
 
-if get_settings().debug_page_enabled:
+if get_settings().is_development:
     app.include_router(debug.router)
 
 
