@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.5.1...backend-v0.5.2) (2026-07-21)
+
+
+### Bug Fixes
+
+* add trial data freshness notices to ChatDisclaimer and AppHeader ([917fe6d](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/917fe6daa17f0a3652d2f6c8c611358964667fb9))
+
 ## [0.5.1](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.5.0...backend-v0.5.1) (2026-07-21)
 
 
