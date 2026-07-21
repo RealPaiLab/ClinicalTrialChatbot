@@ -12,6 +12,12 @@
     "test": "vitest run",
     "test:watch": "vitest"
   },
+  "pnpm": {
+    "overrides": {
+      "brace-expansion@<5.0.7": ">=5.0.7",
+      "js-yaml@<4.3.0": ">=4.3.0"
+    }
+  },
   "lint-staged": {
     "*.{ts,tsx}": [
       "eslint --fix",
