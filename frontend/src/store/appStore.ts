@@ -7,13 +7,14 @@ export type Theme = 'light' | 'dark';
 interface AppState {
   trials: Trial[];
   selectedNctNumber: string | null;
+  selectedSiteKey: string | null;
   contextNctNumbers: string[];
   theme: Theme;
   hasSeenTour: boolean;
   tourMessages: ChatMessage[];
 
   setTrials: (trials: Trial[]) => void;
-  selectTrial: (nctNumber: string | null) => void;
+  selectTrial: (nctNumber: string | null, siteKey?: string | null) => void;
   addToContext: (nctNumber: string) => void;
   removeFromContext: (nctNumber: string) => void;
   clearContext: () => void;
@@ -29,13 +30,15 @@ export const useAppStore = create<AppState>()(
     (set) => ({
       trials: [],
       selectedNctNumber: null,
+      selectedSiteKey: null,
       contextNctNumbers: [],
       theme: 'light',
       hasSeenTour: false,
       tourMessages: [],
 
       setTrials: (trials) => set({ trials }),
-      selectTrial: (selectedNctNumber) => set({ selectedNctNumber }),
+      selectTrial: (selectedNctNumber, selectedSiteKey = null) =>
+        set({ selectedNctNumber, selectedSiteKey }),
       addToContext: (nctNumber) =>
         set((state) =>
           state.contextNctNumbers.includes(nctNumber)
@@ -48,7 +51,13 @@ export const useAppStore = create<AppState>()(
         })),
       clearContext: () => set({ contextNctNumbers: [] }),
       reset: () =>
-        set({ trials: [], selectedNctNumber: null, contextNctNumbers: [], tourMessages: [] }),
+        set({
+          trials: [],
+          selectedNctNumber: null,
+          selectedSiteKey: null,
+          contextNctNumbers: [],
+          tourMessages: [],
+        }),
       toggleTheme: () => set((state) => ({ theme: state.theme === 'dark' ? 'light' : 'dark' })),
       setTheme: (theme) => set({ theme }),
       markTourSeen: () => set({ hasSeenTour: true }),
