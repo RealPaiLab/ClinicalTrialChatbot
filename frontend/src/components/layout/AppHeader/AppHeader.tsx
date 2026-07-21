@@ -15,7 +15,7 @@ function AppHeader({ dark, onStartTour, onToggleTheme }: AppHeaderProps) {
       <div className="flex items-center gap-2.5">
         <span className="text-eyebrow">{TITLE}</span>
         <span className="text-eyebrow text-primary bg-primary/10 rounded-full px-2 py-0.5 font-bold">
-          Alpha
+          Pre-Release Version
         </span>
       </div>
       <div className="flex items-center gap-1">
