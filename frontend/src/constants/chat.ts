@@ -7,6 +7,21 @@ export const ChatRole = {
 
 export type ChatRole = (typeof ChatRole)[keyof typeof ChatRole];
 
+const TRIAL_DATA_UPDATED_AT = new Date('2026-05-12T00:00:00Z');
+
+const TRIAL_DATA_UPDATED_ON = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'UTC',
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+}).format(TRIAL_DATA_UPDATED_AT);
+
+export const TRIAL_DATA = {
+  lastUpdatedLabel: `Data last updated ${TRIAL_DATA_UPDATED_ON.toUpperCase()}`,
+  shortNotice: 'Trial data reflects the status as of the last update.',
+  detailedNotice: `Trial data was last updated on ${TRIAL_DATA_UPDATED_ON} and may be out of date. Please reach out to your care team for more details.`,
+} as const;
+
 export const CITATION_HREF_PREFIX = '#citation-';
 
 export const DEFINITION_HREF_PREFIX = '#define-';
