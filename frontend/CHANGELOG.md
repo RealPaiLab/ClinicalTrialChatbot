@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.1](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.5.0...frontend-v0.5.1) (2026-07-21)
+
+
+### Bug Fixes
+
+* add pnpm overrides for brace-expansion and js-yaml dependencies ([6bb3923](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/6bb3923944468ff421d461a5e20edeea446efb72))
+* include pnpm-workspace.yaml in Dockerfile copy command ([ed94d5b](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/ed94d5bdf17e403289387dfc6566ce7d26c9708b))
+
 ## [0.5.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.4.1...frontend-v0.5.0) (2026-07-16)
 
 
