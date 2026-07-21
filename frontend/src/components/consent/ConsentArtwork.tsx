@@ -51,7 +51,7 @@ function ConsentArtwork() {
         </p>
         <div aria-hidden className="bg-foreground/25 mt-8 h-px w-14" />
         <p className="text-eyebrow text-primary bg-primary/10 mt-6 inline-block rounded-full px-4 py-1.5 font-bold">
-          Alpha
+          Pre-Release Version
         </p>
       </div>
     </div>
