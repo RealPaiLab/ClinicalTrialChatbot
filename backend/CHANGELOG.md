@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.1](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.5.0...backend-v0.5.1) (2026-07-21)
+
+
+### Bug Fixes
+
+* enhance trial selection by adding selectedSiteKey to relevant co… ([667b061](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/667b061fc4475daa2128816e7533f7357518bab4))
+* enhance trial selection by adding selectedSiteKey to relevant components and hooks + uv vulnerability patch ([9d7ea5c](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/9d7ea5cb9c4b3b14b675ffd65c95e29ae19bd42a))
+
 ## [0.5.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.4.2...backend-v0.5.0) (2026-07-16)
 
 
