@@ -1,15 +1,19 @@
 import { useState } from 'react';
+import { findSelectedUnit } from '@/lib/mapSelection';
 import type { PinUnit } from '@/types/map';
 
-export function useClusterDisclosure(units: PinUnit[], selectedNctNumber?: string | null) {
+export function useClusterDisclosure(
+  units: PinUnit[],
+  selectedNctNumber?: string | null,
+  selectedSiteKey?: string | null
+) {
+  const selectionKey = `${selectedNctNumber ?? ''}@${selectedSiteKey ?? ''}`;
   const [openKey, setOpenKey] = useState<string | null>(null);
-  const [autoOpenedFor, setAutoOpenedFor] = useState<string | null | undefined>(selectedNctNumber);
+  const [autoOpenedFor, setAutoOpenedFor] = useState(selectionKey);
 
-  if (selectedNctNumber !== autoOpenedFor) {
-    setAutoOpenedFor(selectedNctNumber);
-    const unit = units.find((item) =>
-      item.items.some((marker) => marker.trial.nctNumber === selectedNctNumber)
-    );
+  if (selectionKey !== autoOpenedFor) {
+    setAutoOpenedFor(selectionKey);
+    const unit = findSelectedUnit(units, selectedNctNumber, selectedSiteKey);
     setOpenKey(unit && unit.items.length > 1 ? unit.key : null);
   }
 

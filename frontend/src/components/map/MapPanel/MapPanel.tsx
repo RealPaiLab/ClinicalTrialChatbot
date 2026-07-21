@@ -23,17 +23,28 @@ const ONTARIO_ONLY_NOTICE = 'Coverage is currently limited to Ontario.';
 interface MapPanelProps {
   trials: Trial[];
   selectedNctNumber?: string | null;
-  onSelectTrial?: (nctNumber: string) => void;
+  selectedSiteKey?: string | null;
+  onSelectTrial?: (nctNumber: string, siteKey?: string | null) => void;
   dark?: boolean;
 }
 
-function MapPanel({ trials, selectedNctNumber, onSelectTrial, dark }: MapPanelProps) {
+function MapPanel({
+  trials,
+  selectedNctNumber,
+  selectedSiteKey,
+  onSelectTrial,
+  dark,
+}: MapPanelProps) {
   const mapRef = useRef<MapRef | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   const { markers, units } = useTrialPins(trials);
-  const { openKey, toggle, close } = useClusterDisclosure(units, selectedNctNumber);
+  const { openKey, toggle, close } = useClusterDisclosure(
+    units,
+    selectedNctNumber,
+    selectedSiteKey
+  );
   useMapViewSync({
     mapRef,
     containerRef,
@@ -41,6 +52,7 @@ function MapPanel({ trials, selectedNctNumber, onSelectTrial, dark }: MapPanelPr
     markers,
     units,
     selectedNctNumber,
+    selectedSiteKey,
     initialView: INITIAL_VIEW,
   });
 
@@ -97,10 +109,13 @@ function MapPanel({ trials, selectedNctNumber, onSelectTrial, dark }: MapPanelPr
                 longitude={unit.longitude}
                 latitude={unit.latitude}
                 status={marker.status}
-                selected={marker.trial.nctNumber === selectedNctNumber}
+                selected={
+                  marker.trial.nctNumber === selectedNctNumber &&
+                  (!selectedSiteKey || selectedSiteKey === unit.key)
+                }
                 label={`${marker.site.nameEn} — ${marker.trial.shortTitleEn ?? marker.trial.nctNumber ?? 'trial'}`}
                 onSelect={() => {
-                  if (marker.trial.nctNumber) onSelectTrial?.(marker.trial.nctNumber);
+                  if (marker.trial.nctNumber) onSelectTrial?.(marker.trial.nctNumber, unit.key);
                 }}
               />
             );
@@ -111,11 +126,13 @@ function MapPanel({ trials, selectedNctNumber, onSelectTrial, dark }: MapPanelPr
               longitude={unit.longitude}
               latitude={unit.latitude}
               locationName={unit.locationName}
-              selectedNctNumber={selectedNctNumber}
+              selectedNctNumber={
+                selectedSiteKey && selectedSiteKey !== unit.key ? null : selectedNctNumber
+              }
               open={openKey === unit.key}
               onToggle={() => toggle(unit.key)}
               onClose={close}
-              onSelectTrial={(nct) => onSelectTrial?.(nct)}
+              onSelectTrial={(nct) => onSelectTrial?.(nct, unit.key)}
               items={unit.items.map((item) => ({
                 nctNumber: item.trial.nctNumber,
                 title:

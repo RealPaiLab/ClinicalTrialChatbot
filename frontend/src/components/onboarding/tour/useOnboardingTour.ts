@@ -17,6 +17,7 @@ export function useOnboardingTour() {
     const snapshot = {
       trials: store.trials,
       selectedNctNumber: store.selectedNctNumber,
+      selectedSiteKey: store.selectedSiteKey,
       contextNctNumbers: store.contextNctNumbers,
       tourMessages: store.tourMessages,
     };
@@ -32,7 +33,7 @@ export function useOnboardingTour() {
       const current = useAppStore.getState();
       current.setTourMessages(snapshot.tourMessages);
       current.setTrials(snapshot.trials);
-      current.selectTrial(snapshot.selectedNctNumber);
+      current.selectTrial(snapshot.selectedNctNumber, snapshot.selectedSiteKey);
       current.clearContext();
       snapshot.contextNctNumbers.forEach((nct) => current.addToContext(nct));
       DEMO_TRIALS.forEach((trial) => {

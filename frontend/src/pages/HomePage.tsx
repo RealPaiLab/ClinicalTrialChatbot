@@ -12,6 +12,7 @@ import type { Trial } from '@/types/trial';
 function HomePage() {
   const trials = useAppStore((state) => state.trials);
   const selectedNctNumber = useAppStore((state) => state.selectedNctNumber);
+  const selectedSiteKey = useAppStore((state) => state.selectedSiteKey);
   const contextNctNumbers = useAppStore((state) => state.contextNctNumbers);
   const theme = useAppStore((state) => state.theme);
   const setTrials = useAppStore((state) => state.setTrials);
@@ -77,6 +78,7 @@ function HomePage() {
                   <MapPanel
                     trials={trials}
                     selectedNctNumber={selectedNctNumber}
+                    selectedSiteKey={selectedSiteKey}
                     onSelectTrial={selectTrial}
                     dark={dark}
                   />
