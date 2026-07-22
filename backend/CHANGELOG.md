@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.6.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.5.1...backend-v0.6.0) (2026-07-22)
+
+
+### Features
+
+* improve Langfuse settings to capture patient text and update te… ([4cc92f3](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/4cc92f3aa1592221f0e12f366c7900d126faa956))
+* improve Langfuse settings to capture patient text and update terms of use version ([9196046](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/91960460ebae7c87e5a883c9716bef1349dd934b))
+
+
+### Bug Fixes
+
+* add trial data freshness notices to ChatDisclaimer and AppHeader ([917fe6d](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/917fe6daa17f0a3652d2f6c8c611358964667fb9))
+* update pyasn1 version to 0.6.4 and adjust source URLs ([12a0cc2](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/12a0cc2bef0ab6bd9abeca8a29780a56b7696087))
+
 ## [0.5.1](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.5.0...backend-v0.5.1) (2026-07-21)
 
 
