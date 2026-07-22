@@ -16,6 +16,7 @@ cors_allow_origins:
   - "https://{{ external_domain }}"
 
 langfuse_host: "http://{{ hostvars[groups['langfuse'][0]].public_domain }}:3000"
+langfuse_capture_content: true
 
 llm_provider: openai
 llm_model: gpt-5.4-mini

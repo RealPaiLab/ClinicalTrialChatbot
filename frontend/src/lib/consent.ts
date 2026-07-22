@@ -1,7 +1,7 @@
 const STORAGE_KEY = 'ctc.termsConsent';
 
 /** Bump when the Terms of Use text changes so testers are asked to agree again. */
-export const TERMS_VERSION = '2026-07-16';
+export const TERMS_VERSION = '2026-07-22';
 
 export function hasConsented(): boolean {
   try {

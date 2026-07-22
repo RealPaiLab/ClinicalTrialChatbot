@@ -17,7 +17,7 @@ def setup_langfuse() -> bool:
     """Initialise Langfuse tracing and instrument all pydantic-ai agents."""
     settings = get_settings()
     os.environ["LANGFUSE_TRACING_ENVIRONMENT"] = settings.environment.value
-    capture_content = settings.is_development
+    capture_content = settings.capture_patient_text
     langfuse = get_client()
     try:
         connected = langfuse.auth_check()
