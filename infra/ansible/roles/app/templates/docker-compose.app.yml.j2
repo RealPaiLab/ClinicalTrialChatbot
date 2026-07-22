@@ -47,6 +47,9 @@ services:
       EMBEDDING_PROVIDER: {{ embedding_provider }}
       EMBEDDING_MODEL: "{{ embedding_model }}"
       LANGFUSE_HOST: {{ langfuse_host }}
+{% if langfuse_capture_content is defined %}
+      LANGFUSE_CAPTURE_CONTENT: "{{ langfuse_capture_content | string | lower }}"
+{% endif %}
       CORS_ALLOW_ORIGINS: '{{ cors_allow_origins | to_json }}'
 {% if restrict_to_province | default('') | length > 0 %}
       RESTRICT_TO_PROVINCE: "{{ restrict_to_province }}"

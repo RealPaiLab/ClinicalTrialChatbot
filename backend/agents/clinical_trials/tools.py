@@ -19,8 +19,8 @@ from schemas.glossary import GlossaryDefinition
 from schemas.trial import TrialCitation, TrialFilter
 
 observed = observe(
-    capture_input=get_settings().is_development,
-    capture_output=get_settings().is_development,
+    capture_input=get_settings().capture_patient_text,
+    capture_output=get_settings().capture_patient_text,
 )
 
 

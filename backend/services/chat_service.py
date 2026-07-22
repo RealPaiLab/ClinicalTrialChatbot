@@ -29,7 +29,7 @@ class ChatService:
         self._trial_search = trial_search
         self._agent = get_clinical_trials_agent()
         self._langfuse = get_langfuse_client()
-        self._capture_content = get_settings().is_development
+        self._capture_content = get_settings().capture_patient_text
 
     def _to_chat_result(self, output: AgentResponse, deps: AgentDeps) -> ChatResult:
         trials = [

@@ -50,6 +50,7 @@ class Settings(BaseSettings):
     langfuse_prompt_name: str = "clinical-trial-chatbot-system"
     langfuse_prompt_label: str = "production"
     langfuse_seed_prompt: bool = True
+    langfuse_capture_content: bool | None = None
 
     conversation_store: str = "memory"
     redis_url: str = "redis://localhost:6379/0"
@@ -73,6 +74,12 @@ class Settings(BaseSettings):
     @property
     def is_development(self) -> bool:
         return self.environment is Environment.DEVELOPMENT
+
+    @property
+    def capture_patient_text(self) -> bool:
+        if self.langfuse_capture_content is not None:
+            return self.langfuse_capture_content
+        return self.is_development
 
     @computed_field  # type: ignore[prop-decorator]
     @property
