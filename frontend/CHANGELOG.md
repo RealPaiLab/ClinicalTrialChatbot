@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.6.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.5.3...frontend-v0.6.0) (2026-07-22)
+
+
+### Features
+
+* improve Langfuse settings to capture patient text and update te… ([4cc92f3](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/4cc92f3aa1592221f0e12f366c7900d126faa956))
+* improve Langfuse settings to capture patient text and update terms of use version ([9196046](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/91960460ebae7c87e5a883c9716bef1349dd934b))
+
+
+### Bug Fixes
+
+* update fast-uri version in pnpm-lock.yaml and pnpm-workspace.yaml ([c4a3900](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/c4a390072d3bd4ba8d72cdd06af2ede71b63cd4f))
+
 ## [0.5.3](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.5.2...frontend-v0.5.3) (2026-07-21)
 
 
