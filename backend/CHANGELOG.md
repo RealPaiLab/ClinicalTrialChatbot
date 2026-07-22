@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.6.0...backend-v0.7.0) (2026-07-22)
+
+
+### Features
+
+* enhance FastAPI configuration for development and update API ba… ([50814f4](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/50814f4ff11912dc92525062bf93ef05e7e53531))
+* enhance FastAPI configuration for development and update API base URL ([23142e3](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/23142e3a80515b58306fbf00c719f45ec4328009))
+
 ## [0.6.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.5.1...backend-v0.6.0) (2026-07-22)
 
 
