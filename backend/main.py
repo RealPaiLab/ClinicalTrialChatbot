@@ -32,7 +32,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await read_engine.dispose()
 
 
-app = FastAPI(lifespan=lifespan)
+_docs_enabled = get_settings().is_development
+app = FastAPI(
+    lifespan=lifespan,
+    docs_url="/docs" if _docs_enabled else None,
+    redoc_url="/redoc" if _docs_enabled else None,
+    openapi_url="/openapi.json" if _docs_enabled else None,
+)
 
 app.add_middleware(
     CORSMiddleware,

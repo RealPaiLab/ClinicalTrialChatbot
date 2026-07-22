@@ -8,7 +8,7 @@ frontend_version: latest
 postgres_db: ctc_db
 postgres_user: ctc
 
-api_base_url: "https://{{ public_domain }}/api"
+api_base_url: "/api"
 app_environment: "production"
 
 cors_allow_origins:
