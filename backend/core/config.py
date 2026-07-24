@@ -26,6 +26,8 @@ class Settings(BaseSettings):
 
     llm_provider: str = "ollama"
     llm_model: str = "qwen3"
+    triage_llm_model: str | None = None
+    triage_history_turns: int = 3
     ollama_base_url: str = "http://localhost:11434/v1"
     openai_api_key: str | None = None
 

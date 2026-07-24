@@ -1,7 +1,33 @@
 from agents.clinical_trials.agent import get_clinical_trials_agent
 from agents.clinical_trials.dependencies import AgentDeps
+from agents.clinical_trials.guards import prefetch_referenced_trials
 from agents.clinical_trials.output import AgentResponse
 from tests.factories import StubTrialSearch, make_citation, make_test_model
+
+
+async def test_prefetch_injects_verified_data_for_existing_trial() -> None:
+    citation = make_citation("NCT06115499", title="Pancreatic study")
+    deps = AgentDeps(trial_search=StubTrialSearch(by_nct={"NCT06115499": citation}))
+    await prefetch_referenced_trials(deps, "tell me about nct06115499")
+
+    assert "NCT06115499" in deps.fetched_trials
+    assert deps.refusal_directive is None
+    context = deps.verified_context or ""
+    assert "NCT06115499" in context
+    assert "Pancreatic study" in context
+
+
+async def test_prefetch_refuses_when_named_trial_missing() -> None:
+    deps = AgentDeps(trial_search=StubTrialSearch())
+    await prefetch_referenced_trials(deps, "is NCT09999999 any good?")
+
+    assert "NCT09999999" not in deps.fetched_trials
+    assert deps.verified_context is None
+    assert deps.refusal_directive is not None
+    # the directive gates the turn but must not echo the NCT back for the agent to
+    # repeat (that number would then be stripped by enforce_citations anyway)
+    assert "NCT09999999" not in deps.refusal_directive
+    assert "could not" in deps.refusal_directive
 
 
 async def test_agent_strips_uncited_nct_numbers() -> None:
@@ -22,6 +48,23 @@ async def test_agent_strips_uncited_nct_numbers() -> None:
 
     assert isinstance(result.output, AgentResponse)
     assert result.output.used_nct_numbers == ["NCT-real"]
+
+
+async def test_agent_scrubs_unverified_nct_from_message() -> None:
+    deps = AgentDeps(trial_search=StubTrialSearch())
+    agent = get_clinical_trials_agent()
+    model = make_test_model(
+        output={
+            "message": "After progression, [NCT09999999] likely helps.",
+            "used_nct_numbers": ["NCT09999999"],
+            "follow_up_questions": [],
+        }
+    )
+    with agent.override(model=model):
+        result = await agent.run("proofread this", deps=deps)
+
+    assert "NCT09999999" not in result.output.message
+    assert result.output.used_nct_numbers == []
 
 
 async def test_agent_registers_expected_tools() -> None:

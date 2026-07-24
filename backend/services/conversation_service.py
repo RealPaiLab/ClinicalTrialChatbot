@@ -2,9 +2,25 @@
 
 from __future__ import annotations
 
-from pydantic_ai.messages import ModelMessage
+from pydantic_ai.messages import ModelMessage, ModelRequest, UserPromptPart
 
 from repository.conversation.base import BaseConversationRepository
+
+
+def recent_turns(history: list[ModelMessage], turns: int) -> list[ModelMessage]:
+    """Window history to its last `turns` patient turns, sliced on a user boundary."""
+    if not history or turns <= 0:
+        return []
+    seen = 0
+    for i in range(len(history) - 1, -1, -1):
+        msg = history[i]
+        if isinstance(msg, ModelRequest) and any(
+            isinstance(part, UserPromptPart) for part in msg.parts
+        ):
+            seen += 1
+            if seen >= turns:
+                return history[i:]
+    return history
 
 
 class ConversationService:

@@ -58,3 +58,5 @@ class AgentDeps:
     fetched_trials: dict[str, TrialCitation] = field(default_factory=dict)
     tool_calls: int = 0
     seen_calls: set[str] = field(default_factory=set)
+    refusal_directive: str | None = None
+    verified_context: str | None = None

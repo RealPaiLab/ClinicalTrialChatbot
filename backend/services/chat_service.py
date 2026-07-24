@@ -3,16 +3,21 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 
 from langfuse import propagate_attributes
+from pydantic_ai.messages import ModelMessage
 
 from agents.clinical_trials.agent import get_clinical_trials_agent
 from agents.clinical_trials.dependencies import AgentDeps, TrialSearch
+from agents.clinical_trials.guards import prefetch_referenced_trials, refusal_directive
 from agents.clinical_trials.output import AgentResponse
+from agents.input_triage.agent import get_input_triage_agent
+from agents.input_triage.output import RequestCategory, TriageDecision
+from agents.input_triage.refusal import refusal_reason
 from core.config import get_settings
 from core.langfuse import get_langfuse_client, trace_id_from_session
 from core.logger import get_logger
 from repository.glossary_repository import GlossaryRepository
 from schemas.chat import ChatResult
-from services.conversation_service import ConversationService
+from services.conversation_service import ConversationService, recent_turns
 
 logger = get_logger(__name__)
 
@@ -27,9 +32,27 @@ class ChatService:
     ) -> None:
         self._conversation_service = conversation_service
         self._trial_search = trial_search
-        self._agent = get_clinical_trials_agent()
+        self._clinical_agent = get_clinical_trials_agent()
+        self._triage_agent = get_input_triage_agent()
         self._langfuse = get_langfuse_client()
-        self._capture_content = get_settings().capture_patient_text
+        settings = get_settings()
+        self._capture_content = settings.capture_patient_text
+        self._triage_history_turns = settings.triage_history_turns
+
+    async def _triage_turn(
+        self, user_message: str, history: list[ModelMessage]
+    ) -> tuple[TriageDecision, RequestCategory | None]:
+        window = recent_turns(history, self._triage_history_turns)
+        try:
+            verdict = (
+                await self._triage_agent.run(
+                    user_message, message_history=window or None
+                )
+            ).output
+            return verdict.decision, verdict.category
+        except Exception as exc:
+            logger.warning("Input triage failed, allowing turn: %s", type(exc).__name__)
+            return TriageDecision.ALLOW, None
 
     def _to_chat_result(self, output: AgentResponse, deps: AgentDeps) -> ChatResult:
         trials = [
@@ -62,7 +85,18 @@ class ChatService:
         ):
             try:
                 history = await self._conversation_service.get_history(session_id)
-                async with self._agent.run_stream(
+                decision, category = await self._triage_turn(user_message, history)
+                if decision is TriageDecision.REFUSE and category is not None:
+                    deps.refusal_directive = refusal_directive(refusal_reason(category))
+                else:
+                    await prefetch_referenced_trials(deps, user_message)
+                span.update(
+                    metadata={
+                        "triage_decision": decision.value,
+                        "triage_category": category.value if category else None,
+                    }
+                )
+                async with self._clinical_agent.run_stream(
                     user_message, deps=deps, message_history=history or None
                 ) as result:
                     async for partial in result.stream_output(debounce_by=0.05):
