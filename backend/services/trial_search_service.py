@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import unicodedata
 from collections.abc import Callable
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -12,7 +11,9 @@ from core.embeddings import EmbeddingProvider, QueryEmbedder, get_embedder
 from models.trial import Trial
 from models.trial_site import TrialSite
 from repository.trial_repository import TrialRepository
+from schemas.provinces import split_locations
 from schemas.trial import TrialCitation, TrialFilter, TrialSiteInfo
+from utils.text import fold
 
 
 def _to_site_info(site: TrialSite) -> TrialSiteInfo:
@@ -29,32 +30,34 @@ def _to_site_info(site: TrialSite) -> TrialSiteInfo:
     )
 
 
-def _fold(text: str) -> str:
-    """Lowercase and strip accents (NFKD + drop combining marks)."""
-    nfkd = unicodedata.normalize("NFKD", text)
-    return "".join(c for c in nfkd if not unicodedata.combining(c)).lower()
-
-
 def _site_matches_location(site: TrialSite, locations: list[str]) -> bool:
     if not locations:
         return True
+    cities, provinces = split_locations(locations)
     loc = site.location
-    haystack = _fold(" ".join(x for x in (loc.city, loc.province, loc.name_en) if x))
-    return any(_fold(term) in haystack for term in locations)
+    if cities:
+        city_hay = fold(" ".join(x for x in (loc.city, loc.name_en) if x))
+        if not any(fold(c) in city_hay for c in cities):
+            return False
+    if provinces:
+        province_hay = fold(loc.province or "")
+        if not any(fold(p) in province_hay for p in provinces):
+            return False
+    return True
 
 
 def _site_matches_cancer(site: TrialSite, cancer_types: list[str]) -> bool:
     if not cancer_types:
         return True
-    haystack = _fold(" ".join(site.cancer_type_names))
-    return any(_fold(term) in haystack for term in cancer_types)
+    haystack = fold(" ".join(site.cancer_type_names))
+    return any(fold(term) in haystack for term in cancer_types)
 
 
 def _site_in_province(site: TrialSite, province: str | None) -> bool:
     if not province:
         return True
     prov = site.location.province
-    return prov is not None and _fold(province) in _fold(prov)
+    return prov is not None and fold(province) in fold(prov)
 
 
 def _site_matches_status(site: TrialSite, statuses: list[str]) -> bool:
@@ -62,8 +65,8 @@ def _site_matches_status(site: TrialSite, statuses: list[str]) -> bool:
         return True
     if not site.state:
         return False
-    haystack = _fold(site.state)
-    return any(_fold(term) in haystack for term in statuses)
+    haystack = fold(site.state)
+    return any(fold(term) in haystack for term in statuses)
 
 
 def _to_citation(

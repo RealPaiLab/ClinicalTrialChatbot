@@ -13,6 +13,7 @@ from core.embeddings import EmbeddingProvider
 from models.location import Location
 from models.trial import Trial
 from models.trial_site import TrialSite
+from schemas.provinces import split_locations
 from schemas.trial import TrialFilter
 
 _EMBEDDING_COLUMNS: dict[
@@ -35,12 +36,25 @@ def _cancer_match(value: str) -> ColumnElement[bool]:
     return _contains(site_text, value)
 
 
-def _location_match(value: str) -> ColumnElement[bool]:
+def _city_match(value: str) -> ColumnElement[bool]:
     return or_(
         _contains(Location.city, value),
-        _contains(Location.province, value),
         _contains(Location.name_en, value),
     )
+
+
+def _province_match(canonical: str) -> ColumnElement[bool]:
+    return _contains(Location.province, canonical)
+
+
+def _location_conditions(locations: list[str]) -> list[ColumnElement[bool]]:
+    cities, provinces = split_locations(locations)
+    conditions: list[ColumnElement[bool]] = []
+    if cities:
+        conditions.append(or_(*(_city_match(v) for v in cities)))
+    if provinces:
+        conditions.append(or_(*(_province_match(v) for v in provinces)))
+    return conditions
 
 
 def _status_match(value: str) -> ColumnElement[bool]:
@@ -50,19 +64,20 @@ def _status_match(value: str) -> ColumnElement[bool]:
 def _site_match_exists(
     flt: TrialFilter, restrict_province: str | None
 ) -> ColumnElement[bool] | None:
-    site_terms = {
+    group_terms = {
         _cancer_match: [v for v in flt.cancer_types if v],
         _status_match: [v for v in flt.statuses if v],
-        _location_match: [v for v in flt.locations if v],
     }
     conditions = [
-        or_(*(build(v) for v in terms)) for build, terms in site_terms.items() if terms
+        or_(*(build(v) for v in terms)) for build, terms in group_terms.items() if terms
     ]
+    locations = [v for v in flt.locations if v]
+    conditions.extend(_location_conditions(locations))
     if restrict_province:
         conditions.append(_contains(Location.province, restrict_province))
     if not conditions:
         return None
-    needs_location = bool(flt.locations) or restrict_province is not None
+    needs_location = bool(locations) or restrict_province is not None
     stmt = select(TrialSite.trial_id)
     if needs_location:
         stmt = stmt.join(Location, TrialSite.location_id == Location.id)

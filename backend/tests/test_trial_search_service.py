@@ -6,18 +6,18 @@ from core.embeddings import EmbeddingProvider
 from schemas.trial import TrialFilter
 from services.trial_search_service import (
     TrialSearchService,
-    _fold,
     _site_matches_cancer,
     _site_matches_location,
     _site_matches_status,
     _to_citation,
 )
 from tests.factories import FakeSessionFactory, StubEmbedder, make_orm_trial
+from utils.text import fold
 
 
 def test_fold_strips_accents() -> None:
-    assert _fold("Montréal") == "montreal"
-    assert _fold("QUÉBEC") == "quebec"
+    assert fold("Montréal") == "montreal"
+    assert fold("QUÉBEC") == "quebec"
 
 
 def test_site_matches_location_is_accent_insensitive() -> None:
@@ -25,6 +25,27 @@ def test_site_matches_location_is_accent_insensitive() -> None:
     assert _site_matches_location(site, ["montreal"]) is True
     assert _site_matches_location(site, ["toronto"]) is False
     assert _site_matches_location(site, []) is True
+
+
+def test_site_matches_location_city_and_province_narrow_not_widen() -> None:
+    ottawa = make_orm_trial("NCT-1", sites=[("Ottawa", "Ontario", ())]).sites[0]
+    toronto = make_orm_trial("NCT-1", sites=[("Toronto", "Ontario", ())]).sites[0]
+    # naming the parent province alongside the city must not keep the other city
+    assert _site_matches_location(ottawa, ["Ottawa", "Ontario"]) is True
+    assert _site_matches_location(toronto, ["Ottawa", "Ontario"]) is False
+
+
+def test_to_citation_city_and_province_keeps_only_that_city() -> None:
+    trial = make_orm_trial(
+        "NCT-1",
+        sites=[
+            ("Ottawa", "Ontario", ("Breast Cancer",)),
+            ("Toronto", "Ontario", ("Breast Cancer",)),
+            ("London", "Ontario", ("Breast Cancer",)),
+        ],
+    )
+    citation = _to_citation(trial, ["Ottawa", "Ontario"], [])
+    assert [s.city for s in citation.sites] == ["Ottawa"]
 
 
 def test_site_matches_cancer() -> None:
