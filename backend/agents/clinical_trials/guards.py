@@ -71,34 +71,33 @@ def tools_available(ctx: RunContext[AgentDeps], _tool: ToolDefinition) -> bool:
 
 _NCT_PATTERN = re.compile(r"NCT\d{8}")
 
-
-def _strip_ncts(message: str, ncts: set[str]) -> str:
-    """Remove specific NCT tokens (and any citation brackets around them)."""
-    for nct in ncts:
-        message = re.sub(rf"\s*\[?{re.escape(nct)}\]?", "", message)
-    return message
+_HALLUCINATED_TRIAL_FALLBACK = (
+    "I'm sorry, I lost the thread on that one and don't want to give you "
+    "anything I can't stand behind. Could you rephrase what you're after?"
+)
 
 
 def enforce_citations(
     ctx: RunContext[AgentDeps], output: AgentResponse
 ) -> AgentResponse:
-    """Keep only NCT numbers a tool returned, in both the list and the message.
+    """Keep only NCT numbers a tool returned, and block replies that invent one.
 
-    A safety net over the deterministic prefetch. Stripping is deterministic (no
-    ModelRetry): run_stream does not support output-validator retries, and the
-    prefetch plus the system prompt already steer the model away from unverified
-    NCT numbers, so this only cleans up the rare leak.
+    An NCT in the prose that no tool returned means the model likely hallucinated
+    the trial and the claims around it, so we replace the whole reply rather than
+    just deleting the number and leaving invented prose behind. Deterministic (no
+    ModelRetry): run_stream does not support output-validator retries.
     """
     output.used_nct_numbers = [
         nct for nct in output.used_nct_numbers if nct in ctx.deps.fetched_trials
     ]
-    unverified = {
-        nct
+    unverified = any(
+        nct not in ctx.deps.fetched_trials
         for nct in _NCT_PATTERN.findall(output.message)
-        if nct not in ctx.deps.fetched_trials
-    }
+    )
     if unverified:
-        output.message = _strip_ncts(output.message, unverified)
+        output.message = _HALLUCINATED_TRIAL_FALLBACK
+        output.used_nct_numbers = []
+        output.follow_up_questions = []
     return output
 
 

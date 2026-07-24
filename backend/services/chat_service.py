@@ -17,7 +17,7 @@ from core.langfuse import get_langfuse_client, trace_id_from_session
 from core.logger import get_logger
 from repository.glossary_repository import GlossaryRepository
 from schemas.chat import ChatResult
-from services.conversation_service import ConversationService, recent_turns
+from services.conversation_service import ConversationService, user_facing_turns
 
 logger = get_logger(__name__)
 
@@ -42,7 +42,7 @@ class ChatService:
     async def _triage_turn(
         self, user_message: str, history: list[ModelMessage]
     ) -> tuple[TriageDecision, RequestCategory | None]:
-        window = recent_turns(history, self._triage_history_turns)
+        window = user_facing_turns(history, self._triage_history_turns)
         try:
             verdict = (
                 await self._triage_agent.run(

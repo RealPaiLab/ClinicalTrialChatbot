@@ -16,7 +16,11 @@ from agents.input_triage.agent import get_input_triage_agent
 from repository.conversation.memory_repository import InMemoryConversationRepository
 from schemas.chat import ChatResult
 from services.chat_service import ChatService
-from services.conversation_service import ConversationService, recent_turns
+from services.conversation_service import (
+    ConversationService,
+    recent_turns,
+    user_facing_turns,
+)
 from tests.factories import StubTrialSearch, make_citation, make_test_model
 
 
@@ -55,6 +59,19 @@ async def test_recent_history_windows_by_user_turn_not_message_count() -> None:
         if isinstance(part, UserPromptPart)
     ]
     assert user_prompts == ["q2", "q3"]
+
+
+async def test_user_facing_turns_strips_tool_parts() -> None:
+    history = [*_user_turn("q1", with_tool=True), *_user_turn("q2")]
+    window = user_facing_turns(history, 5)  # type: ignore[arg-type]
+
+    for msg in window:
+        if isinstance(msg, ModelRequest):
+            assert all(isinstance(part, UserPromptPart) for part in msg.parts)
+        else:
+            assert all(isinstance(part, TextPart) for part in msg.parts)
+    kinds = [type(msg).__name__ for msg in window]
+    assert kinds == ["ModelRequest", "ModelResponse", "ModelRequest", "ModelResponse"]
 
 
 def _allow_triage() -> TestModel:
