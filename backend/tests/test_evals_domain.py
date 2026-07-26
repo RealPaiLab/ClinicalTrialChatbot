@@ -10,7 +10,7 @@ from evals.adapters.to_cases import (
 )
 from evals.metrics.domain.glossary_correctness import glossary_correctness
 from evals.metrics.domain.inline_citation_consistency import inline_citation_consistency
-from evals.metrics.domain.tool_correctness import tool_correctness
+from evals.metrics.domain.tool_correctness import ANY_SEARCH, tool_correctness
 from evals.schemas.expected import ExpectedOutput
 from evals.schemas.output import AgentEvalOutput
 from evals.schemas.tool_call import ToolCall
@@ -33,12 +33,66 @@ async def test_tool_correctness_matches_expected() -> None:
         ]
     )
     result = await tool_correctness("breast trials", output, expected)
-    assert result.value == 1.0
+    assert result is not None and result.value == 1.0
 
 
-async def test_tool_correctness_no_expected_is_pass() -> None:
+async def test_tool_correctness_skips_without_expected_tools() -> None:
     result = await tool_correctness("q", AgentEvalOutput(answer="x"), ExpectedOutput())
-    assert result.value == 1.0
+    assert result is None
+
+
+async def test_any_search_accepts_either_search_tool() -> None:
+    expected = ExpectedOutput(expected_tools=[ToolCall(name=ANY_SEARCH, args={})])
+    for name in ("syntactic_search", "semantic_search"):
+        output = AgentEvalOutput(
+            answer="...", tool_calls=[ToolCall(name=name, args={"reasoning": "r"})]
+        )
+        result = await tool_correctness("trials near me", output, expected)
+        assert result is not None and result.value == 1.0, name
+
+
+async def test_extra_calls_are_not_penalized() -> None:
+    expected = ExpectedOutput(expected_tools=[ToolCall(name=ANY_SEARCH, args={})])
+    output = AgentEvalOutput(
+        answer="...",
+        tool_calls=[
+            ToolCall(name="semantic_search", args={"reasoning": "r"}),
+            ToolCall(name="get_trial_details", args={"nct_numbers": ["NCT1"]}),
+            ToolCall(name="define_term", args={"term": "refractory"}),
+        ],
+    )
+    result = await tool_correctness("trials near me", output, expected)
+    assert result is not None and result.value == 1.0
+
+
+async def test_repeated_expected_tool_does_not_halve_the_score() -> None:
+    """Two identical expected calls used to cap a correct agent at 0.5."""
+    expected = ExpectedOutput(
+        expected_tools=[
+            ToolCall(name="define_term", args={}),
+            ToolCall(name="define_term", args={}),
+        ]
+    )
+    output = AgentEvalOutput(
+        answer="...",
+        tool_calls=[
+            ToolCall(name="define_term", args={"term": "dMMR"}),
+            ToolCall(name="define_term", args={"term": "dostarlimab"}),
+        ],
+    )
+    result = await tool_correctness("what do these mean?", output, expected)
+    assert result is not None and result.value == 1.0
+
+
+async def test_wrong_tool_still_fails() -> None:
+    expected = ExpectedOutput(
+        expected_tools=[ToolCall(name="get_trial_details", args={})]
+    )
+    output = AgentEvalOutput(
+        answer="...", tool_calls=[ToolCall(name="define_term", args={"term": "x"})]
+    )
+    result = await tool_correctness("tell me more about it", output, expected)
+    assert result is not None and result.value == 0.0
 
 
 def test_glossary_correctness_hit_and_miss() -> None:
@@ -47,20 +101,25 @@ def test_glossary_correctness_hit_and_miss() -> None:
         tool_calls=[ToolCall(name="define_term", args={"term": "Metastatic"})],
     )
     expected = ExpectedOutput(glossary_terms=["metastatic"])
-    assert glossary_correctness(defined, expected).value == 1.0
-    assert glossary_correctness(AgentEvalOutput(answer="x"), expected).value == 0.0
+    hit = glossary_correctness(defined, expected)
+    assert hit is not None and hit.value == 1.0
+    missed = glossary_correctness(AgentEvalOutput(answer="x"), expected)
+    assert missed is not None and missed.value == 0.0
+    assert glossary_correctness(defined, ExpectedOutput()) is None
 
 
 def test_inline_citation_consistency() -> None:
     grounded = AgentEvalOutput(
         answer="See [NCT01234567].", retrieved_ncts=["NCT01234567"]
     )
-    assert inline_citation_consistency(grounded).value == 1.0
+    ok = inline_citation_consistency(grounded)
+    assert ok is not None and ok.value == 1.0
     hallucinated = AgentEvalOutput(
         answer="See [NCT09999999].", retrieved_ncts=["NCT01234567"]
     )
-    assert inline_citation_consistency(hallucinated).value == 0.0
-    assert inline_citation_consistency(AgentEvalOutput(answer="none")).value == 1.0
+    bad = inline_citation_consistency(hallucinated)
+    assert bad is not None and bad.value == 0.0
+    assert inline_citation_consistency(AgentEvalOutput(answer="none")) is None
 
 
 def test_to_cases() -> None:

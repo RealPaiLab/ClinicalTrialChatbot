@@ -11,14 +11,23 @@ from evals.metrics.generic.types import GenerationCase, RetrievalCase
 
 async def test_context_precision_and_recall() -> None:
     case = RetrievalCase(retrieved=["a", "b", "c"], relevant=["b", "c", "d"])
-    assert (await ContextPrecision().score(case)).value == pytest.approx(2 / 3)
-    assert (await ContextRecall().score(case)).value == pytest.approx(2 / 3)
+    precision = await ContextPrecision().score(case)
+    recall = await ContextRecall().score(case)
+    assert precision is not None and precision.value == pytest.approx(2 / 3)
+    assert recall is not None and recall.value == pytest.approx(2 / 3)
 
 
-async def test_retrieval_zero_guard() -> None:
-    result = await ContextPrecision().score(RetrievalCase(retrieved=[], relevant=["x"]))
-    assert result.value == 0.0
-    assert result.name == "context_precision"
+async def test_retrieval_skipped_without_gold() -> None:
+    case = RetrievalCase(retrieved=[], relevant=[])
+    assert await ContextPrecision().score(case) is None
+    assert await ContextRecall().score(case) is None
+
+
+async def test_recall_is_zero_when_gold_is_missed() -> None:
+    case = RetrievalCase(retrieved=[], relevant=["x"])
+    recall = await ContextRecall().score(case)
+    assert recall is not None and recall.value == 0.0
+    assert await ContextPrecision().score(case) is None
 
 
 def test_llm_judged_maps_generation_case() -> None:

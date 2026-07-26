@@ -13,11 +13,13 @@ def _normalize(term: str) -> str:
 
 def glossary_correctness(
     output: AgentEvalOutput, expected: ExpectedOutput
-) -> MetricResult:
-    """Fraction of expected glossary terms the agent asked define_term about."""
+) -> MetricResult | None:
+    """Fraction of expected glossary terms the agent asked define_term about.
+    None (skip) when the item expects no terms.
+    """
     expected_terms = {_normalize(t) for t in expected.glossary_terms}
     if not expected_terms:
-        return MetricResult(name=NAME, value=1.0, reason="No glossary terms expected.")
+        return None
 
     defined = {
         _normalize(str(call.args["term"]))

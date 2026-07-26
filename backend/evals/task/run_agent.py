@@ -4,7 +4,6 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 from langfuse.api import DatasetItem
-from pydantic_ai import Agent
 from pydantic_ai.messages import (
     ModelMessage,
     ModelRequest,
@@ -16,7 +15,6 @@ from pydantic_ai.messages import (
 
 from agents.clinical_trials.agent import get_clinical_trials_agent
 from agents.clinical_trials.dependencies import AgentDeps, GlossaryLookup, TrialSearch
-from agents.clinical_trials.output import AgentResponse
 from core.dependencies import get_trial_search
 from evals.schemas.output import AgentEvalOutput
 from evals.schemas.tool_call import ToolCall
@@ -66,32 +64,41 @@ def _tool_calls(messages: list[ModelMessage]) -> list[ToolCall]:
     ]
 
 
+async def run_turns(
+    turns: list[Turn],
+    *,
+    trial_search: TrialSearch | None = None,
+    glossary: GlossaryLookup | None = None,
+) -> AgentEvalOutput:
+    """Replay a conversation through the real agent; deps default to the real ones."""
+    agent = get_clinical_trials_agent()
+    deps = AgentDeps(
+        trial_search=trial_search or get_trial_search(),
+        glossary=glossary or GlossaryRepository(),
+    )
+    prompt, history = _split(turns)
+
+    result = await agent.run(prompt, deps=deps, message_history=history)
+    output = result.output
+
+    return AgentEvalOutput(
+        answer=output.message,
+        contexts=[_render_trial(c) for c in deps.fetched_trials.values()],
+        retrieved_ncts=list(deps.fetched_trials),
+        used_ncts=output.used_nct_numbers,
+        tool_calls=_tool_calls(result.all_messages()),
+    )
+
+
 def build_task(
     *,
-    agent: Agent[AgentDeps, AgentResponse] | None = None,
     trial_search: TrialSearch | None = None,
     glossary: GlossaryLookup | None = None,
 ) -> TaskFn:
     """Build the experiment task; deps default to the real ones (stub them in tests)."""
 
     async def run_agent_on_item(*, item: DatasetItem, **_: Any) -> AgentEvalOutput:
-        the_agent = agent or get_clinical_trials_agent()
-        deps = AgentDeps(
-            trial_search=trial_search or get_trial_search(),
-            glossary=glossary or GlossaryRepository(),
-        )
         turns = [Turn.model_validate(t) for t in (item.input or [])]
-        prompt, history = _split(turns)
-
-        result = await the_agent.run(prompt, deps=deps, message_history=history)
-        output = result.output
-
-        return AgentEvalOutput(
-            answer=output.message,
-            contexts=[_render_trial(c) for c in deps.fetched_trials.values()],
-            retrieved_ncts=list(deps.fetched_trials),
-            used_ncts=output.used_nct_numbers,
-            tool_calls=_tool_calls(result.all_messages()),
-        )
+        return await run_turns(turns, trial_search=trial_search, glossary=glossary)
 
     return run_agent_on_item
