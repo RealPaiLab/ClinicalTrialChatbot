@@ -14,9 +14,10 @@ class RetrievalMetric:
     name: str
     denominator: Denominator
 
-    async def score(self, case: RetrievalCase) -> MetricResult:
+    async def score(self, case: RetrievalCase) -> MetricResult | None:
         retrieved = set(case.retrieved)
         relevant = set(case.relevant)
         pool = retrieved if self.denominator == "retrieved" else relevant
-        value = len(retrieved & relevant) / len(pool) if pool else 0.0
-        return MetricResult(name=self.name, value=value)
+        if not relevant or not pool:
+            return None
+        return MetricResult(name=self.name, value=len(retrieved & relevant) / len(pool))

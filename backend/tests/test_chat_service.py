@@ -100,13 +100,13 @@ def _chat(
 
 
 async def test_stream_yields_partials_then_result() -> None:
-    citation = make_citation("NCT-1")
-    chat = _chat(StubTrialSearch(results=[citation], by_nct={"NCT-1": citation}))
+    citation = make_citation("NCT01111111")
+    chat = _chat(StubTrialSearch(results=[citation], by_nct={"NCT01111111": citation}))
     model = make_test_model(
         call_tools=["syntactic_search"],
         output={
-            "message": "see [NCT-1]",
-            "used_nct_numbers": ["NCT-1"],
+            "message": "see [NCT01111111]",
+            "used_nct_numbers": ["NCT01111111"],
             "follow_up_questions": ["where are you?"],
         },
     )
@@ -121,7 +121,7 @@ async def test_stream_yields_partials_then_result() -> None:
     assert any(isinstance(i, AgentResponse) for i in items)
     assert isinstance(items[-1], ChatResult)
     final = items[-1]
-    assert [c.nct_number for c in final.trials] == ["NCT-1"]
+    assert [c.nct_number for c in final.trials] == ["NCT01111111"]
     assert final.follow_up_questions == ["where are you?"]
 
 

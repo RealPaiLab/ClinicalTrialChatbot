@@ -31,15 +31,17 @@ async def test_prefetch_refuses_when_named_trial_missing() -> None:
 
 
 async def test_agent_strips_uncited_nct_numbers() -> None:
-    citation = make_citation("NCT-real")
+    citation = make_citation("NCT01111111")
     deps = AgentDeps(
-        trial_search=StubTrialSearch(results=[citation], by_nct={"NCT-real": citation})
+        trial_search=StubTrialSearch(
+            results=[citation], by_nct={"NCT01111111": citation}
+        )
     )
     agent = get_clinical_trials_agent()
     model = make_test_model(
         output={
-            "message": "see [NCT-real]",
-            "used_nct_numbers": ["NCT-real", "NCT-bogus"],
+            "message": "see [NCT01111111]",
+            "used_nct_numbers": ["NCT01111111", "NCT02222222"],
             "follow_up_questions": [],
         }
     )
@@ -47,7 +49,30 @@ async def test_agent_strips_uncited_nct_numbers() -> None:
         result = await agent.run("breast cancer", deps=deps)
 
     assert isinstance(result.output, AgentResponse)
-    assert result.output.used_nct_numbers == ["NCT-real"]
+    assert result.output.used_nct_numbers == ["NCT01111111"]
+
+
+async def test_agent_drops_fetched_but_unmentioned_nct_numbers() -> None:
+    """A fetched trial the reply never names must not reach the map."""
+    citation = make_citation("NCT01111111")
+    deps = AgentDeps(
+        trial_search=StubTrialSearch(
+            results=[citation], by_nct={"NCT01111111": citation}
+        )
+    )
+    deps.fetched_trials["NCT01111111"] = citation
+    agent = get_clinical_trials_agent()
+    model = make_test_model(
+        output={
+            "message": "Do you know the subtype or the stage?",
+            "used_nct_numbers": ["NCT01111111"],
+            "follow_up_questions": [],
+        }
+    )
+    with agent.override(model=model):
+        result = await agent.run("i have lung cancer", deps=deps)
+
+    assert result.output.used_nct_numbers == []
 
 
 async def test_agent_scrubs_unverified_nct_from_message() -> None:
