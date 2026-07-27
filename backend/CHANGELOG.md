@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.1](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.8.0...backend-v0.8.1) (2026-07-27)
+
+
+### Bug Fixes
+
+* implement isolated session factory for evaluation runs ([07f527a](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/07f527a659b016c72f0290daa9cfc5c731d805f2))
+* implement isolated session factory for evaluation runs ([401e0fc](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/401e0fcd9d442b920dfcd68cea688cf894083bf5))
+
 ## [0.8.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.7.0...backend-v0.8.0) (2026-07-27)
 
 
