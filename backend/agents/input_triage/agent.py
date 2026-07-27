@@ -19,5 +19,5 @@ def get_input_triage_agent() -> Agent[None, TriageVerdict]:
     return Agent(
         get_llm(model=settings.triage_llm_model or settings.llm_model),
         output_type=TriageVerdict,
-        instructions=get_triage_prompt(),
+        instructions=get_triage_prompt,
     )
