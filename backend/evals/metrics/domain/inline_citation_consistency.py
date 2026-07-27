@@ -10,11 +10,13 @@ NAME = "inline_citation_consistency"
 _NCT = re.compile(r"NCT\d+")
 
 
-def inline_citation_consistency(output: AgentEvalOutput) -> MetricResult:
-    """Fraction of inline [NCT…] citations grounded in the fetched trials."""
+def inline_citation_consistency(output: AgentEvalOutput) -> MetricResult | None:
+    """Fraction of inline [NCT…] citations grounded in the fetched trials.
+    None (skip) when the answer cites nothing.
+    """
     cited = set(_NCT.findall(output.answer))
     if not cited:
-        return MetricResult(name=NAME, value=1.0, reason="No inline citations.")
+        return None
 
     fetched = set(output.retrieved_ncts)
     grounded = cited & fetched

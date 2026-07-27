@@ -83,12 +83,13 @@ def enforce_citations(
     """Keep only NCT numbers a tool returned, and block replies that invent one.
 
     An NCT in the prose that no tool returned means the model likely hallucinated
-    the trial and the claims around it, so we replace the whole reply rather than
-    just deleting the number and leaving invented prose behind. Deterministic (no
-    ModelRetry): run_stream does not support output-validator retries.
+    the trial and the claims around it, also a kept NCT must ALSO appear in the message.
     """
+    mentioned = set(_NCT_PATTERN.findall(output.message))
     output.used_nct_numbers = [
-        nct for nct in output.used_nct_numbers if nct in ctx.deps.fetched_trials
+        nct
+        for nct in output.used_nct_numbers
+        if nct in ctx.deps.fetched_trials and nct in mentioned
     ]
     unverified = any(
         nct not in ctx.deps.fetched_trials

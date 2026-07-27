@@ -52,11 +52,11 @@ class ScoringContext:
 Scorer = Callable[[ScoringContext], Awaitable[MetricResult | None]]
 
 
-async def score_context_precision(ctx: ScoringContext) -> MetricResult:
+async def score_context_precision(ctx: ScoringContext) -> MetricResult | None:
     return await ContextPrecision().score(ctx.retrieval)
 
 
-async def score_context_recall(ctx: ScoringContext) -> MetricResult:
+async def score_context_recall(ctx: ScoringContext) -> MetricResult | None:
     return await ContextRecall().score(ctx.retrieval)
 
 
@@ -78,7 +78,7 @@ async def score_answer_correctness(ctx: ScoringContext) -> MetricResult | None:
     return await AnswerCorrectness(ctx.model).score(ctx.generation)
 
 
-async def score_tool_correctness(ctx: ScoringContext) -> MetricResult:
+async def score_tool_correctness(ctx: ScoringContext) -> MetricResult | None:
     return await tool_correctness(ctx.question, ctx.output, ctx.expected)
 
 
@@ -86,11 +86,11 @@ async def score_tool_correctness(ctx: ScoringContext) -> MetricResult:
 #     return await argument_correctness(ctx.question, ctx.output, ctx.model)
 
 
-async def score_glossary_correctness(ctx: ScoringContext) -> MetricResult:
+async def score_glossary_correctness(ctx: ScoringContext) -> MetricResult | None:
     return glossary_correctness(ctx.output, ctx.expected)
 
 
-async def score_inline_citation_consistency(ctx: ScoringContext) -> MetricResult:
+async def score_inline_citation_consistency(ctx: ScoringContext) -> MetricResult | None:
     return inline_citation_consistency(ctx.output)
 
 

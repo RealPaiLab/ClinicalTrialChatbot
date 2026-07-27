@@ -34,6 +34,6 @@ class DeepEvalMetric(ABC):
 
     async def score(self, case: GenerationCase) -> MetricResult:
         metric = self._build()
-        await metric.a_measure(self._test_case(case))
+        await metric.a_measure(self._test_case(case), _show_indicator=False)
         value = float(metric.score) if metric.score is not None else 0.0
         return MetricResult(name=self.name, value=value, reason=metric.reason)
