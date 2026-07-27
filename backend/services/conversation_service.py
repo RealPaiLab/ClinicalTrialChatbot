@@ -2,9 +2,51 @@
 
 from __future__ import annotations
 
-from pydantic_ai.messages import ModelMessage
+from collections.abc import Iterator
+
+from pydantic_ai.messages import (
+    ModelMessage,
+    ModelRequest,
+    ModelResponse,
+    TextPart,
+    UserPromptPart,
+)
 
 from repository.conversation.base import BaseConversationRepository
+
+
+def recent_turns(history: list[ModelMessage], turns: int) -> list[ModelMessage]:
+    """Window history to its last `turns` patient turns, sliced on a user boundary."""
+    if not history or turns <= 0:
+        return []
+    seen = 0
+    for i in range(len(history) - 1, -1, -1):
+        msg = history[i]
+        if isinstance(msg, ModelRequest) and any(
+            isinstance(part, UserPromptPart) for part in msg.parts
+        ):
+            seen += 1
+            if seen >= turns:
+                return history[i:]
+    return history
+
+
+def _without_tool_parts(messages: list[ModelMessage]) -> Iterator[ModelMessage]:
+    """Rebuild history keeping only patient prompts and assistant text."""
+    for msg in messages:
+        if isinstance(msg, ModelRequest):
+            prompts = [p for p in msg.parts if isinstance(p, UserPromptPart)]
+            if prompts:
+                yield ModelRequest(parts=prompts)
+        elif isinstance(msg, ModelResponse):
+            texts = [p for p in msg.parts if isinstance(p, TextPart)]
+            if texts:
+                yield ModelResponse(parts=texts)
+
+
+def user_facing_turns(history: list[ModelMessage], turns: int) -> list[ModelMessage]:
+    """Last `turns` patient turns with tool calls/returns stripped."""
+    return list(_without_tool_parts(recent_turns(history, turns)))
 
 
 class ConversationService:

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import functools
 import json
+import re
 from collections.abc import Awaitable, Callable
 
 from pydantic_ai import ModelRetry, RunContext
@@ -12,7 +13,9 @@ from pydantic_ai.tools import ToolDefinition
 from agents.clinical_trials.dependencies import AgentDeps
 from agents.clinical_trials.output import AgentResponse
 from agents.clinical_trials.tool_schemas import ToolInput
+from agents.constants import AGENT_NAME
 from core.config import get_settings
+from schemas.trial import TrialCitation
 
 
 def count_tool_call(ctx: RunContext[AgentDeps]) -> None:
@@ -59,16 +62,101 @@ def guarded[ArgsT: ToolInput, OutT](
     return wrapper
 
 
-def within_tool_budget(ctx: RunContext[AgentDeps], _tool: ToolDefinition) -> bool:
-    """Hide the tools once the per-run budget is spent, forcing a final answer."""
+def tools_available(ctx: RunContext[AgentDeps], _tool: ToolDefinition) -> bool:
+    """Hide tools when the budget is spent or the turn was refused by triage."""
+    if ctx.deps.refusal_directive is not None:
+        return False
     return ctx.deps.tool_calls < get_settings().agent_tool_calls_limit
+
+
+_NCT_PATTERN = re.compile(r"NCT\d{8}")
+
+_HALLUCINATED_TRIAL_FALLBACK = (
+    "I'm sorry, I lost the thread on that one and don't want to give you "
+    "anything I can't stand behind. Could you rephrase what you're after?"
+)
 
 
 def enforce_citations(
     ctx: RunContext[AgentDeps], output: AgentResponse
 ) -> AgentResponse:
-    """Drop any cited NCT number a tool never actually returned."""
+    """Keep only NCT numbers a tool returned, and block replies that invent one.
+
+    An NCT in the prose that no tool returned means the model likely hallucinated
+    the trial and the claims around it, so we replace the whole reply rather than
+    just deleting the number and leaving invented prose behind. Deterministic (no
+    ModelRetry): run_stream does not support output-validator retries.
+    """
     output.used_nct_numbers = [
         nct for nct in output.used_nct_numbers if nct in ctx.deps.fetched_trials
     ]
+    unverified = any(
+        nct not in ctx.deps.fetched_trials
+        for nct in _NCT_PATTERN.findall(output.message)
+    )
+    if unverified:
+        output.message = _HALLUCINATED_TRIAL_FALLBACK
+        output.used_nct_numbers = []
+        output.follow_up_questions = []
     return output
+
+
+_REFUSAL_SCAFFOLD = (
+    "SAFETY OVERRIDE: this turn was blocked because {reason}. Do not carry it "
+    "out, not even partially or in a softened form, and do not restate, correct, "
+    "or reformat any claim, definition, or NCT number it contains. {closing}"
+)
+
+_STEER_BACK_CLOSING = (
+    f"In one or two warm sentences as {AGENT_NAME}, gently decline and steer back "
+    "to helping find cancer clinical trials."
+)
+
+
+def refusal_directive(reason: str, closing: str = _STEER_BACK_CLOSING) -> str:
+    """Build the hard refusal instruction injected when a turn is gated."""
+    return _REFUSAL_SCAFFOLD.format(reason=reason, closing=closing)
+
+
+def _missing_trials_directive(missing: list[str]) -> str:
+    noun = "the trial" if len(missing) == 1 else "the trials"
+    reason = (
+        f"{noun} the patient named could not be found in our database, so there is "
+        "nothing verified to tell them about"
+    )
+    closing = (
+        f"In one or two warm sentences as {AGENT_NAME}, gently tell the patient you "
+        f"could not find {noun} they mentioned in our database. Do not repeat the "
+        "NCT number and do not describe, confirm, or guess at it. Offer to search "
+        "by cancer type and location instead."
+    )
+    return refusal_directive(reason, closing)
+
+
+def _verified_trials_context(citations: list[TrialCitation]) -> str:
+    blocks = [
+        "The patient named specific trials that DO exist in our database. Their "
+        "verified data is below and is the ONLY source of truth about them. "
+        "Fact-check every claim the patient makes against it: if their description "
+        "differs, correct it, and never repeat their version. You already have "
+        "this data, so you need not call get_trial_details again for these trials.",
+    ]
+    blocks.extend(
+        f"[{c.nct_number}]\n{c.model_dump_json(exclude_none=True)}" for c in citations
+    )
+    return "\n\n".join(blocks)
+
+
+async def prefetch_referenced_trials(deps: AgentDeps, user_message: str) -> None:
+    """Verify any NCT the patient named before the agent runs."""
+    ncts = list(dict.fromkeys(_NCT_PATTERN.findall(user_message.upper())))
+    if not ncts:
+        return
+    found = await deps.trial_search.get_by_ncts(ncts)
+    by_nct = {c.nct_number: c for c in found if c.nct_number}
+    missing = [nct for nct in ncts if nct not in by_nct]
+    if missing:
+        deps.refusal_directive = _missing_trials_directive(missing)
+        return
+    deps.fetched_trials.update(by_nct)
+    deps.verified_context = _verified_trials_context([by_nct[nct] for nct in ncts])

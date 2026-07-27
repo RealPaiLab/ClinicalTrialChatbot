@@ -2,7 +2,7 @@ from typing import Any
 
 from sqlalchemy.dialects import postgresql
 
-from repository.trial_repository import TrialRepository
+from repository.trial_repository import TrialRepository, _location_conditions
 from schemas.trial import TrialFilter
 from tests.factories import FakeSessionFactory, make_orm_trial
 
@@ -34,6 +34,27 @@ async def test_syntactic_search_uses_unaccent_ilike_for_location() -> None:
     sql = _sql(factory.last_statement)
     assert "unaccent" in sql
     assert "ilike" in sql
+
+
+def test_city_and_parent_province_are_separate_and_ed_groups() -> None:
+    # Ottawa (city) + Ontario (province) must AND, so it stays scoped to Ottawa
+    # rather than widening to every site in Ontario.
+    conditions = _location_conditions(["Ottawa", "Ontario"])
+    assert len(conditions) == 2
+    city_sql, province_sql = (str(c.compile()).lower() for c in conditions)
+    assert "city" in city_sql and "province" not in city_sql
+    assert "province" in province_sql and "city" not in province_sql
+
+
+def test_multiple_cities_stay_one_or_group() -> None:
+    conditions = _location_conditions(["Ottawa", "Toronto"])
+    assert len(conditions) == 1
+
+
+def test_bare_province_is_one_group() -> None:
+    conditions = _location_conditions(["Ontario"])
+    assert len(conditions) == 1
+    assert "province" in str(conditions[0].compile()).lower()
 
 
 async def test_syntactic_search_without_filters_or_query_has_no_where() -> None:
