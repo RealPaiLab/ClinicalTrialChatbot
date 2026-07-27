@@ -4,6 +4,7 @@ from langfuse import get_client
 from langfuse.experiment import ExperimentResult
 
 from core.config import get_settings
+from core.dependencies import get_isolated_trial_search
 from core.logger import get_logger
 from evals.adapters.langfuse_evaluators import build_evaluators
 from evals.dataset import DATASET_NAME
@@ -27,7 +28,7 @@ def run_experiment(
         result = dataset.run_experiment(
             name=dataset_name,
             run_name=run_name,
-            task=build_task(),
+            task=build_task(trial_search=get_isolated_trial_search()),
             evaluators=build_evaluators(build_judge_model(judge_model)),
             max_concurrency=settings.eval_max_concurrency,
         )

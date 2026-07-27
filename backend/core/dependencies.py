@@ -3,7 +3,7 @@ from __future__ import annotations
 from functools import lru_cache, partial
 
 from core.config import get_settings
-from core.database import ReadOnlySessionFactory
+from core.database import ReadOnlySessionFactory, create_isolated_session_factory
 from core.embeddings import get_embedder
 from core.http_retry import get_retrying_client
 from repository.conversation.factory import get_conversation_repository
@@ -34,6 +34,13 @@ def get_turnstile_service() -> TurnstileService:
 
 def get_trial_search() -> TrialSearchService:
     return TrialSearchService(ReadOnlySessionFactory, embedder=get_embedder())
+
+
+def get_isolated_trial_search() -> TrialSearchService:
+    """Trial search on a private pool, for callers running in their own event loop."""
+    return TrialSearchService(
+        create_isolated_session_factory(), embedder=get_embedder()
+    )
 
 
 def get_debug_trial_search() -> TrialSearchService:

@@ -1,5 +1,6 @@
 from collections.abc import AsyncGenerator
 
+from sqlalchemy import NullPool
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from core.config import get_settings
@@ -38,6 +39,20 @@ ReadOnlySessionFactory = async_sessionmaker(
     autocommit=False,
     autoflush=False,
 )
+
+
+def create_isolated_session_factory() -> async_sessionmaker[AsyncSession]:
+    """Sessions on a private NullPool engine, for work running in its own event loop."""
+    engine = create_async_engine(
+        settings.database_url, poolclass=NullPool, pool_pre_ping=True, echo=False
+    )
+    return async_sessionmaker(
+        bind=engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+        autocommit=False,
+        autoflush=False,
+    )
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
