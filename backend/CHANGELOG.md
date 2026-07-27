@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.8.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.7.0...backend-v0.8.0) (2026-07-27)
+
+
+### Features
+
+* enhance clinical trials agent with improved NCT number handling and search tool logic ([6a29cf6](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/6a29cf6baae4692b80b634ffadd81be454ecf01d))
+* enhance clinical trials agent with improved NCT number handling and search tool logic ([617c206](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/617c2061427557a2ba2c98d4bb16c04042730abf))
+* implement input triage agent and integrate with clinical trials agent ([850385a](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/850385ae86ea3f527b1ccd5bc55faadad2432aed))
+* implement input triage agent and integrate with clinical trials… ([2bc7bf0](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/2bc7bf055a348a23518b0fa227761fa93b4d06b0))
+* implement user-facing turns function to strip tool parts from conversation history ([73e48c3](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/73e48c3e5dd7c853f3d37fb9921bd0af34d8d3f8))
+* update Langfuse prompt handling for clinical trials and triage agents ([d6112b2](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/d6112b222288d588046044d7a84cab073e61a5b2))
+
+
+### Bug Fixes
+
+* implement location handling with city and province separation in trial search ([77e7d28](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/77e7d2874e23addfdde95d7c377e49c615c23f56))
+* update temporalio package version to 1.30.0 and adjust related URLs ([48cbc2e](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/48cbc2efe24ecbb6496ee5920378c0687346a469))
+
 ## [0.7.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.6.0...backend-v0.7.0) (2026-07-22)
 
 
