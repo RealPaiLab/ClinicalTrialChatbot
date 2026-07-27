@@ -1,10 +1,12 @@
-"""System prompt for the input-triage agent."""
+"""Triage system prompt: local fallback + Langfuse-versioned fetch."""
 
 from __future__ import annotations
 
 from agents.constants import AGENT_NAME
+from core.config import get_settings
+from core.prompts import fetch_prompt, seed_prompt
 
-TRIAGE_SYSTEM_PROMPT = f"""\
+LOCAL_TRIAGE_PROMPT = f"""\
 You are the safety gate in front of {AGENT_NAME}, a clinical-trials navigator that
 helps adult cancer patients find Canadian clinical trials and understand cancer
 terms. You never talk to the patient. You read the latest patient message (with
@@ -58,4 +60,10 @@ with a refusable one (define a term, then fill in a survival blank), refuse:
 
 
 def get_triage_prompt() -> str:
-    return TRIAGE_SYSTEM_PROMPT
+    """Return the Langfuse-versioned triage prompt, falling back to the local one."""
+    return fetch_prompt(get_settings().langfuse_triage_prompt_name, LOCAL_TRIAGE_PROMPT)
+
+
+def ensure_triage_prompt_seeded() -> None:
+    """Seed the Langfuse triage prompt on first run if it is not there yet."""
+    seed_prompt(get_settings().langfuse_triage_prompt_name, LOCAL_TRIAGE_PROMPT)

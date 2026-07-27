@@ -10,7 +10,7 @@ from pydantic_ai.toolsets import FunctionToolset
 from agents.clinical_trials.dependencies import AgentDeps
 from agents.clinical_trials.guards import enforce_citations, tools_available
 from agents.clinical_trials.output import AgentResponse
-from agents.clinical_trials.prompts import get_system_prompt
+from agents.clinical_trials.prompts import get_clinical_trials_prompt
 from agents.clinical_trials.tools import (
     define_term,
     get_trial_details,
@@ -37,7 +37,7 @@ def get_clinical_trials_agent() -> Agent[AgentDeps, AgentResponse]:
 
     @agent.instructions
     def _system_prompt(ctx: RunContext[AgentDeps]) -> str:
-        return get_system_prompt()
+        return get_clinical_trials_prompt()
 
     @agent.instructions
     def _refusal_directive(ctx: RunContext[AgentDeps]) -> str:

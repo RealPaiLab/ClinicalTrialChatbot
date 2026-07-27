@@ -4,12 +4,9 @@ from __future__ import annotations
 
 from agents.constants import AGENT_NAME
 from core.config import get_settings
-from core.langfuse import get_langfuse_client
-from core.logger import get_logger
+from core.prompts import fetch_prompt, seed_prompt
 
-logger = get_logger(__name__)
-
-LOCAL_SYSTEM_PROMPT = f"""\
+LOCAL_CLINICAL_TRIALS_PROMPT = f"""\
 # Who you are
 
 You are {AGENT_NAME}, a warm clinical-trials navigator who helps adult cancer \
@@ -318,39 +315,17 @@ guessing.
 """
 
 
-def get_system_prompt() -> str:
+def get_clinical_trials_prompt() -> str:
     """Return the Langfuse-versioned prompt, falling back to the local constant."""
-    settings = get_settings()
-    try:
-        prompt = get_langfuse_client().get_prompt(
-            settings.langfuse_prompt_name, label=settings.langfuse_prompt_label
-        )
-        return str(prompt.compile())
-    except Exception as exc:
-        logger.warning("Using local system prompt (Langfuse fetch failed): %s", exc)
-        return LOCAL_SYSTEM_PROMPT
+    return fetch_prompt(
+        get_settings().langfuse_clinical_trials_prompt_name,
+        LOCAL_CLINICAL_TRIALS_PROMPT,
+    )
 
 
-def ensure_prompt_seeded() -> None:
+def ensure_clinical_trials_prompt_seeded() -> None:
     """Seed the Langfuse prompt on first run if it is not there yet."""
-    settings = get_settings()
-    if not settings.langfuse_seed_prompt:
-        return
-    client = get_langfuse_client()
-    name = settings.langfuse_prompt_name
-    label = settings.langfuse_prompt_label
-    try:
-        client.get_prompt(name, label=label)
-        return
-    except Exception:
-        pass
-    try:
-        if not client.auth_check():
-            logger.warning("Prompt seed skipped: Langfuse is not reachable.")
-            return
-        client.create_prompt(
-            name=name, prompt=LOCAL_SYSTEM_PROMPT, labels=[label], type="text"
-        )
-        logger.info("Seeded Langfuse prompt %r with label %r.", name, label)
-    except Exception as exc:
-        logger.warning("Prompt seed skipped (Langfuse unavailable): %s", exc)
+    seed_prompt(
+        get_settings().langfuse_clinical_trials_prompt_name,
+        LOCAL_CLINICAL_TRIALS_PROMPT,
+    )

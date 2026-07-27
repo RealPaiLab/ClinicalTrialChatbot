@@ -49,7 +49,8 @@ class Settings(BaseSettings):
     langfuse_public_key: str | None = None
     langfuse_secret_key: str | None = None
     langfuse_host: str = "http://localhost:3000"
-    langfuse_prompt_name: str = "clinical-trial-chatbot-system"
+    langfuse_clinical_trials_prompt_name: str = "clinical-trial-chatbot-system"
+    langfuse_triage_prompt_name: str = "clinical-trial-chatbot-triage"
     langfuse_prompt_label: str = "production"
     langfuse_seed_prompt: bool = True
     langfuse_capture_content: bool | None = None

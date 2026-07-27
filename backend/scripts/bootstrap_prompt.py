@@ -1,32 +1,23 @@
-"""Publish the system prompt to Langfuse (creates a new labeled version)."""
+"""Publish the agent + triage system prompts to Langfuse (new labeled versions)."""
 
 from __future__ import annotations
 
 from langfuse import get_client
 
-from agents.clinical_trials.prompts import LOCAL_SYSTEM_PROMPT
+from agents.clinical_trials.prompts import LOCAL_CLINICAL_TRIALS_PROMPT
+from agents.input_triage.prompts import LOCAL_TRIAGE_PROMPT
 from core.config import get_settings
-from core.logger import get_logger
-
-logger = get_logger(__name__)
+from core.prompts import publish_prompt
 
 
 def main() -> None:
     settings = get_settings()
-    client = get_client()
-    if not client.auth_check():
+    if not get_client().auth_check():
         raise SystemExit("Langfuse auth failed; check credentials and host.")
-    client.create_prompt(
-        name=settings.langfuse_prompt_name,
-        prompt=LOCAL_SYSTEM_PROMPT,
-        labels=[settings.langfuse_prompt_label],
-        type="text",
+    publish_prompt(
+        settings.langfuse_clinical_trials_prompt_name, LOCAL_CLINICAL_TRIALS_PROMPT
     )
-    logger.info(
-        "Published prompt %r with label %r.",
-        settings.langfuse_prompt_name,
-        settings.langfuse_prompt_label,
-    )
+    publish_prompt(settings.langfuse_triage_prompt_name, LOCAL_TRIAGE_PROMPT)
 
 
 if __name__ == "__main__":
