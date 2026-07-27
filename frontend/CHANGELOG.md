@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.6.0...frontend-v0.6.1) (2026-07-27)
+
+
+### Bug Fixes
+
+* update react-router-dom to react-router and adjust imports across the application ([9d59fb0](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/9d59fb0257bbf2b1de1ad5f4f7dd969163ab49b0))
+
 ## [0.6.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.5.3...frontend-v0.6.0) (2026-07-22)
 
 
