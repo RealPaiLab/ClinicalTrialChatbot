@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import MapGL, { Layer, Source, type MapRef } from 'react-map-gl/mapbox';
+import MapGL, { Layer, NavigationControl, Source, type MapRef } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Info, MapPin } from 'lucide-react';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
@@ -17,6 +17,8 @@ const MAPBOX_TOKEN = config.mapboxToken;
 const LIGHT_STYLE = config.mapboxStyleLight;
 const DARK_STYLE = config.mapboxStyleDark;
 const INITIAL_VIEW = { longitude: ONTARIO_CENTER[0], latitude: ONTARIO_CENTER[1], zoom: 3.9 };
+const MIN_ZOOM = 2;
+const MAX_ZOOM = 16;
 const EMPTY_HINT = 'Trials will appear here as you chat.';
 const ONTARIO_ONLY_NOTICE = 'Coverage is currently limited to Ontario.';
 
@@ -75,11 +77,15 @@ function MapPanel({
         mapboxAccessToken={MAPBOX_TOKEN}
         mapStyle={dark ? DARK_STYLE : LIGHT_STYLE}
         initialViewState={INITIAL_VIEW}
+        minZoom={MIN_ZOOM}
+        maxZoom={MAX_ZOOM}
         projection="mercator"
         reuseMaps
         style={{ width: '100%', height: '100%' }}
         onLoad={() => setLoaded(true)}
       >
+        <NavigationControl position="top-right" showCompass={false} />
+
         <Source id="ontario" type="geojson" data={ONTARIO_BOUNDARY}>
           <Layer
             id="ontario-fill"

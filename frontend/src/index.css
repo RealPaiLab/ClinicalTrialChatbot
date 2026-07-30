@@ -292,3 +292,64 @@
 .trial-cluster-popup .mapboxgl-popup-tip {
   display: none;
 }
+
+.mapboxgl-ctrl.mapboxgl-ctrl-group {
+  background: color-mix(in srgb, var(--canvas) 90%, transparent);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 2px);
+  box-shadow: none;
+  backdrop-filter: blur(4px);
+  overflow: hidden;
+}
+.mapboxgl-ctrl-group button.mapboxgl-ctrl-zoom-in,
+.mapboxgl-ctrl-group button.mapboxgl-ctrl-zoom-out {
+  width: 34px;
+  height: 34px;
+  transition: background-color 150ms;
+}
+.mapboxgl-ctrl-group button.mapboxgl-ctrl-zoom-out {
+  border-top: 1px solid var(--border);
+}
+.mapboxgl-ctrl.mapboxgl-ctrl-group button.mapboxgl-ctrl-zoom-in:not(:disabled):hover,
+.mapboxgl-ctrl.mapboxgl-ctrl-group button.mapboxgl-ctrl-zoom-out:not(:disabled):hover {
+  background-color: var(--accent);
+}
+.mapboxgl-ctrl.mapboxgl-ctrl-group button.mapboxgl-ctrl-zoom-in:disabled,
+.mapboxgl-ctrl.mapboxgl-ctrl-group button.mapboxgl-ctrl-zoom-out:disabled {
+  opacity: 0.4;
+}
+.mapboxgl-ctrl.mapboxgl-ctrl-group button.mapboxgl-ctrl-zoom-in:disabled:hover,
+.mapboxgl-ctrl.mapboxgl-ctrl-group button.mapboxgl-ctrl-zoom-out:disabled:hover {
+  background-color: transparent;
+}
+.mapboxgl-ctrl-group button:focus:not(:focus-visible) {
+  box-shadow: none;
+}
+.mapboxgl-ctrl-group button:focus-visible {
+  box-shadow: none;
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+.mapboxgl-ctrl.mapboxgl-ctrl-group button .mapboxgl-ctrl-icon {
+  background-color: var(--muted-foreground);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: 50%;
+  mask-position: 50%;
+  -webkit-mask-size: 20px 20px;
+  mask-size: 20px 20px;
+  transition: background-color 150ms;
+}
+.mapboxgl-ctrl.mapboxgl-ctrl-group button:hover .mapboxgl-ctrl-icon {
+  background-color: var(--foreground);
+}
+.mapboxgl-ctrl.mapboxgl-ctrl-group button.mapboxgl-ctrl-zoom-in .mapboxgl-ctrl-icon {
+  background-image: none;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M5 12h14M12 5v14'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M5 12h14M12 5v14'/%3E%3C/svg%3E");
+}
+.mapboxgl-ctrl.mapboxgl-ctrl-group button.mapboxgl-ctrl-zoom-out .mapboxgl-ctrl-icon {
+  background-image: none;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M5 12h14'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M5 12h14'/%3E%3C/svg%3E");
+}
