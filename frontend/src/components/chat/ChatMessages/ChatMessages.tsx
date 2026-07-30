@@ -7,6 +7,7 @@ import {
 } from '@/components/ai-elements/conversation';
 import { Message, MessageContent, MessageResponse } from '@/components/ai-elements/message';
 import AskAiSelection from '@/components/chat/AskAiSelection/AskAiSelection';
+import MessageContextTrials from '@/components/chat/MessageContextTrials/MessageContextTrials';
 import MessageFeedback from '@/components/chat/MessageFeedback/MessageFeedback';
 import SearchingIndicator from '@/components/chat/SearchingIndicator/SearchingIndicator';
 import TermDefinition from '@/components/chat/TermDefinition/TermDefinition';
@@ -92,6 +93,13 @@ function ChatMessages({
                     </MessageResponse>
                   )}
                 </MessageContent>
+                {message.role === ChatRole.User && message.contextNctNumbers && (
+                  <MessageContextTrials
+                    nctNumbers={message.contextNctNumbers}
+                    fetchTrial={fetchTrial}
+                    onSelect={onCitationClick}
+                  />
+                )}
                 {message.role === ChatRole.Assistant && message.observationId && (
                   <MessageFeedback sessionId={sessionId} observationId={message.observationId} />
                 )}

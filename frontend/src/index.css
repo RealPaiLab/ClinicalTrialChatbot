@@ -273,6 +273,17 @@
   }
 }
 
+@layer components {
+  .panel-split-animating > [data-panel] {
+    transition: flex-grow 520ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .panel-split-animating > [data-panel] {
+      transition: none;
+    }
+  }
+}
+
 .trial-cluster-popup .mapboxgl-popup-content {
   padding: 0;
   background: transparent;

@@ -75,15 +75,20 @@ export function useChat({
           signal,
         }));
 
-    const payload =
-      contextNctNumbers && contextNctNumbers.length > 0
-        ? `${text}\n\n${SELECTED_TRIALS_PROMPT}${contextNctNumbers.join(', ')}`
-        : text;
+    const hasContext = Boolean(contextNctNumbers && contextNctNumbers.length > 0);
+    const payload = hasContext
+      ? `${text}\n\n${SELECTED_TRIALS_PROMPT}${contextNctNumbers?.join(', ')}`
+      : text;
 
     const assistantId = crypto.randomUUID();
     setMessages((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), role: ChatRole.User, content: text },
+      {
+        id: crypto.randomUUID(),
+        role: ChatRole.User,
+        content: text,
+        ...(hasContext && { contextNctNumbers }),
+      },
       { id: assistantId, role: ChatRole.Assistant, content: '' },
     ]);
     setStatus('streaming');

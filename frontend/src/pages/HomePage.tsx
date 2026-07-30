@@ -1,4 +1,5 @@
-import { useEffect, useLayoutEffect } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
+import { usePanelRef } from 'react-resizable-panels';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import ChatPanel from '@/components/chat/ChatPanel/ChatPanel';
 import MapPanel from '@/components/map/MapPanel/MapPanel';
@@ -7,6 +8,7 @@ import AppHeader from '@/components/layout/AppHeader/AppHeader';
 import AppFooter from '@/components/layout/AppFooter/AppFooter';
 import { useOnboardingTour } from '@/components/onboarding/tour/useOnboardingTour';
 import { useAppStore } from '@/store/appStore';
+import { PANEL_SPLIT } from '@/constants/layout';
 import type { Trial } from '@/types/trial';
 
 function HomePage() {
@@ -24,8 +26,25 @@ function HomePage() {
   const toggleTheme = useAppStore((state) => state.toggleTheme);
 
   const dark = theme === 'dark';
+  const hasSelection = Boolean(selectedNctNumber);
+  const summaryPanelRef = usePanelRef();
+  const splitGroupRef = useRef<HTMLDivElement | null>(null);
 
   const { startTour } = useOnboardingTour();
+
+  useEffect(() => {
+    const group = splitGroupRef.current;
+    group?.classList.add(PANEL_SPLIT.animatingClass);
+    summaryPanelRef.current?.resize(
+      hasSelection ? PANEL_SPLIT.summaryFocused : PANEL_SPLIT.summaryIdle
+    );
+
+    const timer = window.setTimeout(
+      () => group?.classList.remove(PANEL_SPLIT.animatingClass),
+      PANEL_SPLIT.animationMs
+    );
+    return () => window.clearTimeout(timer);
+  }, [hasSelection, summaryPanelRef]);
 
   useLayoutEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
@@ -68,8 +87,8 @@ function HomePage() {
         <ResizableHandle withHandle />
 
         <ResizablePanel defaultSize="63%" className="bg-canvas">
-          <ResizablePanelGroup orientation="vertical">
-            <ResizablePanel defaultSize="66%">
+          <ResizablePanelGroup orientation="vertical" elementRef={splitGroupRef}>
+            <ResizablePanel minSize="20%">
               <div className="h-full p-2 pb-1">
                 <div
                   data-tour="map"
@@ -88,7 +107,12 @@ function HomePage() {
 
             <ResizableHandle withHandle className="bg-transparent" />
 
-            <ResizablePanel defaultSize="34%" minSize="20%" maxSize="80%">
+            <ResizablePanel
+              panelRef={summaryPanelRef}
+              defaultSize={hasSelection ? PANEL_SPLIT.summaryFocused : PANEL_SPLIT.summaryIdle}
+              minSize="20%"
+              maxSize="80%"
+            >
               <div className="h-full p-2 pt-1">
                 <div
                   data-tour="summary"

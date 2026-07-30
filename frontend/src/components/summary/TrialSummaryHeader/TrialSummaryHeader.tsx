@@ -1,6 +1,7 @@
 import { Check, ExternalLink, Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import TrialTitle from '@/components/summary/TrialTitle/TrialTitle';
 import { AGENT_NAME } from '@/constants/chat';
 import type { Trial } from '@/types/trial';
 
@@ -30,7 +31,7 @@ function TrialSummaryHeader({
         {trial.nctNumber && (
           <span className="text-eyebrow text-primary font-mono">{trial.nctNumber}</span>
         )}
-        <h2 className="font-display text-lg leading-snug font-semibold">{title}</h2>
+        <TrialTitle key={title} title={title} />
       </div>
       <div className="flex shrink-0 items-center gap-1">
         {onAddToContext && trial.nctNumber && (

@@ -26,6 +26,21 @@ describe('ChatMessages', () => {
     expect(screen.getByText('one')).toBeInTheDocument();
   });
 
+  it('shows the trials sent as context under the user message', async () => {
+    const messages: ChatMessage[] = [
+      {
+        id: 'a',
+        role: ChatRole.User,
+        content: 'Am I eligible for this one?',
+        contextNctNumbers: ['NCT04267848'],
+      },
+    ];
+    renderWithClient(<ChatMessages messages={messages} sessionId="s1" fetchTrial={fetchTrial} />);
+    expect(
+      await screen.findByRole('button', { name: /show trial nct04267848 on the map/i })
+    ).toBeInTheDocument();
+  });
+
   it('renders inline trial citations and reports clicks', async () => {
     const onCitationClick = vi.fn();
     const messages: ChatMessage[] = [

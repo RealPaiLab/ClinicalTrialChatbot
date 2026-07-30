@@ -1,7 +1,11 @@
-import { useEffect, type RefObject } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
 import type { MapRef } from 'react-map-gl/mapbox';
 import { findSelectedUnit } from '@/lib/mapSelection';
 import type { PinUnit, SiteMarker } from '@/types/map';
+
+const SELECTED_ZOOM = 11;
+const RESIZE_SETTLE_MS = 120;
+const RECENTER_MS = 260;
 
 interface MapView {
   longitude: number;
@@ -30,15 +34,33 @@ export function useMapViewSync({
   selectedSiteKey,
   initialView,
 }: MapViewSyncOptions) {
+  const selectedCenterRef = useRef<[number, number] | null>(null);
+  const settleTimerRef = useRef(0);
+
   useEffect(() => {
     if (!loaded) return;
     const container = containerRef.current;
     if (!container) return;
+
     const observer = new ResizeObserver(() => {
       mapRef.current?.resize();
+      window.clearTimeout(settleTimerRef.current);
+      settleTimerRef.current = window.setTimeout(() => {
+        const center = selectedCenterRef.current;
+        if (!center) return;
+        mapRef.current?.easeTo({
+          center,
+          zoom: SELECTED_ZOOM,
+          duration: RECENTER_MS,
+          essential: true,
+        });
+      }, RESIZE_SETTLE_MS);
     });
     observer.observe(container);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(settleTimerRef.current);
+    };
   }, [loaded, mapRef, containerRef]);
 
   useEffect(() => {
@@ -65,15 +87,21 @@ export function useMapViewSync({
   }, [loaded, markers, mapRef]);
 
   useEffect(() => {
-    if (!loaded || !selectedNctNumber) return;
-    const unit = findSelectedUnit(units, selectedNctNumber, selectedSiteKey);
-    if (unit) {
-      mapRef.current?.flyTo({
-        center: [unit.longitude, unit.latitude],
-        zoom: 11,
-        duration: 1200,
-        essential: true,
-      });
+    if (!loaded) return;
+    const unit = selectedNctNumber
+      ? findSelectedUnit(units, selectedNctNumber, selectedSiteKey)
+      : null;
+    if (!unit) {
+      selectedCenterRef.current = null;
+      return;
     }
+
+    selectedCenterRef.current = [unit.longitude, unit.latitude];
+    mapRef.current?.flyTo({
+      center: selectedCenterRef.current,
+      zoom: SELECTED_ZOOM,
+      duration: 1200,
+      essential: true,
+    });
   }, [loaded, selectedNctNumber, selectedSiteKey, units, mapRef]);
 }

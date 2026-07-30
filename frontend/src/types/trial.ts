@@ -59,6 +59,7 @@ export interface ChatMessage {
   role: ChatRole;
   content: string;
   trials?: Trial[];
+  contextNctNumbers?: string[];
   followUpQuestions?: string[];
   observationId?: string;
   isError?: boolean;
