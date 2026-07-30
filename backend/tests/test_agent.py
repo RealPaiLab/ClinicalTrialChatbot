@@ -1,6 +1,18 @@
+from pydantic_ai.messages import (
+    ModelMessage,
+    ModelRequest,
+    ModelResponse,
+    TextPart,
+    ToolReturnPart,
+    UserPromptPart,
+)
+
 from agents.clinical_trials.agent import get_clinical_trials_agent
 from agents.clinical_trials.dependencies import AgentDeps
-from agents.clinical_trials.guards import prefetch_referenced_trials
+from agents.clinical_trials.guards import (
+    conversation_nct_numbers,
+    prefetch_referenced_trials,
+)
 from agents.clinical_trials.output import AgentResponse
 from tests.factories import StubTrialSearch, make_citation, make_test_model
 
@@ -73,6 +85,48 @@ async def test_agent_drops_fetched_but_unmentioned_nct_numbers() -> None:
         result = await agent.run("i have lung cancer", deps=deps)
 
     assert result.output.used_nct_numbers == []
+
+
+async def test_agent_keeps_nct_surfaced_in_an_earlier_turn() -> None:
+    """A trial an earlier turn's search returned is remembered, not hallucinated."""
+    citation = make_citation("NCT01111111")
+    deps = AgentDeps(
+        trial_search=StubTrialSearch(by_nct={"NCT01111111": citation}),
+        known_ncts={"NCT02222222"},
+    )
+    deps.fetched_trials["NCT01111111"] = citation
+    agent = get_clinical_trials_agent()
+    model = make_test_model(
+        output={
+            "message": "Here is [NCT01111111]; I can compare it with [NCT02222222].",
+            "used_nct_numbers": ["NCT01111111", "NCT02222222"],
+            "follow_up_questions": [],
+        }
+    )
+    with agent.override(model=model):
+        result = await agent.run("tell me more", deps=deps)
+
+    assert "NCT02222222" in result.output.message
+    # remembered, so the reply stands, but only this turn's fetch reaches the map
+    assert result.output.used_nct_numbers == ["NCT01111111"]
+
+
+def test_conversation_nct_numbers_reads_tool_returns() -> None:
+    history: list[ModelMessage] = [
+        ModelRequest(parts=[UserPromptPart(content="breast cancer in Toronto")]),
+        ModelResponse(parts=[TextPart(content="Here are two options.")]),
+        ModelRequest(
+            parts=[
+                ToolReturnPart(
+                    tool_name="semantic_search",
+                    content=[make_citation("NCT03333333")],
+                    tool_call_id="c1",
+                )
+            ]
+        ),
+    ]
+
+    assert conversation_nct_numbers(history) == {"NCT03333333"}
 
 
 async def test_agent_scrubs_unverified_nct_from_message() -> None:
