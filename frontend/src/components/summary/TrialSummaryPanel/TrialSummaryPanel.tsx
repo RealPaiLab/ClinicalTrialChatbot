@@ -15,6 +15,8 @@ interface TrialSummaryPanelProps {
   onClose?: () => void;
   onAddToContext?: (nctNumber: string) => void;
   isInContext?: boolean;
+  onToggleBookmark?: (nctNumber: string) => void;
+  isBookmarked?: boolean;
 }
 
 function TrialSummaryPanel({
@@ -22,6 +24,8 @@ function TrialSummaryPanel({
   onClose,
   onAddToContext,
   isInContext,
+  onToggleBookmark,
+  isBookmarked,
 }: TrialSummaryPanelProps) {
   if (!trial) {
     return (
@@ -40,6 +44,8 @@ function TrialSummaryPanel({
         onClose={onClose}
         onAddToContext={onAddToContext}
         isInContext={isInContext}
+        onToggleBookmark={onToggleBookmark}
+        isBookmarked={isBookmarked}
       />
       <ScrollArea className="min-h-0 flex-1">
         <div className="flex flex-col gap-5 p-4">

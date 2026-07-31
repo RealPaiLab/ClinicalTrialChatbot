@@ -1,7 +1,8 @@
-import { Check, ExternalLink, Sparkles, X } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Check, ExternalLink, Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import TrialTitle from '@/components/summary/TrialTitle/TrialTitle';
+import { BOOKMARKS } from '@/constants/bookmarks';
 import { AGENT_NAME } from '@/constants/chat';
 import type { Trial } from '@/types/trial';
 
@@ -12,6 +13,8 @@ interface TrialSummaryHeaderProps {
   onClose?: () => void;
   onAddToContext?: (nctNumber: string) => void;
   isInContext?: boolean;
+  onToggleBookmark?: (nctNumber: string) => void;
+  isBookmarked?: boolean;
 }
 
 function TrialSummaryHeader({
@@ -19,6 +22,8 @@ function TrialSummaryHeader({
   onClose,
   onAddToContext,
   isInContext,
+  onToggleBookmark,
+  isBookmarked,
 }: TrialSummaryHeaderProps) {
   const title = trial.officialTitleEn ?? trial.shortTitleEn ?? trial.nctNumber ?? 'Trial';
   const trialUrl = trial.acronymOrProtocolId
@@ -56,6 +61,24 @@ function TrialSummaryHeader({
                   ? `Added, ask ${AGENT_NAME} anything about it`
                   : `Ask ${AGENT_NAME} about this trial`}
               </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+        {onToggleBookmark && trial.nctNumber && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  data-tour="bookmark"
+                  aria-label={isBookmarked ? BOOKMARKS.remove : BOOKMARKS.add}
+                  onClick={() => onToggleBookmark(trial.nctNumber as string)}
+                >
+                  {isBookmarked ? <BookmarkCheck className="text-primary" /> : <Bookmark />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{isBookmarked ? BOOKMARKS.added : BOOKMARKS.add}</TooltipContent>
             </Tooltip>
           </TooltipProvider>
         )}
