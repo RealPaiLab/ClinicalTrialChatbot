@@ -4,10 +4,15 @@ import type { Trial, TrialSite, TrialStatus } from '@/types/trial';
 const STATUS_PRIORITY: TrialStatus[] = ['recruiting', 'opening_soon'];
 
 export function deriveTrialStatus(trial: Trial): TrialStatus | null {
+  return trialStatuses(trial)[0] ?? null;
+}
+
+/** Every distinct site status, in priority order: sites can disagree. */
+export function trialStatuses(trial: Trial): TrialStatus[] {
   const statuses = trial.sites
     .map((site) => normalizeStatus(site.state))
     .filter((status): status is TrialStatus => status !== null);
-  return STATUS_PRIORITY.find((status) => statuses.includes(status)) ?? null;
+  return STATUS_PRIORITY.filter((status) => statuses.includes(status));
 }
 
 export function primarySite(trial: Trial): TrialSite | null {

@@ -45,4 +45,19 @@ describe('TrialSummaryPanel', () => {
     render(<TrialSummaryPanel trial={mockTrials[0]} onAddToContext={vi.fn()} isInContext />);
     expect(screen.getByRole('button', { name: /added to your chat/i })).toBeDisabled();
   });
+
+  it('toggles the bookmark and reflects the saved state', async () => {
+    const onToggleBookmark = vi.fn();
+    const { rerender } = render(
+      <TrialSummaryPanel trial={mockTrials[0]} onToggleBookmark={onToggleBookmark} />
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /save this trial/i }));
+    expect(onToggleBookmark).toHaveBeenCalledWith('NCT04267848');
+
+    rerender(
+      <TrialSummaryPanel trial={mockTrials[0]} onToggleBookmark={onToggleBookmark} isBookmarked />
+    );
+    expect(screen.getByRole('button', { name: /remove from saved trials/i })).toBeInTheDocument();
+  });
 });

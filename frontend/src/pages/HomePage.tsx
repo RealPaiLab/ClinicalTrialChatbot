@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { usePanelRef } from 'react-resizable-panels';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import ChatPanel from '@/components/chat/ChatPanel/ChatPanel';
@@ -6,7 +6,9 @@ import MapPanel from '@/components/map/MapPanel/MapPanel';
 import TrialSummaryPanel from '@/components/summary/TrialSummaryPanel/TrialSummaryPanel';
 import AppHeader from '@/components/layout/AppHeader/AppHeader';
 import AppFooter from '@/components/layout/AppFooter/AppFooter';
+import BookmarksSheet from '@/components/bookmarks/BookmarksSheet/BookmarksSheet';
 import { useOnboardingTour } from '@/components/onboarding/tour/useOnboardingTour';
+import { useTrialPdfExport } from '@/hooks/useTrialPdfExport';
 import { useAppStore } from '@/store/appStore';
 import { PANEL_SPLIT } from '@/constants/layout';
 import type { Trial } from '@/types/trial';
@@ -16,14 +18,22 @@ function HomePage() {
   const selectedNctNumber = useAppStore((state) => state.selectedNctNumber);
   const selectedSiteKey = useAppStore((state) => state.selectedSiteKey);
   const contextNctNumbers = useAppStore((state) => state.contextNctNumbers);
+  const bookmarkedNctNumbers = useAppStore((state) => state.bookmarkedNctNumbers);
   const theme = useAppStore((state) => state.theme);
   const setTrials = useAppStore((state) => state.setTrials);
   const selectTrial = useAppStore((state) => state.selectTrial);
   const addToContext = useAppStore((state) => state.addToContext);
   const removeFromContext = useAppStore((state) => state.removeFromContext);
   const clearContext = useAppStore((state) => state.clearContext);
+  const toggleBookmark = useAppStore((state) => state.toggleBookmark);
+  const removeBookmark = useAppStore((state) => state.removeBookmark);
+  const addBookmarkTrial = useAppStore((state) => state.addBookmarkTrial);
+  const dropBookmarkTrial = useAppStore((state) => state.dropBookmarkTrial);
   const reset = useAppStore((state) => state.reset);
   const toggleTheme = useAppStore((state) => state.toggleTheme);
+
+  const [bookmarksOpen, setBookmarksOpen] = useState(false);
+  const { exportTrials, isExporting } = useTrialPdfExport();
 
   const dark = theme === 'dark';
   const hasSelection = Boolean(selectedNctNumber);
@@ -57,6 +67,23 @@ function HomePage() {
     }
   }, [startTour]);
 
+  // A bookmark can outlive the conversation that surfaced it, so opening one
+  // puts the trial back on the map before selecting it.
+  const handleOpenBookmark = (trial: Trial) => {
+    const nctNumber = trial.nctNumber;
+    if (!nctNumber) return;
+    addBookmarkTrial(trial);
+    selectTrial(nctNumber);
+    addToContext(nctNumber);
+  };
+
+  // Dropping a bookmark-opened trial from the chat context takes its pin with
+  // it: nothing in the conversation put it there, so nothing should keep it.
+  const handleRemoveContext = (nctNumber: string) => {
+    removeFromContext(nctNumber);
+    dropBookmarkTrial(nctNumber);
+  };
+
   const selectedTrial = trials.find((trial) => trial.nctNumber === selectedNctNumber) ?? null;
   const contextTrials = contextNctNumbers
     .map((nct) => trials.find((trial) => trial.nctNumber === nct))
@@ -64,13 +91,32 @@ function HomePage() {
   const selectedInContext = selectedNctNumber
     ? contextNctNumbers.includes(selectedNctNumber)
     : false;
+  const selectedIsBookmarked = selectedNctNumber
+    ? bookmarkedNctNumbers.includes(selectedNctNumber)
+    : false;
 
   return (
     <div
       data-tour="app"
       className="text-foreground flex h-screen w-screen flex-col overflow-hidden"
     >
-      <AppHeader dark={dark} onStartTour={startTour} onToggleTheme={toggleTheme} />
+      <AppHeader
+        dark={dark}
+        bookmarkCount={bookmarkedNctNumbers.length}
+        onOpenBookmarks={() => setBookmarksOpen(true)}
+        onStartTour={startTour}
+        onToggleTheme={toggleTheme}
+      />
+
+      <BookmarksSheet
+        open={bookmarksOpen}
+        onOpenChange={setBookmarksOpen}
+        bookmarkedNctNumbers={bookmarkedNctNumbers}
+        onRemove={removeBookmark}
+        onSelect={handleOpenBookmark}
+        onExport={exportTrials}
+        isExporting={isExporting}
+      />
 
       <ResizablePanelGroup orientation="horizontal" className="min-h-0 flex-1">
         <ResizablePanel defaultSize="37%" minSize="22%" maxSize="50%">
@@ -79,7 +125,7 @@ function HomePage() {
             onCitationClick={selectTrial}
             onReset={reset}
             contextTrials={contextTrials}
-            onRemoveContext={removeFromContext}
+            onRemoveContext={handleRemoveContext}
             onClearContext={clearContext}
           />
         </ResizablePanel>
@@ -123,6 +169,8 @@ function HomePage() {
                     onClose={() => selectTrial(null)}
                     onAddToContext={addToContext}
                     isInContext={selectedInContext}
+                    onToggleBookmark={toggleBookmark}
+                    isBookmarked={selectedIsBookmarked}
                   />
                 </div>
               </div>
