@@ -39,6 +39,13 @@ export function useMapViewSync({
   initialView,
 }: MapViewSyncOptions) {
   const selectedCenterRef = useRef<[number, number] | null>(null);
+  const emptyRef = useRef(markers.length === 0);
+  const initialViewRef = useRef(initialView);
+
+  useEffect(() => {
+    emptyRef.current = markers.length === 0;
+    initialViewRef.current = initialView;
+  }, [markers, initialView]);
 
   useEffect(() => {
     if (!loaded) return;
@@ -70,7 +77,18 @@ export function useMapViewSync({
       state.frame = 0;
       map.resize();
       map.triggerRepaint();
-      if (!selectedCenterRef.current) return;
+      if (!selectedCenterRef.current) {
+        if (emptyRef.current) {
+          const { longitude, latitude, zoom } = initialViewRef.current;
+          map.easeTo({
+            center: [longitude, latitude],
+            zoom,
+            duration: RECENTER_MS,
+            essential: true,
+          });
+        }
+        return;
+      }
       if (!map.isMoving()) {
         align();
         return;
