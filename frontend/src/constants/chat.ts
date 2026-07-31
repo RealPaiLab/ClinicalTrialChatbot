@@ -17,6 +17,7 @@ const TRIAL_DATA_UPDATED_ON = new Intl.DateTimeFormat('en-GB', {
 }).format(TRIAL_DATA_UPDATED_AT);
 
 export const TRIAL_DATA = {
+  updatedOn: TRIAL_DATA_UPDATED_ON,
   lastUpdatedLabel: `Data last updated ${TRIAL_DATA_UPDATED_ON.toUpperCase()}`,
   shortNotice: 'Trial data reflects the status as of the last update.',
   detailedNotice: `Trial data was last updated on ${TRIAL_DATA_UPDATED_ON} and may be out of date. Please reach out to your care team for more details.`,
