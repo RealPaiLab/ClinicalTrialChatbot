@@ -1,7 +1,9 @@
-import { Check, ExternalLink, Sparkles, X } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Check, ExternalLink, Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import LanguagePicker from '@/components/summary/LanguagePicker/LanguagePicker';
+import TrialTitle from '@/components/summary/TrialTitle/TrialTitle';
+import { BOOKMARKS } from '@/constants/bookmarks';
 import type { PanelStrings } from '@/constants/i18n';
 import type { LanguageCode } from '@/constants/language';
 import type { Trial } from '@/types/trial';
@@ -16,6 +18,8 @@ interface TrialSummaryHeaderProps {
   onClose?: () => void;
   onAddToContext?: (nctNumber: string) => void;
   isInContext?: boolean;
+  onToggleBookmark?: (nctNumber: string) => void;
+  isBookmarked?: boolean;
 }
 
 function TrialSummaryHeader({
@@ -26,6 +30,8 @@ function TrialSummaryHeader({
   onClose,
   onAddToContext,
   isInContext,
+  onToggleBookmark,
+  isBookmarked,
 }: TrialSummaryHeaderProps) {
   const title = trial.officialTitleEn ?? trial.shortTitleEn ?? trial.nctNumber ?? 'Trial';
   const trialUrl = trial.acronymOrProtocolId
@@ -38,9 +44,7 @@ function TrialSummaryHeader({
         {trial.nctNumber && (
           <span className="text-eyebrow text-primary font-mono">{trial.nctNumber}</span>
         )}
-        <h2 className="font-display text-lg leading-snug font-semibold" lang={language ?? 'en'}>
-          {title}
-        </h2>
+        <TrialTitle key={title} title={title} lang={language ?? 'en'} />
       </div>
       <div className="flex shrink-0 items-center gap-1">
         {onAddToContext && trial.nctNumber && (
@@ -61,6 +65,24 @@ function TrialSummaryHeader({
               <TooltipContent>
                 {isInContext ? strings.addedToChatHint : strings.askAbout}
               </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+        {onToggleBookmark && trial.nctNumber && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  data-tour="bookmark"
+                  aria-label={isBookmarked ? BOOKMARKS.remove : BOOKMARKS.add}
+                  onClick={() => onToggleBookmark(trial.nctNumber as string)}
+                >
+                  {isBookmarked ? <BookmarkCheck className="text-primary" /> : <Bookmark />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{isBookmarked ? BOOKMARKS.added : BOOKMARKS.add}</TooltipContent>
             </Tooltip>
           </TooltipProvider>
         )}

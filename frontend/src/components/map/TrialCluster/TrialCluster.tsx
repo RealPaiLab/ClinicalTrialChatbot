@@ -1,8 +1,8 @@
 import { Marker, Popup } from 'react-map-gl/mapbox';
 import { Button } from '@/components/ui/button';
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
-import ClusterPin from '@/components/map/ClusterPin/ClusterPin';
-import DualPin from '@/components/map/DualPin/DualPin';
+import CountPin from '@/components/map/CountPin/CountPin';
+import DualPin, { type StatusCount } from '@/components/map/DualPin/DualPin';
 import { TRIAL_STATUS } from '@/lib/trialStatus';
 import { cn } from '@/lib/utils';
 import type { TrialStatus } from '@/types/trial';
@@ -38,7 +38,12 @@ function TrialCluster({
 }: TrialClusterProps) {
   const selected = items.some((item) => item.nctNumber === selectedNctNumber);
   const selectedStatus = items.find((item) => item.nctNumber === selectedNctNumber)?.status ?? null;
-  const statuses = [...new Set(items.map((item) => item.status))];
+  const groups = items.reduce<StatusCount[]>((acc, item) => {
+    const group = acc.find((entry) => entry.status === item.status);
+    return group
+      ? acc.map((entry) => (entry === group ? { ...entry, count: entry.count + 1 } : entry))
+      : [...acc, { status: item.status, count: 1 }];
+  }, []);
 
   return (
     <>
@@ -53,10 +58,10 @@ function TrialCluster({
           }}
           className="h-auto bg-transparent p-0 hover:bg-transparent focus-visible:ring-0"
         >
-          {statuses.length > 1 ? (
-            <DualPin statuses={statuses} selectedStatus={selectedStatus} />
+          {groups.length > 1 ? (
+            <DualPin groups={groups} selectedStatus={selectedStatus} />
           ) : (
-            <ClusterPin count={items.length} status={statuses[0]} selected={selected} />
+            <CountPin count={items.length} status={groups[0].status} selected={selected} />
           )}
         </Button>
       </Marker>

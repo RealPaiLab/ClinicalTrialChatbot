@@ -8,6 +8,7 @@ import re
 from collections.abc import Awaitable, Callable
 
 from pydantic_ai import ModelRetry, RunContext
+from pydantic_ai.messages import ModelMessage, ModelRequest, ToolReturnPart
 from pydantic_ai.tools import ToolDefinition
 
 from agents.clinical_trials.dependencies import AgentDeps
@@ -77,13 +78,26 @@ _HALLUCINATED_TRIAL_FALLBACK = (
 )
 
 
+def conversation_nct_numbers(history: list[ModelMessage]) -> set[str]:
+    """NCT numbers this conversation's earlier tool results already surfaced."""
+    return {
+        nct
+        for message in history
+        if isinstance(message, ModelRequest)
+        for part in message.parts
+        if isinstance(part, ToolReturnPart)
+        for nct in _NCT_PATTERN.findall(str(part.content))
+    }
+
+
 def enforce_citations(
     ctx: RunContext[AgentDeps], output: AgentResponse
 ) -> AgentResponse:
     """Keep only NCT numbers a tool returned, and block replies that invent one.
 
-    An NCT in the prose that no tool returned means the model likely hallucinated
-    the trial and the claims around it, also a kept NCT must ALSO appear in the message.
+    Citations are turn-scoped: a kept NCT must have been fetched this turn AND appear
+    in the message. Hallucination detection is conversation-scoped, since the model
+    legitimately remembers trials from earlier turns through the message history.
     """
     mentioned = set(_NCT_PATTERN.findall(output.message))
     output.used_nct_numbers = [
@@ -92,8 +106,8 @@ def enforce_citations(
         if nct in ctx.deps.fetched_trials and nct in mentioned
     ]
     unverified = any(
-        nct not in ctx.deps.fetched_trials
-        for nct in _NCT_PATTERN.findall(output.message)
+        nct not in ctx.deps.fetched_trials and nct not in ctx.deps.known_ncts
+        for nct in mentioned
     )
     if unverified:
         output.message = _HALLUCINATED_TRIAL_FALLBACK

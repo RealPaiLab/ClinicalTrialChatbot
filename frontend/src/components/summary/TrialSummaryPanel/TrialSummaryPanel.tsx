@@ -18,6 +18,8 @@ interface TrialSummaryPanelProps {
   onClose?: () => void;
   onAddToContext?: (nctNumber: string) => void;
   isInContext?: boolean;
+  onToggleBookmark?: (nctNumber: string) => void;
+  isBookmarked?: boolean;
 }
 
 function TranslationSkeleton() {
@@ -53,6 +55,8 @@ function TrialSummaryPanel({
   onClose,
   onAddToContext,
   isInContext,
+  onToggleBookmark,
+  isBookmarked,
 }: TrialSummaryPanelProps) {
   const {
     trial: displayTrial,
@@ -85,6 +89,8 @@ function TrialSummaryPanel({
         strings={strings}
         language={language}
         onSelectLanguage={setLanguage}
+        onToggleBookmark={onToggleBookmark}
+        isBookmarked={isBookmarked}
       />
       <ScrollArea className="min-h-0 flex-1">
         {isPending ? (

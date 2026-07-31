@@ -1,13 +1,14 @@
 import PinShape from '@/components/map/PinShape/PinShape';
 import type { TrialStatus } from '@/types/trial';
 
-interface ClusterPinProps {
+interface CountPinProps {
   count: number;
   status: TrialStatus;
   selected?: boolean;
+  tilt?: number;
 }
 
-function ClusterPin({ count, status, selected }: ClusterPinProps) {
+function CountPin({ count, status, selected, tilt = 0 }: CountPinProps) {
   return (
     <PinShape status={status} selected={selected}>
       <text
@@ -15,6 +16,7 @@ function ClusterPin({ count, status, selected }: ClusterPinProps) {
         y="13"
         textAnchor="middle"
         dominantBaseline="central"
+        transform={tilt ? `rotate(${-tilt} 16 13)` : undefined}
         className="fill-current text-[9px] font-semibold"
       >
         {count}
@@ -23,4 +25,4 @@ function ClusterPin({ count, status, selected }: ClusterPinProps) {
   );
 }
 
-export default ClusterPin;
+export default CountPin;

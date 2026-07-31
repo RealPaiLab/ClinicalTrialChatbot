@@ -56,6 +56,8 @@ class AgentDeps:
     trial_search: TrialSearch
     glossary: GlossaryLookup = field(default_factory=_NullGlossary)
     fetched_trials: dict[str, TrialCitation] = field(default_factory=dict)
+    # NCTs already surfaced by tools in earlier turns: guardrail only, never returned
+    known_ncts: set[str] = field(default_factory=set)
     tool_calls: int = 0
     seen_calls: set[str] = field(default_factory=set)
     refusal_directive: str | None = None

@@ -7,7 +7,7 @@ import FollowUpChips from '@/components/chat/FollowUpChips/FollowUpChips';
 import { useTurnstile } from '@/components/turnstile/TurnstileContext';
 import { ASK_AI_PROMPT_PREFIX, ASK_AI_PROMPT_SUFFIX, ChatRole } from '@/constants/chat';
 import { useChat } from '@/hooks/useChat';
-import { getTrialSummary } from '@/services/trials';
+import { getTrial } from '@/services/trials';
 import { useAppStore } from '@/store/appStore';
 import type { StreamEvent, Trial, TrialSummary } from '@/types/trial';
 
@@ -30,7 +30,7 @@ function ChatPanel({
   onRemoveContext,
   onClearContext,
   createStream,
-  fetchTrial = getTrialSummary,
+  fetchTrial = getTrial,
 }: ChatPanelProps) {
   const turnstile = useTurnstile();
   const getTurnstileToken = useCallback(() => turnstile.token, [turnstile.token]);

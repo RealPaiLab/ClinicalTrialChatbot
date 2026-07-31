@@ -1,6 +1,8 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Route, Routes } from 'react-router';
+import { Toaster } from '@/components/ui/sonner';
 import { createQueryClient } from '@/lib/queryClient';
+import { useAppStore } from '@/store/appStore';
 import ConsentGate from '@/components/consent/ConsentGate';
 import TurnstileGate from '@/components/turnstile/TurnstileGate';
 import HomePage from '@/pages/HomePage';
@@ -14,6 +16,8 @@ const queryClient = createQueryClient();
 const debugEnabled = config.isDevelopment;
 
 function App() {
+  const theme = useAppStore((state) => state.theme);
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
@@ -32,6 +36,7 @@ function App() {
           {debugEnabled && <Route path="/debug" element={<DebugPage />} />}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
+        <Toaster position="top-center" theme={theme} visibleToasts={4} />
       </BrowserRouter>
     </QueryClientProvider>
   );
