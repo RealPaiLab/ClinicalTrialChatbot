@@ -1,13 +1,18 @@
 import { Check, ExternalLink, Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { AGENT_NAME } from '@/constants/chat';
+import LanguagePicker from '@/components/summary/LanguagePicker/LanguagePicker';
+import type { PanelStrings } from '@/constants/i18n';
+import type { LanguageCode } from '@/constants/language';
 import type { Trial } from '@/types/trial';
 
 const TRIAL_URL_BASE = 'https://www.cancertrialscanada.ca/trial/';
 
 interface TrialSummaryHeaderProps {
   trial: Trial;
+  strings: PanelStrings;
+  language: LanguageCode | null;
+  onSelectLanguage: (language: LanguageCode | null) => void;
   onClose?: () => void;
   onAddToContext?: (nctNumber: string) => void;
   isInContext?: boolean;
@@ -15,6 +20,9 @@ interface TrialSummaryHeaderProps {
 
 function TrialSummaryHeader({
   trial,
+  strings,
+  language,
+  onSelectLanguage,
   onClose,
   onAddToContext,
   isInContext,
@@ -30,7 +38,9 @@ function TrialSummaryHeader({
         {trial.nctNumber && (
           <span className="text-eyebrow text-primary font-mono">{trial.nctNumber}</span>
         )}
-        <h2 className="font-display text-lg leading-snug font-semibold">{title}</h2>
+        <h2 className="font-display text-lg leading-snug font-semibold" lang={language ?? 'en'}>
+          {title}
+        </h2>
       </div>
       <div className="flex shrink-0 items-center gap-1">
         {onAddToContext && trial.nctNumber && (
@@ -41,9 +51,7 @@ function TrialSummaryHeader({
                   variant="ghost"
                   size="icon"
                   data-tour="add-context"
-                  aria-label={
-                    isInContext ? 'Added to your chat' : `Ask ${AGENT_NAME} about this trial`
-                  }
+                  aria-label={isInContext ? strings.addedToChat : strings.askAbout}
                   disabled={isInContext}
                   onClick={() => onAddToContext(trial.nctNumber as string)}
                 >
@@ -51,20 +59,19 @@ function TrialSummaryHeader({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                {isInContext
-                  ? `Added, ask ${AGENT_NAME} anything about it`
-                  : `Ask ${AGENT_NAME} about this trial`}
+                {isInContext ? strings.addedToChatHint : strings.askAbout}
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         )}
+        <LanguagePicker language={language} onSelect={onSelectLanguage} strings={strings} />
         {trialUrl && (
           <Button
             asChild
             variant="ghost"
             size="icon"
             data-tour="trial-link"
-            aria-label="View on Cancer Trials Canada"
+            aria-label={strings.viewOnCtc}
           >
             <a href={trialUrl} target="_blank" rel="noreferrer">
               <ExternalLink />
@@ -72,7 +79,7 @@ function TrialSummaryHeader({
           </Button>
         )}
         {onClose && (
-          <Button variant="ghost" size="icon" aria-label="Close" onClick={onClose}>
+          <Button variant="ghost" size="icon" aria-label={strings.close} onClick={onClose}>
             <X />
           </Button>
         )}

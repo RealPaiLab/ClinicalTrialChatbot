@@ -1,5 +1,6 @@
 import { StreamEventType } from '@/constants/chat';
 import type { ChatRole } from '@/constants/chat';
+import type { LanguageCode, TranslationSource } from '@/constants/language';
 
 export type { ChatRole };
 
@@ -33,6 +34,19 @@ export type TrialSummary = Pick<
   Trial,
   'nctNumber' | 'shortTitleEn' | 'officialTitleEn' | 'descriptionEn'
 >;
+
+export interface TrialTranslation {
+  nctNumber: string;
+  language: LanguageCode;
+  source: TranslationSource;
+  shortTitle: string | null;
+  officialTitle: string | null;
+  description: string | null;
+  inclusionCriteria: string | null;
+  exclusionCriteria: string | null;
+  cancerTypeNames: Record<string, string>;
+  treatmentTypeNames: Record<string, string>;
+}
 
 export type TrialStatus = 'recruiting' | 'opening_soon';
 

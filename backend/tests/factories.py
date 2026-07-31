@@ -8,6 +8,7 @@ from unittest.mock import AsyncMock, MagicMock
 from pydantic_ai import RunContext
 from pydantic_ai.models.test import TestModel
 from pydantic_ai.usage import RunUsage
+from redis.exceptions import RedisError
 
 from agents.clinical_trials.dependencies import AgentDeps
 from evals.schemas.expected import ExpectedOutput
@@ -143,6 +144,65 @@ class StubGlossary:
     ) -> list[GlossaryDefinition]:
         self.calls.append((term, source))
         return list(self.results)
+
+
+class StubTranslationProvider:
+    """Translation provider that prefixes each text; records every batch."""
+
+    def __init__(self, *, fail: bool = False) -> None:
+        self.fail = fail
+        self.batches: list[tuple[list[str], str]] = []
+
+    async def translate(self, texts: list[str], target: Any) -> list[str]:
+        if self.fail:
+            raise RuntimeError("provider down")
+        self.batches.append((list(texts), str(target)))
+        return [f"[{target}] {text}" for text in texts]
+
+    async def aclose(self) -> None:
+        return None
+
+    @property
+    def translated_texts(self) -> list[str]:
+        return [text for batch, _ in self.batches for text in batch]
+
+
+class FakeRedis:
+    """Minimal async Redis double supporting mget and a setex pipeline."""
+
+    def __init__(self, *, fail: bool = False) -> None:
+        self.store: dict[str, str] = {}
+        self.fail = fail
+
+    async def mget(self, keys: Sequence[str]) -> list[bytes | None]:
+        if self.fail:
+            raise RedisError("redis down")
+        return [
+            self.store[k].encode("utf-8") if k in self.store else None for k in keys
+        ]
+
+    def pipeline(self, transaction: bool = True) -> Any:
+        outer = self
+
+        class _Pipe:
+            def __init__(self) -> None:
+                self.queued: list[tuple[str, str]] = []
+
+            async def __aenter__(self) -> Any:
+                return self
+
+            async def __aexit__(self, *exc: object) -> None:
+                return None
+
+            def setex(self, key: str, ttl: int, value: str) -> None:
+                self.queued.append((key, value))
+
+            async def execute(self) -> None:
+                if outer.fail:
+                    raise RedisError("redis down")
+                outer.store.update(dict(self.queued))
+
+        return _Pipe()
 
 
 class FakeSessionFactory:

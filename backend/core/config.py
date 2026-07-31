@@ -59,6 +59,13 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     conversation_ttl_seconds: int = 3600
 
+    translation_provider: str = "google"
+    google_project_id: str | None = None
+    translation_request_timeout: float = 30.0
+    # Cache keys are content-hashed, so they can never serve stale text and a
+    # long TTL is strictly cheaper against a paid API. 30 days.
+    translation_cache_ttl_seconds: int = 2_592_000
+
     search_default_limit: int = 5
     restrict_to_province: str | None = None
 
