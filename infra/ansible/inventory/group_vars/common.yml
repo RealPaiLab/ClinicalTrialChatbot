@@ -1,22 +1,26 @@
-app_dir: /opt/{{ project_name }}/app
+deploy_slot: app
+app_dir: /opt/{{ project_name }}/{{ deploy_slot }}
+compose_project_name: "{{ deploy_slot }}"
+app_environment: "production"
 
 backend_image: "{{ registry }}/{{ registry_owner }}/ctc-backend"
 frontend_image: "{{ registry }}/{{ registry_owner }}/ctc-frontend"
 backend_version: latest
 frontend_version: latest
 
+postgres_host_port: 5432
+redis_host_port: 6379
+backend_host_port: 8000
+frontend_host_port: 8080
+
 postgres_db: ctc_db
 postgres_user: ctc
 
 api_base_url: "/api"
-app_environment: "production"
-
-cors_allow_origins:
-  - "https://{{ public_domain }}"
-  - "https://{{ external_domain }}"
 
 langfuse_host: "http://{{ hostvars[groups['langfuse'][0]].public_domain }}:3000"
 langfuse_capture_content: true
+langfuse_prompt_label: production
 
 llm_provider: openai
 llm_model: gpt-5.4-mini
@@ -24,3 +28,10 @@ embedding_provider: openai
 embedding_model: text-embedding-3-large
 
 restrict_to_province: "Ontario"
+
+docker_add_deploy_user: true
+
+app_secrets:
+  postgres_password: "{{ app_postgres_password }}"
+  turnstile_site_key: "{{ turnstile_site_key | default('') }}"
+  turnstile_secret_key: "{{ turnstile_secret_key | default('') }}"

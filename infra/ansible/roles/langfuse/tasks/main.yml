@@ -26,7 +26,16 @@
     rule: allow
     port: "3000"
     proto: tcp
-    src: "{{ hostvars[groups['app'][0]].private_ip }}"
+    src: "{{ hostvars[groups['production'][0]].private_ip }}"
+
+# The co-hosted staging backend reaches Langfuse from a container
+- name: Allow trace ingest on port 3000 from the local Docker bridge
+  community.general.ufw:
+    rule: allow
+    port: "3000"
+    proto: tcp
+    src: "{{ langfuse_docker_bridge_cidr }}"
+  when: langfuse_allow_docker_bridge | default(false)
 
 - name: Bring up the langfuse stack
   community.docker.docker_compose_v2:

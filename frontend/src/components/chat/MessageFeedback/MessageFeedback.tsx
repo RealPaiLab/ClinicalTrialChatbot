@@ -24,7 +24,7 @@ function MessageFeedback({
   sessionId,
   observationId,
   onSubmit = submitFeedback,
-  showDetails = config.isDevelopment,
+  showDetails = !config.isProduction,
 }: MessageFeedbackProps) {
   const [score, setScore] = useState<0 | 1 | null>(null);
   const [expanded, setExpanded] = useState(false);

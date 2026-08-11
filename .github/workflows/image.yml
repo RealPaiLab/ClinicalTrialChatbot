@@ -1,8 +1,10 @@
 name: Image
 
-# Reusable build+scan(+push) for one package's Docker image. Called by:
-#   backend.yml / frontend.yml  -> push:false  (build + scan at PR/CI time)
-#   build.yml (release tags)     -> push:true   (build + scan + push versioned)
+# Reusable build+scan(+push) for one package's Docker image. The `channel` input picks what the
+# image is for, which decides both the tags and whether anything is pushed at all. Called by:
+#   backend.yml / frontend.yml  -> channel:ci       (build + scan only, at PR/CI time)
+#   backend.yml / frontend.yml  -> channel:staging  (push :staging + :staging-<sha>, staging branch)
+#   build.yml (release tags)    -> channel:release  (push the semver tags + :latest)
 on:
   workflow_call:
     inputs:
@@ -10,12 +12,12 @@ on:
         description: "backend or frontend"
         required: true
         type: string
-      push:
-        description: "true = push versioned image to GHCR; false = build + scan only"
-        type: boolean
-        default: false
+      channel:
+        description: "ci = build + scan only | staging = push staging tags | release = push semver tags"
+        type: string
+        default: "ci"
       version:
-        description: "release version e.g. 1.2.3 (only used when push=true)"
+        description: "release version e.g. 1.2.3 (only used when channel=release)"
         type: string
         default: ""
 
@@ -33,18 +35,21 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/ctc-${{ inputs.package }}
-          flavor: latest=auto
+          # latest only ever follows a release, so a staging build cannot move the prod pointer.
+          flavor: latest=${{ inputs.channel == 'release' }}
           tags: |
-            type=semver,pattern={{version}},value=${{ inputs.version }},enable=${{ inputs.push }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ inputs.version }},enable=${{ inputs.push }}
-            type=semver,pattern={{major}},value=${{ inputs.version }},enable=${{ inputs.push }}
-            type=raw,value=ci,enable=${{ !inputs.push }}
+            type=semver,pattern={{version}},value=${{ inputs.version }},enable=${{ inputs.channel == 'release' }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ inputs.version }},enable=${{ inputs.channel == 'release' }}
+            type=semver,pattern={{major}},value=${{ inputs.version }},enable=${{ inputs.channel == 'release' }}
+            type=raw,value=staging,enable=${{ inputs.channel == 'staging' }}
+            type=sha,prefix=staging-,format=short,enable=${{ inputs.channel == 'staging' }}
+            type=raw,value=ci,enable=${{ inputs.channel == 'ci' }}
 
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v4
 
       - name: Log in to GHCR
-        if: ${{ inputs.push }}
+        if: ${{ inputs.channel != 'ci' }}
         uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
@@ -92,7 +97,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Push image to GHCR
-        if: ${{ inputs.push }}
+        if: ${{ inputs.channel != 'ci' }}
         env:
           TAGS: ${{ steps.meta.outputs.tags }}
         run: |
