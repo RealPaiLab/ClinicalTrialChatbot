@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ThumbsDown, ThumbsUp, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { MessageAction, MessageActions } from '@/components/ai-elements/message';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,6 @@ import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { config } from '@/config';
-import { FEEDBACK } from '@/constants/chat';
 import { cn } from '@/lib/utils';
 import { submitFeedback } from '@/services/feedback';
 
@@ -26,6 +26,7 @@ function MessageFeedback({
   onSubmit = submitFeedback,
   showDetails = config.isDevelopment,
 }: MessageFeedbackProps) {
+  const { t } = useTranslation();
   const [score, setScore] = useState<0 | 1 | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [comment, setComment] = useState('');
@@ -78,7 +79,7 @@ function MessageFeedback({
     <div className="mt-1 flex flex-col gap-2">
       <MessageActions data-tour="feedback" className="w-fit">
         <MessageAction
-          tooltip={FEEDBACK.helpfulLabel}
+          tooltip={t('feedback.helpful')}
           aria-pressed={score === 1}
           disabled={score !== null || submitting}
           onClick={() => handleScore(1)}
@@ -87,7 +88,7 @@ function MessageFeedback({
           <ThumbsUp className="size-4" />
         </MessageAction>
         <MessageAction
-          tooltip={FEEDBACK.notHelpfulLabel}
+          tooltip={t('feedback.notHelpful')}
           aria-pressed={score === 0}
           disabled={score !== null || submitting}
           onClick={() => handleScore(0)}
@@ -96,7 +97,7 @@ function MessageFeedback({
           <ThumbsDown className="size-4" />
         </MessageAction>
         {submitted && (
-          <span className="text-caption text-muted-foreground">{FEEDBACK.submittedLabel}</span>
+          <span className="text-caption text-muted-foreground">{t('feedback.submitted')}</span>
         )}
       </MessageActions>
 
@@ -107,7 +108,7 @@ function MessageFeedback({
               <Textarea
                 value={comment}
                 onChange={(event) => setComment(event.target.value)}
-                placeholder={FEEDBACK.commentPlaceholder}
+                placeholder={t('feedback.commentPlaceholder')}
                 className="min-h-12 text-sm"
               />
               <div className="flex flex-col gap-1">
@@ -120,10 +121,10 @@ function MessageFeedback({
                       addNct();
                     }
                   }}
-                  placeholder={FEEDBACK.nctPlaceholder}
+                  placeholder={t('feedback.nctPlaceholder')}
                   className="font-mono text-sm"
                 />
-                <p className="text-caption text-muted-foreground">{FEEDBACK.nctHint}</p>
+                <p className="text-caption text-muted-foreground">{t('feedback.nctHint')}</p>
               </div>
               {nctNumbers.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
@@ -155,7 +156,7 @@ function MessageFeedback({
                 onClick={handleSubmitDetails}
                 className="self-end"
               >
-                {FEEDBACK.submitLabel}
+                {t('feedback.submit')}
               </Button>
             </div>
           </CollapsibleContent>

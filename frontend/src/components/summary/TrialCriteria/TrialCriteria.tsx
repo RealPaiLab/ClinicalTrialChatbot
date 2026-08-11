@@ -4,11 +4,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { useTranslation } from 'react-i18next';
 import { MessageResponse } from '@/components/ai-elements/message';
-import type { PanelStrings } from '@/constants/i18n';
 import type { Trial } from '@/types/trial';
 
-function TrialCriteria({ trial, strings }: { trial: Trial; strings: PanelStrings }) {
+function TrialCriteria({ trial }: { trial: Trial }) {
+  const { t } = useTranslation();
   const hasInclusion = Boolean(trial.inclusionCriteriaEn);
   const hasExclusion = Boolean(trial.exclusionCriteriaEn);
 
@@ -18,7 +19,7 @@ function TrialCriteria({ trial, strings }: { trial: Trial; strings: PanelStrings
     <Accordion type="multiple" className="w-full">
       {hasInclusion && (
         <AccordionItem value="inclusion">
-          <AccordionTrigger>{strings.whoCanJoin}</AccordionTrigger>
+          <AccordionTrigger>{t('summary.whoCanJoin')}</AccordionTrigger>
           <AccordionContent>
             <MessageResponse className="text-muted-foreground text-sm">
               {trial.inclusionCriteriaEn ?? ''}
@@ -28,7 +29,7 @@ function TrialCriteria({ trial, strings }: { trial: Trial; strings: PanelStrings
       )}
       {hasExclusion && (
         <AccordionItem value="exclusion">
-          <AccordionTrigger>{strings.whoCannotJoin}</AccordionTrigger>
+          <AccordionTrigger>{t('summary.whoCannotJoin')}</AccordionTrigger>
           <AccordionContent>
             <MessageResponse className="text-muted-foreground text-sm">
               {trial.exclusionCriteriaEn ?? ''}

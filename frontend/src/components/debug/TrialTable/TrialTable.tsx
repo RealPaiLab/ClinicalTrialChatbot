@@ -15,12 +15,7 @@ import { TRIAL_STATUS, normalizeStatus } from '@/lib/trialStatus';
 import { MessageResponse } from '@/components/ai-elements/message';
 import TrialFacts from '@/components/summary/TrialFacts/TrialFacts';
 import TrialCriteria from '@/components/summary/TrialCriteria/TrialCriteria';
-import { PANEL_STRINGS } from '@/constants/i18n';
-import { LanguageCode } from '@/constants/language';
 import type { Trial } from '@/types/trial';
-
-// The debug page is an internal eval tool; it stays English.
-const ENGLISH_STRINGS = PANEL_STRINGS[LanguageCode.En];
 
 interface TrialTableProps {
   trials: Trial[];
@@ -100,13 +95,13 @@ function SitesList({ trial }: { trial: Trial }) {
 function TrialDetail({ trial }: { trial: Trial }) {
   return (
     <div className="bg-muted/30 flex flex-col gap-5 p-4 break-words whitespace-normal">
-      <TrialFacts trial={trial} strings={ENGLISH_STRINGS} />
+      <TrialFacts trial={trial} />
       {trial.descriptionEn && (
         <MessageResponse className="text-muted-foreground text-sm leading-relaxed">
           {trial.descriptionEn}
         </MessageResponse>
       )}
-      <TrialCriteria trial={trial} strings={ENGLISH_STRINGS} />
+      <TrialCriteria trial={trial} />
       {trial.sites.length > 0 && <SitesList trial={trial} />}
     </div>
   );

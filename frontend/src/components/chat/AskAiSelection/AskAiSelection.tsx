@@ -1,5 +1,6 @@
 import { useRef, type RefObject } from 'react';
 import { Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { useTextSelection } from '@/hooks/useTextSelection';
 
@@ -9,6 +10,7 @@ interface AskAiSelectionProps {
 }
 
 function AskAiSelection({ rootRef, onAsk }: AskAiSelectionProps) {
+  const { t } = useTranslation();
   const popoverRef = useRef<HTMLDivElement>(null);
   const { anchor, clear } = useTextSelection(rootRef, popoverRef);
 
@@ -34,7 +36,7 @@ function AskAiSelection({ rootRef, onAsk }: AskAiSelectionProps) {
         className="bg-secondary text-foreground hover:bg-secondary h-7 gap-1.5 rounded-full px-3 text-xs shadow-md transition-transform duration-150 ease-out hover:scale-110"
       >
         <Sparkles className="size-3.5" />
-        Ask AI
+        {t('chat.askAi')}
       </Button>
     </div>
   );

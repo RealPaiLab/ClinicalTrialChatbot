@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { EXPORT_TOAST } from '@/constants/bookmarks';
 import type { Trial } from '@/types/trial';
 
 function fileNameFor(trials: Trial[]): string {
@@ -21,33 +21,37 @@ function download(blob: Blob, fileName: string): void {
 }
 
 export function useTrialPdfExport() {
+  const { t } = useTranslation();
   const [isExporting, setIsExporting] = useState(false);
 
   // The renderer and its fonts are a large chunk, so they load on first export
   // rather than with the app.
-  const exportTrials = useCallback(async (trials: Trial[]) => {
-    if (trials.length === 0) return;
+  const exportTrials = useCallback(
+    async (trials: Trial[]) => {
+      if (trials.length === 0) return;
 
-    setIsExporting(true);
-    toast.info(EXPORT_TOAST.preparing);
+      setIsExporting(true);
+      toast.info(t('export.preparing'));
 
-    try {
-      const [{ pdf }, { registerPdfFonts }, { default: TrialPdfDocument }] = await Promise.all([
-        import('@react-pdf/renderer'),
-        import('@/components/export/pdf/fonts'),
-        import('@/components/export/pdf/TrialPdfDocument'),
-      ]);
+      try {
+        const [{ pdf }, { registerPdfFonts }, { default: TrialPdfDocument }] = await Promise.all([
+          import('@react-pdf/renderer'),
+          import('@/components/export/pdf/fonts'),
+          import('@/components/export/pdf/TrialPdfDocument'),
+        ]);
 
-      registerPdfFonts();
-      const blob = await pdf(<TrialPdfDocument trials={trials} />).toBlob();
-      download(blob, fileNameFor(trials));
-      toast.success(EXPORT_TOAST.ready);
-    } catch {
-      toast.error(EXPORT_TOAST.failed, { description: EXPORT_TOAST.failedHint });
-    } finally {
-      setIsExporting(false);
-    }
-  }, []);
+        registerPdfFonts();
+        const blob = await pdf(<TrialPdfDocument trials={trials} />).toBlob();
+        download(blob, fileNameFor(trials));
+        toast.success(t('export.ready'));
+      } catch {
+        toast.error(t('export.failed'), { description: t('export.failedHint') });
+      } finally {
+        setIsExporting(false);
+      }
+    },
+    [t]
+  );
 
   return { exportTrials, isExporting };
 }

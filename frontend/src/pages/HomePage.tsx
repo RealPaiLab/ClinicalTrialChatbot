@@ -8,6 +8,7 @@ import AppHeader from '@/components/layout/AppHeader/AppHeader';
 import AppFooter from '@/components/layout/AppFooter/AppFooter';
 import BookmarksSheet from '@/components/bookmarks/BookmarksSheet/BookmarksSheet';
 import { useOnboardingTour } from '@/components/onboarding/tour/useOnboardingTour';
+import { useCachedTrialTranslations } from '@/hooks/useCachedTranslation';
 import { useTrialPdfExport } from '@/hooks/useTrialPdfExport';
 import { useAppStore } from '@/store/appStore';
 import { PANEL_SPLIT } from '@/constants/layout';
@@ -84,9 +85,12 @@ function HomePage() {
     dropBookmarkTrial(nctNumber);
   };
 
+  // Pins and context chips read a translation only if one already exists; the
+  // summary panel is the single surface that commissions one.
+  const labelledTrials = useCachedTrialTranslations(trials);
   const selectedTrial = trials.find((trial) => trial.nctNumber === selectedNctNumber) ?? null;
   const contextTrials = contextNctNumbers
-    .map((nct) => trials.find((trial) => trial.nctNumber === nct))
+    .map((nct) => labelledTrials.find((trial) => trial.nctNumber === nct))
     .filter((trial): trial is Trial => Boolean(trial));
   const selectedInContext = selectedNctNumber
     ? contextNctNumbers.includes(selectedNctNumber)
@@ -141,7 +145,7 @@ function HomePage() {
                   className="border-border h-full overflow-hidden rounded-lg border shadow-sm"
                 >
                   <MapPanel
-                    trials={trials}
+                    trials={labelledTrials}
                     selectedNctNumber={selectedNctNumber}
                     selectedSiteKey={selectedSiteKey}
                     onSelectTrial={selectTrial}

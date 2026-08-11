@@ -1,4 +1,5 @@
 import { MapPin, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Trial } from '@/types/trial';
@@ -9,6 +10,8 @@ interface SelectedTrialsProps {
 }
 
 function SelectedTrials({ trials, onRemove }: SelectedTrialsProps) {
+  const { t } = useTranslation();
+
   if (trials.length === 0) {
     return null;
   }
@@ -26,7 +29,7 @@ function SelectedTrials({ trials, onRemove }: SelectedTrialsProps) {
               type="button"
               variant="ghost"
               size="icon"
-              aria-label={`Remove ${nctNumber} from context`}
+              aria-label={t('chat.removeFromContext', { nctNumber })}
               onClick={() => onRemove?.(nctNumber)}
               className="size-4 rounded-full hover:bg-transparent"
             >

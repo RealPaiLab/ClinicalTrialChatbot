@@ -7,6 +7,7 @@ import {
   InlineCitationCardBody,
   InlineCitationSource,
 } from '@/components/ai-elements/inline-citation';
+import { useCachedTrialTranslation } from '@/hooks/useCachedTranslation';
 import type { TrialSummary } from '@/types/trial';
 
 const CITATION_TITLE_MAX_LENGTH = 50;
@@ -31,11 +32,17 @@ function TrialCitation({ nctNumber, fetchTrial, onSelect, compact }: TrialCitati
     enabled: Boolean(nctNumber),
   });
 
-  const fullTitle = trial?.shortTitleEn ?? trial?.officialTitleEn ?? nctNumber;
+  // Shows a translation the app already has; a citation never orders one.
+  const translation = useCachedTrialTranslation(nctNumber);
+  const fullTitle =
+    translation?.shortTitle ??
+    translation?.officialTitle ??
+    trial?.shortTitleEn ??
+    trial?.officialTitleEn ??
+    nctNumber;
   const title = truncate(fullTitle, compact ? COMPACT_TITLE_MAX_LENGTH : CITATION_TITLE_MAX_LENGTH);
-  const description = trial?.descriptionEn
-    ? truncate(trial.descriptionEn, CITATION_DESCRIPTION_MAX_LENGTH)
-    : undefined;
+  const summary = translation?.description ?? trial?.descriptionEn;
+  const description = summary ? truncate(summary, CITATION_DESCRIPTION_MAX_LENGTH) : undefined;
 
   return (
     <InlineCitation>

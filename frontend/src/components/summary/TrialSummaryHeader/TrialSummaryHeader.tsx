@@ -1,20 +1,15 @@
 import { Bookmark, BookmarkCheck, Check, ExternalLink, Sparkles, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import LanguagePicker from '@/components/summary/LanguagePicker/LanguagePicker';
 import TrialTitle from '@/components/summary/TrialTitle/TrialTitle';
-import { BOOKMARKS } from '@/constants/bookmarks';
-import type { PanelStrings } from '@/constants/i18n';
-import type { LanguageCode } from '@/constants/language';
+import { useAppLanguage } from '@/hooks/useAppLanguage';
 import type { Trial } from '@/types/trial';
 
 const TRIAL_URL_BASE = 'https://www.cancertrialscanada.ca/trial/';
 
 interface TrialSummaryHeaderProps {
   trial: Trial;
-  strings: PanelStrings;
-  language: LanguageCode | null;
-  onSelectLanguage: (language: LanguageCode | null) => void;
   onClose?: () => void;
   onAddToContext?: (nctNumber: string) => void;
   isInContext?: boolean;
@@ -24,15 +19,14 @@ interface TrialSummaryHeaderProps {
 
 function TrialSummaryHeader({
   trial,
-  strings,
-  language,
-  onSelectLanguage,
   onClose,
   onAddToContext,
   isInContext,
   onToggleBookmark,
   isBookmarked,
 }: TrialSummaryHeaderProps) {
+  const { t } = useTranslation();
+  const { language } = useAppLanguage();
   const title = trial.officialTitleEn ?? trial.shortTitleEn ?? trial.nctNumber ?? 'Trial';
   const trialUrl = trial.acronymOrProtocolId
     ? `${TRIAL_URL_BASE}${encodeURIComponent(trial.acronymOrProtocolId)}`
@@ -44,7 +38,7 @@ function TrialSummaryHeader({
         {trial.nctNumber && (
           <span className="text-eyebrow text-primary font-mono">{trial.nctNumber}</span>
         )}
-        <TrialTitle key={title} title={title} lang={language ?? 'en'} />
+        <TrialTitle key={title} title={title} lang={language} />
       </div>
       <div className="flex shrink-0 items-center gap-1">
         {onAddToContext && trial.nctNumber && (
@@ -55,7 +49,7 @@ function TrialSummaryHeader({
                   variant="ghost"
                   size="icon"
                   data-tour="add-context"
-                  aria-label={isInContext ? strings.addedToChat : strings.askAbout}
+                  aria-label={isInContext ? t('summary.addedToChat') : t('summary.askAbout')}
                   disabled={isInContext}
                   onClick={() => onAddToContext(trial.nctNumber as string)}
                 >
@@ -63,7 +57,7 @@ function TrialSummaryHeader({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                {isInContext ? strings.addedToChatHint : strings.askAbout}
+                {isInContext ? t('summary.addedToChatHint') : t('summary.askAbout')}
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -76,24 +70,25 @@ function TrialSummaryHeader({
                   variant="ghost"
                   size="icon"
                   data-tour="bookmark"
-                  aria-label={isBookmarked ? BOOKMARKS.remove : BOOKMARKS.add}
+                  aria-label={isBookmarked ? t('bookmarks.remove') : t('bookmarks.add')}
                   onClick={() => onToggleBookmark(trial.nctNumber as string)}
                 >
                   {isBookmarked ? <BookmarkCheck className="text-primary" /> : <Bookmark />}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>{isBookmarked ? BOOKMARKS.added : BOOKMARKS.add}</TooltipContent>
+              <TooltipContent>
+                {isBookmarked ? t('bookmarks.added') : t('bookmarks.add')}
+              </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         )}
-        <LanguagePicker language={language} onSelect={onSelectLanguage} strings={strings} />
         {trialUrl && (
           <Button
             asChild
             variant="ghost"
             size="icon"
             data-tour="trial-link"
-            aria-label={strings.viewOnCtc}
+            aria-label={t('summary.viewOnCtc')}
           >
             <a href={trialUrl} target="_blank" rel="noreferrer">
               <ExternalLink />
@@ -101,7 +96,7 @@ function TrialSummaryHeader({
           </Button>
         )}
         {onClose && (
-          <Button variant="ghost" size="icon" aria-label={strings.close} onClick={onClose}>
+          <Button variant="ghost" size="icon" aria-label={t('summary.close')} onClick={onClose}>
             <X />
           </Button>
         )}

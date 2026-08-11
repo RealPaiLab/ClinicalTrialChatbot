@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import MapGL, { Layer, NavigationControl, Source, type MapRef } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Info, MapPin } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import MapLegend from '@/components/map/MapLegend/MapLegend';
 import TrialMarker from '@/components/map/TrialMarker/TrialMarker';
@@ -19,8 +20,6 @@ const DARK_STYLE = config.mapboxStyleDark;
 const INITIAL_VIEW = { longitude: ONTARIO_CENTER[0], latitude: ONTARIO_CENTER[1], zoom: 3.9 };
 const MIN_ZOOM = 2;
 const MAX_ZOOM = 16;
-const EMPTY_HINT = 'Trials will appear here as you chat.';
-const ONTARIO_ONLY_NOTICE = 'Coverage is currently limited to Ontario.';
 
 interface MapPanelProps {
   trials: Trial[];
@@ -37,6 +36,7 @@ function MapPanel({
   onSelectTrial,
   dark,
 }: MapPanelProps) {
+  const { t } = useTranslation();
   const mapRef = useRef<MapRef | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -158,14 +158,14 @@ function MapPanel({
           <HoverCardTrigger asChild>
             <button
               type="button"
-              aria-label="Coverage area"
+              aria-label={t('map.coverageArea')}
               className="bg-canvas/90 text-muted-foreground hover:text-foreground flex size-7 shrink-0 items-center justify-center rounded-md border shadow-sm backdrop-blur transition-colors"
             >
               <Info className="size-3.5" />
             </button>
           </HoverCardTrigger>
           <HoverCardContent align="start" className="w-64 text-sm leading-relaxed">
-            {ONTARIO_ONLY_NOTICE}
+            {t('map.coverageNotice')}
           </HoverCardContent>
         </HoverCard>
       </div>
@@ -175,7 +175,7 @@ function MapPanel({
       ) : (
         <div className="text-muted-foreground pointer-events-none absolute inset-0 grid place-items-center">
           <p className="bg-card/80 rounded-lg border px-3 py-2 text-sm backdrop-blur">
-            {EMPTY_HINT}
+            {t('map.emptyHint')}
           </p>
         </div>
       )}

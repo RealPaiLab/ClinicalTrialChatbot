@@ -1,9 +1,9 @@
 import { BookmarkX, FileDown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Item, ItemActions, ItemContent } from '@/components/ui/item';
 import BookmarkRowSkeleton from '@/components/bookmarks/BookmarkRowSkeleton/BookmarkRowSkeleton';
 import TrialBadges from '@/components/bookmarks/TrialBadges/TrialBadges';
-import { BOOKMARKS } from '@/constants/bookmarks';
 import type { Trial } from '@/types/trial';
 
 interface BookmarkRowProps {
@@ -25,6 +25,7 @@ function BookmarkRow({
   onRemove,
   onExport,
 }: BookmarkRowProps) {
+  const { t } = useTranslation();
   const title = trial?.shortTitleEn ?? trial?.officialTitleEn ?? nctNumber;
   const isPending = Boolean(isLoading) && !trial;
 
@@ -49,7 +50,7 @@ function BookmarkRow({
           {trial ? (
             <TrialBadges trial={trial} />
           ) : (
-            !isPending && <span className="text-caption">{BOOKMARKS.unavailable}</span>
+            !isPending && <span className="text-caption">{t('bookmarks.unavailable')}</span>
           )}
         </button>
       </ItemContent>
@@ -60,8 +61,8 @@ function BookmarkRow({
             variant="ghost"
             size="icon"
             disabled={!trial || isExporting}
-            aria-label={`${BOOKMARKS.exportOne} (${nctNumber})`}
-            title={BOOKMARKS.exportOne}
+            aria-label={`${t('bookmarks.exportOne')} (${nctNumber})`}
+            title={t('bookmarks.exportOne')}
             onClick={() => trial && onExport(trial)}
           >
             <FileDown />
@@ -71,8 +72,8 @@ function BookmarkRow({
           variant="ghost"
           size="icon"
           disabled={isPending}
-          aria-label={`${BOOKMARKS.remove} (${nctNumber})`}
-          title={BOOKMARKS.remove}
+          aria-label={`${t('bookmarks.remove')} (${nctNumber})`}
+          title={t('bookmarks.remove')}
           onClick={() => onRemove(nctNumber)}
         >
           <BookmarkX />
