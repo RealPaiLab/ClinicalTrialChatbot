@@ -30,7 +30,7 @@ function AppHeader({
       <div className="flex items-center gap-2.5">
         <span className="text-eyebrow">{t('app.title')}</span>
         <span className="text-eyebrow text-primary bg-primary/10 rounded-full px-2 py-0.5 font-bold">
-          Pre-Release Version
+          {t('app.preRelease')}
         </span>
       </div>
       <div className="flex items-center gap-1">
