@@ -17,8 +17,14 @@ async def get_trial_translation(
     nct_number: str,
     language: Annotated[Language, Query()],
     translation: Annotated[TranslationService, Depends(get_translation_service)],
+    cached_only: Annotated[
+        bool,
+        Query(),
+    ] = False,
 ) -> TrialTranslation:
-    result = await translation.translate_trial(nct_number, language)
+    result = await translation.translate_trial(
+        nct_number, language, cached_only=cached_only
+    )
     if result is None:
         raise HTTPException(status_code=404, detail=f"Trial {nct_number} not found")
     return result

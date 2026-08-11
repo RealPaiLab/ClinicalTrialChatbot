@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from typing import Protocol
 
 from core.logger import get_logger
@@ -33,6 +33,12 @@ class TrialLookup(Protocol):
 
 def _clean(value: str | None) -> str | None:
     return value.strip() if value and value.strip() else None
+
+
+def _translate_field(text: str, narrative: Mapping[str, str]) -> str | None:
+    if not all(line in narrative for line in translatable_lines(text)):
+        return None
+    return rebuild(text, narrative)
 
 
 def _english(trial: TrialCitation) -> dict[str, str | None]:
@@ -69,14 +75,19 @@ class TranslationService:
         found = await self._trials.get_by_ncts([nct_number])
         return found[0] if found else None
 
-    async def _translate(self, texts: list[str], target: Language) -> dict[str, str]:
-        """Translate the given source strings, using and filling the cache."""
+    async def _translate(
+        self, texts: list[str], target: Language, *, cached_only: bool = False
+    ) -> dict[str, str]:
+        """Translate the given source strings, using and filling the cache.
+
+        ``cached_only``: the provider is never called
+        """
         wanted = list(dict.fromkeys(t for t in texts if t))
         if not wanted:
             return {}
         cached = await self._cache.get_many(wanted, target)
         missing = [t for t in wanted if t not in cached]
-        if not missing:
+        if not missing or cached_only:
             return cached
         provider = self._provider_factory()
         fresh = dict(
@@ -86,7 +97,7 @@ class TranslationService:
         return {**cached, **fresh}
 
     async def translate_trial(
-        self, nct_number: str, target: Language
+        self, nct_number: str, target: Language, *, cached_only: bool = False
     ) -> TrialTranslation | None:
         """Return the trial rendered in ``target``, or None if the trial is unknown."""
         trial = await self._get_trial(nct_number)
@@ -114,7 +125,7 @@ class TranslationService:
             line for text in needs_machine.values() for line in translatable_lines(text)
         ]
         try:
-            narrative = await self._translate(lines, target)
+            narrative = await self._translate(lines, target, cached_only=cached_only)
         except Exception as exc:
             logger.warning(
                 "Translation provider failed for %s -> %s: %s", nct_number, target, exc
@@ -132,21 +143,27 @@ class TranslationService:
         # narrative, so it is translated separately and falls back to English.
         try:
             vocabulary = await self._translate(
-                [*cancer_types, *treatment_types], target
+                [*cancer_types, *treatment_types], target, cached_only=cached_only
             )
         except Exception as exc:
             logger.warning("Vocabulary translation failed for %s: %s", target, exc)
             vocabulary = {}
 
         machine = {
-            name: rebuild(text, narrative) for name, text in needs_machine.items()
+            name: rebuilt
+            for name, text in needs_machine.items()
+            if (rebuilt := _translate_field(text, narrative))
         }
         resolved = {name: machine.get(name) or text for name, text in english.items()}
 
         return TrialTranslation(
             nct_number=nct_number,
             language=target,
-            source=TranslationSource.MACHINE,
+            source=(
+                TranslationSource.UNAVAILABLE
+                if needs_machine and not machine
+                else TranslationSource.MACHINE
+            ),
             cancer_type_names={
                 name: vocabulary.get(name, name) for name in cancer_types
             },
