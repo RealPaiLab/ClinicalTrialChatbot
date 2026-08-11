@@ -171,6 +171,52 @@ async def test_identical_text_across_trials_shares_one_cache_entry() -> None:
     assert provider2.batches == []
 
 
+@pytest.mark.asyncio
+async def test_cached_only_serves_a_translation_someone_already_paid_for() -> None:
+    redis = FakeRedis()
+    service, _, _ = build_service(make_citation("NCT-1"), redis=redis)
+    await service.translate_trial("NCT-1", Language.ES)
+
+    service2, provider2, _ = build_service(make_citation("NCT-1"), redis=redis)
+    result = await service2.translate_trial("NCT-1", Language.ES, cached_only=True)
+
+    assert result is not None
+    assert result.short_title == "[es] A trial"
+    assert provider2.batches == []
+
+
+@pytest.mark.asyncio
+async def test_cached_only_keeps_english_instead_of_translating() -> None:
+    service, provider, _ = build_service(make_citation("NCT-1"))
+    result = await service.translate_trial("NCT-1", Language.ES, cached_only=True)
+
+    assert result is not None
+    assert result.source is TranslationSource.UNAVAILABLE
+    assert result.short_title == "A trial"
+    assert result.cancer_type_names == {"Breast Cancer": "Breast Cancer"}
+    assert provider.batches == []
+
+
+@pytest.mark.asyncio
+async def test_a_half_cached_field_stays_english_rather_than_mixing() -> None:
+    """Filling the gaps from English would switch language mid-paragraph."""
+    redis = FakeRedis()
+    trial = make_citation("NCT-1")
+    trial.inclusion_criteria_en = "Adults with the condition.\nSecond requirement."
+    service, _, _ = build_service(trial, redis=redis)
+    await service.translate_trial("NCT-1", Language.ES)
+
+    partial = make_citation("NCT-1")
+    partial.inclusion_criteria_en = "Adults with the condition.\nA brand new line."
+    service2, provider2, _ = build_service(partial, redis=redis)
+    result = await service2.translate_trial("NCT-1", Language.ES, cached_only=True)
+
+    assert result is not None
+    assert result.inclusion_criteria == partial.inclusion_criteria_en
+    assert result.short_title == "[es] A trial"
+    assert provider2.batches == []
+
+
 def test_cache_key_changes_with_source_text_and_language() -> None:
     assert _key("a", Language.ES) != _key("b", Language.ES)
     assert _key("a", Language.ES) != _key("a", Language.HI)

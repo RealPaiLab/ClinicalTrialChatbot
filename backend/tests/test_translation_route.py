@@ -15,12 +15,12 @@ from schemas.translation import TranslationSource, TrialTranslation
 class StubTranslationService:
     def __init__(self, *, found: bool = True) -> None:
         self.found = found
-        self.calls: list[tuple[str, Language]] = []
+        self.calls: list[tuple[str, Language, bool]] = []
 
     async def translate_trial(
-        self, nct_number: str, target: Language
+        self, nct_number: str, target: Language, *, cached_only: bool = False
     ) -> TrialTranslation | None:
-        self.calls.append((nct_number, target))
+        self.calls.append((nct_number, target, cached_only))
         if not self.found:
             return None
         return TrialTranslation(
@@ -44,7 +44,17 @@ def test_returns_translation() -> None:
 
     assert response.status_code == 200
     assert response.json()["short_title"] == "Un essai"
-    assert service.calls == [("NCT-1", Language.FR_CA)]
+    assert service.calls == [("NCT-1", Language.FR_CA, False)]
+
+
+def test_cached_only_is_passed_through() -> None:
+    service = StubTranslationService()
+    response = make_client(service).get(
+        "/trials/NCT-1/translation?language=fr-CA&cached_only=true"
+    )
+
+    assert response.status_code == 200
+    assert service.calls == [("NCT-1", Language.FR_CA, True)]
 
 
 def test_unknown_trial_is_404() -> None:
