@@ -44,6 +44,22 @@ def seed_prompt(name: str, content: str) -> None:
         logger.warning("Prompt seed skipped (Langfuse unavailable): %s", exc)
 
 
+def promote_prompt(name: str, *, from_label: str, to_label: str) -> int:
+    """Move `to_label` onto the exact version that currently carries `from_label`."""
+    client = get_langfuse_client()
+    prompt = client.get_prompt(name, label=from_label, cache_ttl_seconds=0)
+    version = int(prompt.version)
+    client.update_prompt(name=name, version=version, new_labels=[to_label])
+    logger.info(
+        "Promoted prompt %r v%d from label %r to %r.",
+        name,
+        version,
+        from_label,
+        to_label,
+    )
+    return version
+
+
 def publish_prompt(name: str, content: str) -> None:
     """Publish a new labeled version of the prompt (used by bootstrap_prompt.py)."""
     settings = get_settings()

@@ -1,7 +1,7 @@
 # One-time base setup + hardening. Run locally by the operator.
 ---
-- name: Base setup (both VMs)
-  hosts: app:langfuse
+- name: Base setup (every VM)
+  hosts: common:langfuse
   vars_files:
     - "{{ playbook_dir }}/../secrets.yml"
   roles:
@@ -9,9 +9,9 @@
     # - hardening  # PoC: deferred until post-PoC security review
     - docker
 
-# Edge nginx only fronts the App VM.
-- name: Reverse proxy (App VM only)
-  hosts: app
+# One nginx site per deployed environment (TLS on the App VM, plain HTTP on staging).
+- name: Reverse proxy (every app environment)
+  hosts: common
   vars_files:
     - "{{ playbook_dir }}/../secrets.yml"
   roles:

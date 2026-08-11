@@ -29,6 +29,40 @@ def test_uses_langfuse_prompt_when_available(monkeypatch: pytest.MonkeyPatch) ->
     assert get_triage_prompt() == "FETCHED PROMPT"
 
 
+def test_promote_relabels_the_tested_version(monkeypatch: pytest.MonkeyPatch) -> None:
+    client = MagicMock()
+    client.get_prompt.return_value.version = 7
+    monkeypatch.setattr(prompts, "get_langfuse_client", lambda: client)
+
+    version = prompts.promote_prompt(
+        "clinical-trial-chatbot-system", from_label="staging", to_label="production"
+    )
+
+    assert version == 7
+    assert client.get_prompt.call_args.kwargs["label"] == "staging"
+    # The tested version is re-labeled; nothing new is created from the local constant.
+    client.create_prompt.assert_not_called()
+    assert client.update_prompt.call_args.kwargs == {
+        "name": "clinical-trial-chatbot-system",
+        "version": 7,
+        "new_labels": ["production"],
+    }
+
+
+def test_promote_raises_when_the_source_label_is_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client = MagicMock()
+    client.get_prompt.side_effect = RuntimeError("no such label")
+    monkeypatch.setattr(prompts, "get_langfuse_client", lambda: client)
+
+    with pytest.raises(RuntimeError):
+        prompts.promote_prompt(
+            "clinical-trial-chatbot-system", from_label="staging", to_label="production"
+        )
+    client.update_prompt.assert_not_called()
+
+
 def test_each_agent_fetches_its_own_prompt_name(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

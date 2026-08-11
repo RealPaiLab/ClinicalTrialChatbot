@@ -1,5 +1,9 @@
-# Managed by Ansible (app role). Production compose for the App VM.
-# Prebuilt GHCR images, data stores bound to localhost, edge nginx fronts 80/443.
+# Managed by Ansible (app role). Deployed compose for {{ deploy_slot }}.
+# Prebuilt GHCR images, data stores bound to localhost, nginx on this host fronts the ports.
+# The explicit project name pins the container and volume namespace so a co-hosted
+# environment can never share a volume with its neighbour.
+name: {{ compose_project_name }}
+
 services:
   postgres:
     image: pgvector/pgvector:pg13
@@ -11,7 +15,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:{{ postgres_host_port }}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U {{ postgres_user }} -d {{ postgres_db }}"]
       interval: 10s
@@ -24,7 +28,7 @@ services:
     volumes:
       - redis_data:/data
     ports:
-      - "127.0.0.1:6379:6379"
+      - "127.0.0.1:{{ redis_host_port }}:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -50,6 +54,12 @@ services:
 {% if langfuse_capture_content is defined %}
       LANGFUSE_CAPTURE_CONTENT: "{{ langfuse_capture_content | string | lower }}"
 {% endif %}
+{% if langfuse_seed_prompt is defined %}
+      LANGFUSE_SEED_PROMPT: "{{ langfuse_seed_prompt | string | lower }}"
+{% endif %}
+{% if langfuse_prompt_label | default('') | length > 0 %}
+      LANGFUSE_PROMPT_LABEL: "{{ langfuse_prompt_label }}"
+{% endif %}
       CORS_ALLOW_ORIGINS: '{{ cors_allow_origins | to_json }}'
 {% if restrict_to_province | default('') | length > 0 %}
       RESTRICT_TO_PROVINCE: "{{ restrict_to_province }}"
@@ -60,7 +70,7 @@ services:
       redis:
         condition: service_healthy
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:{{ backend_host_port }}:8000"
 
   frontend:
     image: {{ frontend_image }}:${FRONTEND_VERSION:-{{ frontend_version }}}
@@ -69,11 +79,11 @@ services:
       API_BASE_URL: "{{ api_base_url }}"
       MAPBOX_TOKEN: "{{ mapbox_token }}"
       ENVIRONMENT: "{{ app_environment }}"
-      TURNSTILE_SITE_KEY: "{{ turnstile_site_key }}"
+      TURNSTILE_SITE_KEY: "{{ app_secrets.turnstile_site_key }}"
     depends_on:
       - backend
     ports:
-      - "127.0.0.1:8080:80"
+      - "127.0.0.1:{{ frontend_host_port }}:80"
 
 volumes:
   postgres_data:

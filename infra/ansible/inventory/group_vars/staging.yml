@@ -1,0 +1,30 @@
+# Staging overrides. Everything else comes from group_vars/common.yml.
+
+deploy_slot: staging
+app_environment: "staging"
+
+postgres_host_port: 5433
+redis_host_port: 6380
+backend_host_port: 8001
+frontend_host_port: 8081
+
+backend_version: staging
+frontend_version: staging
+
+cors_allow_origins:
+  - "http://{{ public_domain }}"
+
+# Same host: reach Langfuse over the private IP, not the app VM's route.
+langfuse_host: "http://{{ private_ip }}:3000"
+langfuse_capture_content: true
+langfuse_prompt_label: staging
+langfuse_seed_prompt: true
+
+# No dehydrated cert exists for this hostname, and the network is internal-only.
+reverse_proxy_tls_enabled: false
+reverse_proxy_site_name: "{{ project_name }}-staging"
+
+app_secrets:
+  postgres_password: "{{ staging_app_postgres_password }}"
+  turnstile_site_key: ""
+  turnstile_secret_key: ""

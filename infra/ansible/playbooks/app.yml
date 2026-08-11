@@ -1,7 +1,8 @@
-# One-time app first deploy on the App VM. Run locally by the operator after prepare.
+# One-time app first deploy. Run locally by the operator after prepare.
+# Target an environment with -e deploy_target=staging; defaults to production.
 ---
 - name: App first deploy
-  hosts: app
+  hosts: "{{ deploy_target | default('production') }}"
   vars_files:
     - "{{ playbook_dir }}/../secrets.yml"
   roles:

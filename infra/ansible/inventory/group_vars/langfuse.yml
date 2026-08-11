@@ -8,3 +8,7 @@ postgres_db: langfuse
 
 langfuse_init_org_name: "Open Genome Informatics"
 langfuse_init_project_name: "Clinical Trial Chatbot"
+
+# The staging stack is co-hosted on this VM and ingests traces from a container.
+langfuse_allow_docker_bridge: true
+langfuse_docker_bridge_cidr: "172.16.0.0/12"
