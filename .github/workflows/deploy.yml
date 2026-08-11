@@ -72,10 +72,12 @@ jobs:
           cat > inventory/hosts.yml <<EOF
           all:
             children:
-              app:
-                hosts:
-                  app-vm:
-                    ansible_host: $APP_VM_HOST
+              app_envs:
+                children:
+                  app:
+                    hosts:
+                      app-vm:
+                        ansible_host: $APP_VM_HOST
           EOF
 
       # Release (push) runs migrations; manual rollback (workflow_dispatch) skips them.
