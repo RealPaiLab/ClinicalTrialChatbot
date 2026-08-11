@@ -8,6 +8,7 @@ from functools import lru_cache
 from core.config import Settings, get_settings
 from repository.translation.base import TranslationProvider
 from repository.translation.google_provider import GoogleTranslationProvider
+from repository.translation.llm_provider import LLMTranslationProvider
 
 
 def _build_google(settings: Settings) -> TranslationProvider:
@@ -19,8 +20,17 @@ def _build_google(settings: Settings) -> TranslationProvider:
     )
 
 
+def _build_llm(settings: Settings) -> TranslationProvider:
+    return LLMTranslationProvider(
+        timeout=settings.translation_request_timeout,
+        concurrency=settings.translation_llm_concurrency,
+        fallback_max_lines=settings.translation_llm_fallback_max_lines,
+    )
+
+
 _PROVIDER_BUILDERS: dict[str, Callable[[Settings], TranslationProvider]] = {
     "google": _build_google,
+    "llm": _build_llm,
 }
 
 

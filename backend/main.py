@@ -7,6 +7,7 @@ from sqlalchemy import text
 
 from agents.clinical_trials.prompts import ensure_clinical_trials_prompt_seeded
 from agents.input_triage.prompts import ensure_triage_prompt_seeded
+from agents.translation.prompts import ensure_translation_prompt_seeded
 from core.config import get_settings
 from core.database import engine, read_engine
 from core.dependencies import aclose_translation_provider
@@ -27,6 +28,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     setup_langfuse()
     ensure_clinical_trials_prompt_seeded()
     ensure_triage_prompt_seeded()
+    ensure_translation_prompt_seeded()
     if get_settings().embedding_warmup:
         await get_embedder().embed_query("warmup")
     yield

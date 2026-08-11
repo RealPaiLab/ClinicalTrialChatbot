@@ -2,35 +2,17 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
-
 from google.cloud.translate_v3 import (
     TranslateTextRequest,
     TranslationServiceAsyncClient,
 )
 
+from repository.translation.batching import batches
 from schemas.language import Language
 
 # v3 caps a single request at 30k codepoints and 1024 segments. Stay under both.
 _MAX_REQUEST_CODEPOINTS = 25_000
 _MAX_REQUEST_SEGMENTS = 512
-
-
-def _batches(texts: list[str]) -> Iterator[list[str]]:
-    """Split texts into request-sized batches, keeping order."""
-    batch: list[str] = []
-    size = 0
-    for text in texts:
-        if batch and (
-            size + len(text) > _MAX_REQUEST_CODEPOINTS
-            or len(batch) >= _MAX_REQUEST_SEGMENTS
-        ):
-            yield batch
-            batch, size = [], 0
-        batch.append(text)
-        size += len(text)
-    if batch:
-        yield batch
 
 
 class GoogleTranslationProvider:
@@ -51,15 +33,17 @@ class GoogleTranslationProvider:
         if not texts:
             return []
         translated: list[str] = []
-        for batch in _batches(texts):
+        for batch in batches(
+            texts,
+            max_codepoints=_MAX_REQUEST_CODEPOINTS,
+            max_segments=_MAX_REQUEST_SEGMENTS,
+        ):
             request = TranslateTextRequest(
                 parent=self._parent,
                 contents=batch,
                 target_language_code=target.value,
                 source_language_code=Language.EN.value,
                 mime_type="text/plain",
-                # glossary_config goes here once clinical terminology is uploaded;
-                # note glossaries are per language pair, so one per target.
             )
             response = await self._client.translate_text(
                 request=request, timeout=self._timeout

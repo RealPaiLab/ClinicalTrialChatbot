@@ -3,17 +3,14 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import Protocol
 
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-
-from core.config import get_settings
 from core.logger import get_logger
-from models.trial import Trial
 from repository.translation.base import TranslationProvider
 from repository.translation.cache import TranslationCache
-from repository.trial_repository import TrialRepository
 from schemas.language import Language
 from schemas.translation import TranslationSource, TrialTranslation
+from schemas.trial import TrialCitation
 from utils.markdown import rebuild, translatable_lines
 
 logger = get_logger(__name__)
@@ -28,19 +25,21 @@ _TEXT_FIELDS = (
 )
 
 
+class TrialLookup(Protocol):
+    """Reads trials by NCT number (the trial-search service satisfies this)."""
+
+    async def get_by_ncts(self, nct_numbers: list[str]) -> list[TrialCitation]: ...
+
+
 def _clean(value: str | None) -> str | None:
     return value.strip() if value and value.strip() else None
 
 
-def _english(trial: Trial) -> dict[str, str | None]:
+def _english(trial: TrialCitation) -> dict[str, str | None]:
     return {name: _clean(getattr(trial, f"{name}_en")) for name in _TEXT_FIELDS}
 
 
-def _official_french(trial: Trial) -> dict[str, str | None]:
-    return {name: _clean(getattr(trial, f"{name}_fr")) for name in _TEXT_FIELDS}
-
-
-def _vocabulary(trial: Trial) -> tuple[list[str], list[str]]:
+def _vocabulary(trial: TrialCitation) -> tuple[list[str], list[str]]:
     cancer_types = sorted(
         {name for site in trial.sites for name in (site.cancer_type_names or [])}
     )
@@ -48,12 +47,7 @@ def _vocabulary(trial: Trial) -> tuple[list[str], list[str]]:
 
 
 class TranslationService:
-    """Serves trial text in a target language, cheapest source first.
-
-    English is the stored text. French comes from the ``*_fr`` columns seeded from
-    Cancer Trials Canada, which are sponsor-authored and cover ~98% of trials;
-    only the gaps fall through to machine translation. Every other language is
-    machine-translated, cached on the hash of its source text.
+    """Serves trial text in a target language.
 
     Only trial text read from our own database is ever handed to the provider.
     Nothing a patient typed reaches it: this service takes an NCT number, never a
@@ -62,24 +56,18 @@ class TranslationService:
 
     def __init__(
         self,
-        session_factory: async_sessionmaker[AsyncSession],
+        trials: TrialLookup,
         *,
         provider_factory: Callable[[], TranslationProvider],
         cache: TranslationCache,
     ) -> None:
-        self._session_factory = session_factory
+        self._trials = trials
         self._provider_factory = provider_factory
         self._cache = cache
-        settings = get_settings()
-        self._restrict_province = (settings.restrict_to_province or "").strip() or None
 
-    async def _get_trial(self, nct_number: str) -> Trial | None:
-        async with self._session_factory() as session:
-            repository = TrialRepository(
-                session, restrict_to_province=self._restrict_province
-            )
-            trials = await repository.get_by_ncts([nct_number])
-            return trials[0] if trials else None
+    async def _get_trial(self, nct_number: str) -> TrialCitation | None:
+        found = await self._trials.get_by_ncts([nct_number])
+        return found[0] if found else None
 
     async def _translate(self, texts: list[str], target: Language) -> dict[str, str]:
         """Translate the given source strings, using and filling the cache."""
@@ -118,13 +106,8 @@ class TranslationService:
                 **english,
             )
 
-        official = _official_french(trial) if target is Language.FR_CA else {}
-        # Fields with no official translation fall through to the provider, so a
-        # trial with a French title but no French criteria is handled per field.
         needs_machine: dict[str, str] = {
-            name: text
-            for name, text in english.items()
-            if text and not official.get(name)
+            name: text for name, text in english.items() if text
         }
 
         lines = [
@@ -145,8 +128,8 @@ class TranslationService:
                 **english,
             )
 
-        # Vocabulary is best-effort: losing it must not discard official French
-        # narrative text, so it is translated separately and falls back to English.
+        # Vocabulary is best-effort: losing it must not discard the translated
+        # narrative, so it is translated separately and falls back to English.
         try:
             vocabulary = await self._translate(
                 [*cancer_types, *treatment_types], target
@@ -158,20 +141,12 @@ class TranslationService:
         machine = {
             name: rebuild(text, narrative) for name, text in needs_machine.items()
         }
-        resolved = {
-            name: official.get(name) or machine.get(name) or text
-            for name, text in english.items()
-        }
-        machine_used = any(needs_machine.get(name) for name in _TEXT_FIELDS)
+        resolved = {name: machine.get(name) or text for name, text in english.items()}
 
         return TrialTranslation(
             nct_number=nct_number,
             language=target,
-            source=(
-                TranslationSource.MACHINE
-                if machine_used
-                else TranslationSource.OFFICIAL
-            ),
+            source=TranslationSource.MACHINE,
             cancer_type_names={
                 name: vocabulary.get(name, name) for name in cancer_types
             },

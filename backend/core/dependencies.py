@@ -40,7 +40,7 @@ def get_turnstile_service() -> TurnstileService:
 def get_translation_service() -> TranslationService:
     settings = get_settings()
     return TranslationService(
-        ReadOnlySessionFactory,
+        get_trial_search(),
         provider_factory=get_translation_provider,
         cache=TranslationCache(
             get_redis_client(),

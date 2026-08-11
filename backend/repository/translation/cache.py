@@ -23,15 +23,7 @@ def _key(text: str, target: Language) -> str:
 
 
 class TranslationCache:
-    """Caches translations by content hash.
-
-    Hashing the source text (rather than keying on a trial ID) means an edited or
-    re-seeded trial invalidates itself, and boilerplate criteria repeated across
-    trials collapse to a single entry.
-
-    Every method degrades to a miss when Redis is unavailable: a translation cache
-    outage must never fail the request.
-    """
+    """Caches translations by content hash."""
 
     def __init__(self, redis: Redis, *, ttl_seconds: int) -> None:
         self._redis = redis
