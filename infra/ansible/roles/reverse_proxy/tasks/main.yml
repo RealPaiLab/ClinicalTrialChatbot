@@ -8,14 +8,14 @@
 - name: Render the site config
   ansible.builtin.template:
     src: site.conf.j2
-    dest: /etc/nginx/sites-available/{{ project_name }}.conf
+    dest: /etc/nginx/sites-available/{{ reverse_proxy_site_name }}.conf
     mode: "0644"
   notify: Reload nginx
 
 - name: Enable the site
   ansible.builtin.file:
-    src: /etc/nginx/sites-available/{{ project_name }}.conf
-    dest: /etc/nginx/sites-enabled/{{ project_name }}.conf
+    src: /etc/nginx/sites-available/{{ reverse_proxy_site_name }}.conf
+    dest: /etc/nginx/sites-enabled/{{ reverse_proxy_site_name }}.conf
     state: link
   notify: Reload nginx
 

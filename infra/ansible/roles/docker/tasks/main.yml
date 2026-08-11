@@ -49,4 +49,4 @@
     name: "{{ deploy_user }}"
     groups: docker
     append: true
-  when: "'app' in group_names"
+  when: docker_add_deploy_user | default(false)
