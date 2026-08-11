@@ -15,6 +15,11 @@ WORKDIR /app
 
 RUN addgroup --system app && adduser --system --ingroup app --no-create-home app
 
+# The runtime serves from /app/.venv and never installs anything, so drop the base image's pip
+RUN rm -rf /usr/local/lib/python3*/site-packages/pip \
+    /usr/local/lib/python3*/site-packages/pip-*.dist-info \
+    /usr/local/bin/pip*
+
 COPY --from=build /app/.venv /app/.venv
 
 COPY --chown=app:app . .
