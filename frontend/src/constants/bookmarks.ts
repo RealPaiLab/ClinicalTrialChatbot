@@ -1,24 +1,4 @@
-export const BOOKMARKS = {
-  triggerLabel: 'Saved trials',
-  title: 'Saved trials',
-  description: 'Trials you saved. They stay on this device until you remove them.',
-  emptyTitle: 'Nothing saved yet',
-  emptyHint: 'Open a trial and tap the bookmark icon to keep it here for later.',
-  exportAll: 'Export all as PDF',
-  exportOne: 'Export this trial as PDF',
-  remove: 'Remove from saved trials',
-  add: 'Save this trial',
-  added: 'Saved',
-  unavailable: 'Details unavailable right now',
-} as const;
-
-export const EXPORT_TOAST = {
-  preparing: 'Building your PDF',
-  ready: 'Your PDF is downloading',
-  failed: 'The PDF could not be built',
-  failedHint: 'Try again, and let us know if it keeps failing.',
-} as const;
-
+// The printed document stays English: the PDF renders trial text as stored, not as translated.
 export const PRINT_DOC = {
   brand: 'Cancer Clinical Trial Navigator',
   eyebrow: 'Trial summary',

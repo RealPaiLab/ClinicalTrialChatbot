@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   ChatRequestError,
+  chatError,
   chatErrorForCode,
-  chatErrorMessage,
   parseEventStream,
   streamChat,
 } from './chat';
-import { CHAT_ERROR, StreamEventType } from '@/constants/chat';
+import { CHAT_ERROR_KEY, StreamEventType } from '@/constants/chat';
 import type { StreamEvent } from '@/types/trial';
 import { createSseStream, mockWireStreamLines } from '@/test/fixtures/trials';
 
@@ -87,34 +87,37 @@ describe('streamChat', () => {
   });
 });
 
-describe('chatErrorMessage', () => {
-  it('returns a rate-limit message for 429, with the retry delay when present', () => {
-    expect(chatErrorMessage(new ChatRequestError(429))).toBe(CHAT_ERROR.rateLimited);
-    expect(chatErrorMessage(new ChatRequestError(429, 12))).toContain('12s');
+describe('chatError', () => {
+  it('returns a rate-limit key for 429, carrying the retry delay when present', () => {
+    expect(chatError(new ChatRequestError(429))).toEqual({ key: CHAT_ERROR_KEY.rateLimited });
+    expect(chatError(new ChatRequestError(429, 12))).toEqual({
+      key: CHAT_ERROR_KEY.rateLimitedRetry,
+      params: { seconds: 12 },
+    });
   });
 
   it('distinguishes unavailable (5xx gateway) from generic server errors', () => {
-    expect(chatErrorMessage(new ChatRequestError(503))).toBe(CHAT_ERROR.unavailable);
-    expect(chatErrorMessage(new ChatRequestError(500))).toBe(CHAT_ERROR.serverError);
+    expect(chatError(new ChatRequestError(503)).key).toBe(CHAT_ERROR_KEY.unavailable);
+    expect(chatError(new ChatRequestError(500)).key).toBe(CHAT_ERROR_KEY.serverError);
   });
 
   it('treats a failed fetch (TypeError) as a network error', () => {
-    expect(chatErrorMessage(new TypeError('Failed to fetch'))).toBe(CHAT_ERROR.network);
+    expect(chatError(new TypeError('Failed to fetch')).key).toBe(CHAT_ERROR_KEY.network);
   });
 
-  it('falls back to a generic message for unknown errors and 4xx', () => {
-    expect(chatErrorMessage(new ChatRequestError(400))).toBe(CHAT_ERROR.generic);
-    expect(chatErrorMessage(new Error('boom'))).toBe(CHAT_ERROR.generic);
+  it('falls back to a generic key for unknown errors and 4xx', () => {
+    expect(chatError(new ChatRequestError(400)).key).toBe(CHAT_ERROR_KEY.generic);
+    expect(chatError(new Error('boom')).key).toBe(CHAT_ERROR_KEY.generic);
   });
 });
 
 describe('chatErrorForCode', () => {
-  it('maps known backend error codes to copy', () => {
-    expect(chatErrorForCode('model_unavailable')).toBe(CHAT_ERROR.unavailable);
-    expect(chatErrorForCode('model_error')).toContain('rephrasing');
+  it('maps known backend error codes to keys', () => {
+    expect(chatErrorForCode('model_unavailable').key).toBe(CHAT_ERROR_KEY.unavailable);
+    expect(chatErrorForCode('model_error').key).toBe(CHAT_ERROR_KEY.modelError);
   });
 
   it('falls back to generic for an unknown code', () => {
-    expect(chatErrorForCode('something_new')).toBe(CHAT_ERROR.generic);
+    expect(chatErrorForCode('something_new').key).toBe(CHAT_ERROR_KEY.generic);
   });
 });

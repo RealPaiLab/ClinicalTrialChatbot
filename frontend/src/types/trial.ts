@@ -1,5 +1,5 @@
 import { StreamEventType } from '@/constants/chat';
-import type { ChatRole } from '@/constants/chat';
+import type { ChatErrorKey, ChatRole } from '@/constants/chat';
 import type { LanguageCode, TranslationSource } from '@/constants/language';
 
 export type { ChatRole };
@@ -68,6 +68,11 @@ export type StreamEvent =
   | { type: typeof StreamEventType.ChatResult; data: ChatResult }
   | { type: typeof StreamEventType.Error; data: string };
 
+export interface ChatError {
+  key: ChatErrorKey;
+  params?: { seconds?: number; limit?: number };
+}
+
 export interface ChatMessage {
   id: string;
   role: ChatRole;
@@ -76,5 +81,5 @@ export interface ChatMessage {
   contextNctNumbers?: string[];
   followUpQuestions?: string[];
   observationId?: string;
-  isError?: boolean;
+  error?: ChatError;
 }

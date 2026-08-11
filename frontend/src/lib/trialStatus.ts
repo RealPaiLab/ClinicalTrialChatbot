@@ -2,6 +2,7 @@ import type { TrialStatus } from '@/types/trial';
 
 interface TrialStatusConfig {
   label: string;
+  labelKey: string;
   colorClass: string;
   badgeClass: string;
   pulse: boolean;
@@ -10,12 +11,14 @@ interface TrialStatusConfig {
 export const TRIAL_STATUS = {
   recruiting: {
     label: 'Recruiting',
+    labelKey: 'status.recruiting',
     colorClass: 'text-recruiting',
     badgeClass: 'bg-recruiting',
     pulse: true,
   },
   opening_soon: {
     label: 'Opening soon',
+    labelKey: 'status.openingSoon',
     colorClass: 'text-active',
     badgeClass: 'bg-active',
     pulse: false,

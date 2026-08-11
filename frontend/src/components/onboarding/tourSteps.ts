@@ -1,4 +1,6 @@
 import type { DriveStep, Driver } from 'driver.js';
+import i18n from '@/i18n';
+import type en from '@/i18n/locales/en';
 import { useAppStore } from '@/store/appStore';
 import { DEMO_TRIALS } from './demoTrials';
 
@@ -76,29 +78,29 @@ export function teardownAskAi() {
   document.getElementById(ASK_AI_PROXY_ID)?.remove();
 }
 
+type StepName = keyof typeof en.tour.steps;
+
+// The tour is built when it starts, so it picks up whatever language is active then.
+function step(name: StepName): { title: string; description: string } {
+  return {
+    title: i18n.t(`tour.steps.${name}.title`),
+    description: i18n.t(`tour.steps.${name}.description`),
+  };
+}
+
 export function buildTourSteps(getTour: () => Driver): DriveStep[] {
   return [
     {
-      popover: {
-        title: 'Welcome to Cancer Trial Navigator',
-        description:
-          'This quick tour shows you how to find cancer clinical trials by chatting, exploring the map, and asking about the ones that interest you. It only takes a moment.',
-      },
+      popover: step('welcome'),
     },
     {
       element: '[data-tour="app"]',
-      popover: {
-        title: 'Your workspace',
-        description:
-          'Three panels work together: the chat on the left, the map top-right, and trial details bottom-right. As you chat, the map and details stay in sync. Let us walk through each.',
-      },
+      popover: step('workspace'),
     },
     {
       element: '[data-tour="chat-input"]',
       popover: {
-        title: 'Start with a message',
-        description:
-          'Describe your situation in plain language, for example your cancer type, stage, and city. The assistant asks follow-up questions and finds matching trials.',
+        ...step('message'),
         side: 'top',
         align: 'center',
       },
@@ -106,9 +108,7 @@ export function buildTourSteps(getTour: () => Driver): DriveStep[] {
     {
       element: '[data-tour="chat-messages"]',
       popover: {
-        title: 'Reading the answer',
-        description:
-          'Answers cite real trials as pills like the one above: click one to focus it on the map, or hover to preview it. Underlined medical terms show a plain-language definition on hover.',
+        ...step('answer'),
         side: 'right',
         align: 'center',
         onNextClick: () => {
@@ -120,9 +120,7 @@ export function buildTourSteps(getTour: () => Driver): DriveStep[] {
     {
       element: () => ensureAskAiProxy(),
       popover: {
-        title: 'Ask about anything',
-        description:
-          'Highlight any text in an answer and an Ask AI button appears, so you can ask the assistant to explain or expand on it in a follow-up.',
+        ...step('askAi'),
         side: 'right',
         align: 'center',
       },
@@ -131,9 +129,7 @@ export function buildTourSteps(getTour: () => Driver): DriveStep[] {
     {
       element: '[data-tour="feedback"]',
       popover: {
-        title: 'Tell us how it did',
-        description:
-          'Rate each answer with a thumbs up or down. You can add a comment or suggest trials the assistant missed, which helps us keep improving it.',
+        ...step('feedback'),
         side: 'right',
         align: 'center',
         onPrevClick: () => {
@@ -145,9 +141,7 @@ export function buildTourSteps(getTour: () => Driver): DriveStep[] {
     {
       element: '[data-tour="map"]',
       popover: {
-        title: 'See trials on the map',
-        description:
-          'Matching trial sites appear as pins as the conversation narrows things down. Coverage is currently limited to Ontario.',
+        ...step('map'),
         side: 'left',
         align: 'center',
       },
@@ -159,9 +153,7 @@ export function buildTourSteps(getTour: () => Driver): DriveStep[] {
     {
       element: '[data-tour="summary"]',
       popover: {
-        title: 'Trial details',
-        description:
-          'Click any pin to see that trial here: its phase, eligibility, locations, and a link to the official page.',
+        ...step('details'),
         side: 'top',
         align: 'center',
       },
@@ -173,9 +165,7 @@ export function buildTourSteps(getTour: () => Driver): DriveStep[] {
     {
       element: '[data-tour="trial-link"]',
       popover: {
-        title: 'Open the official page',
-        description:
-          'This opens the trial on the Cancer Trials Canada website, where you can read the full listing and find out how to get in touch.',
+        ...step('officialPage'),
         side: 'bottom',
         align: 'end',
       },
@@ -183,9 +173,7 @@ export function buildTourSteps(getTour: () => Driver): DriveStep[] {
     {
       element: '[data-tour="add-context"]',
       popover: {
-        title: 'Ask about a trial',
-        description:
-          'Curious about a specific trial? Add it to your chat with this button, then ask the assistant anything about it.',
+        ...step('addToChat'),
         side: 'bottom',
         align: 'end',
       },
@@ -193,9 +181,7 @@ export function buildTourSteps(getTour: () => Driver): DriveStep[] {
     {
       element: '[data-tour="chat-input"]',
       popover: {
-        title: 'Your added trials',
-        description:
-          'Trials you add show up here as chips before you send a message. Remove any of them with the × when you no longer need it.',
+        ...step('addedTrials'),
         side: 'top',
         align: 'center',
       },
@@ -206,11 +192,7 @@ export function buildTourSteps(getTour: () => Driver): DriveStep[] {
       },
     },
     {
-      popover: {
-        title: "You're all set",
-        description:
-          'That is the whole tour. Start by describing your situation in the chat, and the map and trial details will follow along. You can reopen this tour anytime from the help button up top.',
-      },
+      popover: step('finish'),
     },
   ];
 }

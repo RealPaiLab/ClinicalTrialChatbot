@@ -9,12 +9,14 @@ const API_BASE = config.apiBaseUrl;
 async function getTrialTranslation(
   nctNumber: string,
   language: LanguageCode,
+  cachedOnly: boolean,
   signal?: AbortSignal
 ): Promise<TrialTranslation> {
-  const response = await fetch(
-    `${API_BASE}/trials/${nctNumber}/translation?language=${encodeURIComponent(language)}`,
-    { signal }
-  );
+  const query = new URLSearchParams({ language });
+  if (cachedOnly) query.set('cached_only', 'true');
+  const response = await fetch(`${API_BASE}/trials/${nctNumber}/translation?${query}`, {
+    signal,
+  });
   if (!response.ok) {
     throw new Error(`Translation request failed with status ${response.status}`);
   }
@@ -24,14 +26,16 @@ async function getTrialTranslation(
   return camelcaseKeys(data) as unknown as TrialTranslation;
 }
 
-export function trialTranslationQuery(nctNumber: string | null, language: LanguageCode | null) {
+export function trialTranslationQuery(
+  nctNumber: string | null,
+  language: LanguageCode | null,
+  { cachedOnly = false }: { cachedOnly?: boolean } = {}
+) {
   return queryOptions({
-    queryKey: ['trial-translation', nctNumber, language],
+    queryKey: ['trial-translation', nctNumber, language, cachedOnly],
     queryFn: ({ signal }) =>
-      getTrialTranslation(nctNumber as string, language as LanguageCode, signal),
+      getTrialTranslation(nctNumber as string, language as LanguageCode, cachedOnly, signal),
     enabled: Boolean(nctNumber && language),
-    // Translations are deterministic and cached server-side; never refetch one
-    // the session has already paid for.
     staleTime: Infinity,
   });
 }

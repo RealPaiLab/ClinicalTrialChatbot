@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { LanguageCode } from '@/constants/language';
 import type { ChatMessage, Trial } from '@/types/trial';
 
 export type Theme = 'light' | 'dark';
@@ -13,6 +14,8 @@ interface AppState {
   /** Trials put on the map from the saved list rather than by a chat turn. */
   bookmarkTrialNctNumbers: string[];
   theme: Theme;
+  language: LanguageCode;
+  hasChosenLanguage: boolean;
   hasSeenTour: boolean;
   tourMessages: ChatMessage[];
 
@@ -28,6 +31,8 @@ interface AppState {
   reset: () => void;
   toggleTheme: () => void;
   setTheme: (theme: Theme) => void;
+  setLanguage: (language: LanguageCode) => void;
+  markLanguageChosen: () => void;
   markTourSeen: () => void;
   setTourMessages: (messages: ChatMessage[]) => void;
 }
@@ -42,6 +47,8 @@ export const useAppStore = create<AppState>()(
       bookmarkedNctNumbers: [],
       bookmarkTrialNctNumbers: [],
       theme: 'light',
+      language: LanguageCode.En,
+      hasChosenLanguage: false,
       hasSeenTour: false,
       tourMessages: [],
 
@@ -105,6 +112,8 @@ export const useAppStore = create<AppState>()(
         }),
       toggleTheme: () => set((state) => ({ theme: state.theme === 'dark' ? 'light' : 'dark' })),
       setTheme: (theme) => set({ theme }),
+      setLanguage: (language) => set({ language }),
+      markLanguageChosen: () => set({ hasChosenLanguage: true }),
       markTourSeen: () => set({ hasSeenTour: true }),
       setTourMessages: (tourMessages) => set({ tourMessages }),
     }),
@@ -112,6 +121,8 @@ export const useAppStore = create<AppState>()(
       name: 'ctc-app',
       partialize: (state) => ({
         theme: state.theme,
+        language: state.language,
+        hasChosenLanguage: state.hasChosenLanguage,
         hasSeenTour: state.hasSeenTour,
         bookmarkedNctNumbers: state.bookmarkedNctNumbers,
       }),
