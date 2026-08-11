@@ -11,7 +11,7 @@ import { config } from '@/config';
 
 const queryClient = createQueryClient();
 
-const debugEnabled = config.isDevelopment;
+const debugEnabled = !config.isProduction;
 
 function App() {
   return (

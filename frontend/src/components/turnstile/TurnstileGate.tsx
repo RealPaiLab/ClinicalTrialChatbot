@@ -11,7 +11,7 @@ interface TurnstileGateProps {
 }
 
 function TurnstileGate({ children }: TurnstileGateProps) {
-  const enabled = !config.isDevelopment && Boolean(config.turnstileSiteKey);
+  const enabled = config.isProduction && Boolean(config.turnstileSiteKey);
   const [verificationId] = useState(getVerificationId);
   const [token, setToken] = useState<string | null>(null);
   const [verified, setVerified] = useState(!enabled);
