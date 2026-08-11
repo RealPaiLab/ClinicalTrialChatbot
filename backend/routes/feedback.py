@@ -20,7 +20,7 @@ async def submit_feedback(
     langfuse: Annotated[Langfuse, Depends(get_langfuse_client)],
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> dict[str, str]:
-    details = settings.is_development
+    details = not settings.is_production
     langfuse.create_score(
         trace_id=trace_id_from_session(request.session_id),
         observation_id=request.observation_id,

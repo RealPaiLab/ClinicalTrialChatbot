@@ -7,6 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Environment(StrEnum):
     DEVELOPMENT = "development"
+    STAGING = "staging"
     PRODUCTION = "production"
 
 
@@ -75,14 +76,14 @@ class Settings(BaseSettings):
     nci_drug_dictionary_base_url: str = "https://webapis.cancer.gov/drugdictionary/v1"
 
     @property
-    def is_development(self) -> bool:
-        return self.environment is Environment.DEVELOPMENT
+    def is_production(self) -> bool:
+        return self.environment is Environment.PRODUCTION
 
     @property
     def capture_patient_text(self) -> bool:
         if self.langfuse_capture_content is not None:
             return self.langfuse_capture_content
-        return self.is_development
+        return not self.is_production
 
     @computed_field  # type: ignore[prop-decorator]
     @property

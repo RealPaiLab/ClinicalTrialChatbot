@@ -34,7 +34,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await read_engine.dispose()
 
 
-_docs_enabled = get_settings().is_development
+_docs_enabled = not get_settings().is_production
 app = FastAPI(
     lifespan=lifespan,
     docs_url="/docs" if _docs_enabled else None,
@@ -58,7 +58,7 @@ app.include_router(trials.router)
 app.include_router(feedback.router)
 app.include_router(evals.router)
 
-if get_settings().is_development:
+if not get_settings().is_production:
     app.include_router(debug.router)
 
 
