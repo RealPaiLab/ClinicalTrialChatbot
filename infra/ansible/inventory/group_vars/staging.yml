@@ -12,7 +12,7 @@ backend_version: staging
 frontend_version: staging
 
 cors_allow_origins:
-  - "http://{{ public_domain }}"
+  - "https://{{ public_domain }}"
 
 # Same host: reach Langfuse over the private IP, not the app VM's route.
 langfuse_host: "http://{{ private_ip }}:3000"
@@ -20,8 +20,6 @@ langfuse_capture_content: true
 langfuse_prompt_label: staging
 langfuse_seed_prompt: true
 
-# No dehydrated cert exists for this hostname, and the network is internal-only.
-reverse_proxy_tls_enabled: false
 reverse_proxy_site_name: "{{ project_name }}-staging"
 
 app_secrets:

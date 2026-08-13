@@ -1,6 +1,33 @@
 {% set zone = reverse_proxy_site_name | replace('-', '_') | replace('.', '_') %}
 {% set server_names = public_domain ~ (' ' ~ external_domain if external_domain | default('') else '') %}
-{% macro app_locations() %}
+# Managed by Ansible (reverse_proxy role). Site: {{ reverse_proxy_site_name }}.
+{% if reverse_proxy_rate_limit_enabled | default(true) %}
+# Rate-limit zones (http context). Chat is tighter: each turn is an expensive LLM call.
+# Zone names carry the site name so co-hosted sites cannot redeclare each other's zones.
+limit_req_zone $binary_remote_addr zone={{ zone }}_chat:10m rate={{ reverse_proxy_chat_rate }};
+limit_req_zone $binary_remote_addr zone={{ zone }}_api:10m rate={{ reverse_proxy_api_rate }};
+{% endif %}
+server {
+    listen 80;
+    server_name {{ server_names }};
+
+    location /.well-known/acme-challenge/ {
+        alias {{ reverse_proxy_acme_webroot }}/;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+server {
+    listen 443 ssl;
+    server_name {{ server_names }};
+
+    ssl_certificate {{ reverse_proxy_cert_fullchain }};
+    ssl_certificate_key {{ reverse_proxy_cert_privkey }};
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+
     client_max_body_size 10m;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
@@ -37,42 +64,4 @@
     location / {
         proxy_pass http://127.0.0.1:{{ reverse_proxy_frontend_port }}/;
     }
-{% endmacro %}
-# Managed by Ansible (reverse_proxy role). Site: {{ reverse_proxy_site_name }}.
-{% if reverse_proxy_rate_limit_enabled | default(true) %}
-# Rate-limit zones (http context). Chat is tighter: each turn is an expensive LLM call.
-# Zone names carry the site name so co-hosted sites cannot redeclare each other's zones.
-limit_req_zone $binary_remote_addr zone={{ zone }}_chat:10m rate={{ reverse_proxy_chat_rate }};
-limit_req_zone $binary_remote_addr zone={{ zone }}_api:10m rate={{ reverse_proxy_api_rate }};
-{% endif %}
-{% if reverse_proxy_tls_enabled | default(true) %}
-server {
-    listen 80;
-    server_name {{ server_names }};
-
-    location /.well-known/acme-challenge/ {
-        alias {{ reverse_proxy_acme_webroot }}/;
-    }
-
-    location / {
-        return 301 https://$host$request_uri;
-    }
 }
-server {
-    listen 443 ssl;
-    server_name {{ server_names }};
-
-    ssl_certificate {{ reverse_proxy_cert_fullchain }};
-    ssl_certificate_key {{ reverse_proxy_cert_privkey }};
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_prefer_server_ciphers off;
-{{ app_locations() }}
-}
-{% else %}
-# No TLS: internal-only host with no dehydrated cert. Served straight off port 80.
-server {
-    listen 80;
-    server_name {{ server_names }};
-{{ app_locations() }}
-}
-{% endif %}

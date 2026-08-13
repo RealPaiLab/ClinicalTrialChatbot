@@ -1,9 +1,6 @@
 ---
 reverse_proxy_site_name: "{{ project_name }}"
 
-# Staging turns TLS off: the network is internal-only and no dehydrated cert exists for it.
-reverse_proxy_tls_enabled: true
-
 reverse_proxy_cert_fullchain: "/var/lib/dehydrated/certs/{{ public_domain }}/fullchain.pem"
 reverse_proxy_cert_privkey: "/var/lib/dehydrated/certs/{{ public_domain }}/privkey.pem"
 reverse_proxy_acme_webroot: /var/lib/dehydrated/acme-challenges

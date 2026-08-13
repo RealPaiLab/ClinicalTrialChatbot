@@ -15,7 +15,7 @@ Two deployed environments, both driven by the same roles:
 | Compose project | `app` | `staging` |
 | `deploy_slot` | `app` (kept: production is already deployed there) | `staging` |
 | Host ports (127.0.0.1) | 5432 / 6379 / 8000 / 8080 | 5433 / 6380 / 8001 / 8081 |
-| Edge | nginx + TLS (dehydrated cert) | nginx, plain HTTP (internal network) |
+| Edge | nginx + TLS (dehydrated cert) | nginx + TLS (own dehydrated cert), separate site |
 | `ENVIRONMENT` | `production` | `staging` (adds `/debug`, API docs, free-text feedback, trace content; no Turnstile) |
 | Image tag | semver from a release tag | `staging` / `staging-<short-sha>` |
 
