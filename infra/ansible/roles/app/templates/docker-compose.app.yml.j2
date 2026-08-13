@@ -60,6 +60,13 @@ services:
 {% if langfuse_prompt_label | default('') | length > 0 %}
       LANGFUSE_PROMPT_LABEL: "{{ langfuse_prompt_label }}"
 {% endif %}
+      TRANSLATION_PROVIDER: "{{ translation_provider }}"
+{% if google_project_id | default('') | length > 0 %}
+      GOOGLE_PROJECT_ID: "{{ google_project_id }}"
+{% endif %}
+{% if translation_llm_model | default('') | length > 0 %}
+      TRANSLATION_LLM_MODEL: "{{ translation_llm_model }}"
+{% endif %}
       CORS_ALLOW_ORIGINS: '{{ cors_allow_origins | to_json }}'
 {% if restrict_to_province | default('') | length > 0 %}
       RESTRICT_TO_PROVINCE: "{{ restrict_to_province }}"

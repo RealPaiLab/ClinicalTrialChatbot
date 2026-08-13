@@ -11,6 +11,8 @@ frontend_host_port: 8081
 backend_version: staging
 frontend_version: staging
 
+translation_provider: llm
+
 cors_allow_origins:
   - "https://{{ public_domain }}"
 
@@ -20,6 +22,7 @@ langfuse_capture_content: true
 langfuse_prompt_label: staging
 langfuse_seed_prompt: true
 
+# Own nginx site beside Langfuse; the cert paths derive from public_domain.
 reverse_proxy_site_name: "{{ project_name }}-staging"
 
 app_secrets:

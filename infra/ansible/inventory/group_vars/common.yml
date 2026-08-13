@@ -24,6 +24,8 @@ langfuse_prompt_label: production
 
 llm_provider: openai
 llm_model: gpt-5.4-mini
+
+translation_provider: google
 embedding_provider: openai
 embedding_model: text-embedding-3-large
 
