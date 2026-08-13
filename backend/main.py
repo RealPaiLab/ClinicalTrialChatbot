@@ -7,14 +7,17 @@ from sqlalchemy import text
 
 from agents.clinical_trials.prompts import ensure_clinical_trials_prompt_seeded
 from agents.input_triage.prompts import ensure_triage_prompt_seeded
+from agents.translation.prompts import ensure_translation_prompt_seeded
 from core.config import get_settings
 from core.database import engine, read_engine
+from core.dependencies import aclose_translation_provider
 from core.embeddings import get_embedder
 from core.exception_handlers import register_exception_handlers
 from core.http_retry import aclose_retrying_client
 from core.langfuse import setup_langfuse
 from core.middleware import ClientIPMiddleware
-from routes import chat, debug, evals, feedback, trials
+from core.redis import aclose_redis_client
+from routes import chat, debug, evals, feedback, translation, trials
 
 
 @asynccontextmanager
@@ -25,11 +28,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     setup_langfuse()
     ensure_clinical_trials_prompt_seeded()
     ensure_triage_prompt_seeded()
+    ensure_translation_prompt_seeded()
     if get_settings().embedding_warmup:
         await get_embedder().embed_query("warmup")
     yield
     # Shutdown: close the shared HTTP client and dispose both connection pools
     await aclose_retrying_client()
+    await aclose_translation_provider()
+    await aclose_redis_client()
     await engine.dispose()
     await read_engine.dispose()
 
@@ -55,6 +61,7 @@ register_exception_handlers(app)
 
 app.include_router(chat.router)
 app.include_router(trials.router)
+app.include_router(translation.router)
 app.include_router(feedback.router)
 app.include_router(evals.router)
 

@@ -1,7 +1,7 @@
 import camelcaseKeys from 'camelcase-keys';
 import { config } from '@/config';
-import { CHAT_ERROR, CHAT_ERROR_BY_CODE } from '@/constants/chat';
-import type { StreamEvent } from '@/types/trial';
+import { CHAT_ERROR_KEY, CHAT_ERROR_KEY_BY_CODE } from '@/constants/chat';
+import type { ChatError, StreamEvent } from '@/types/trial';
 
 const API_BASE = config.apiBaseUrl;
 const SSE_DATA_PREFIX = 'data:';
@@ -24,25 +24,25 @@ export class ChatRequestError extends Error {
   }
 }
 
-export function chatErrorMessage(error: unknown): string {
+export function chatError(error: unknown): ChatError {
   if (error instanceof ChatRequestError) {
     if (error.status === 429) {
       return error.retryAfter !== undefined && error.retryAfter > 0
-        ? `You're sending messages too quickly. Please wait ${error.retryAfter}s and try again.`
-        : CHAT_ERROR.rateLimited;
+        ? { key: CHAT_ERROR_KEY.rateLimitedRetry, params: { seconds: error.retryAfter } }
+        : { key: CHAT_ERROR_KEY.rateLimited };
     }
     if (error.status === 502 || error.status === 503 || error.status === 504) {
-      return CHAT_ERROR.unavailable;
+      return { key: CHAT_ERROR_KEY.unavailable };
     }
-    if (error.status >= 500) return CHAT_ERROR.serverError;
-    return CHAT_ERROR.generic;
+    if (error.status >= 500) return { key: CHAT_ERROR_KEY.serverError };
+    return { key: CHAT_ERROR_KEY.generic };
   }
-  if (error instanceof TypeError) return CHAT_ERROR.network;
-  return CHAT_ERROR.generic;
+  if (error instanceof TypeError) return { key: CHAT_ERROR_KEY.network };
+  return { key: CHAT_ERROR_KEY.generic };
 }
 
-export function chatErrorForCode(code: string): string {
-  return CHAT_ERROR_BY_CODE[code] ?? CHAT_ERROR.generic;
+export function chatErrorForCode(code: string): ChatError {
+  return { key: CHAT_ERROR_KEY_BY_CODE[code] ?? CHAT_ERROR_KEY.generic };
 }
 
 export interface StreamChatParams {

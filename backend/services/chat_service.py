@@ -7,7 +7,11 @@ from pydantic_ai.messages import ModelMessage
 
 from agents.clinical_trials.agent import get_clinical_trials_agent
 from agents.clinical_trials.dependencies import AgentDeps, TrialSearch
-from agents.clinical_trials.guards import prefetch_referenced_trials, refusal_directive
+from agents.clinical_trials.guards import (
+    conversation_nct_numbers,
+    prefetch_referenced_trials,
+    refusal_directive,
+)
 from agents.clinical_trials.output import AgentResponse
 from agents.input_triage.agent import get_input_triage_agent
 from agents.input_triage.output import RequestCategory, TriageDecision
@@ -85,6 +89,7 @@ class ChatService:
         ):
             try:
                 history = await self._conversation_service.get_history(session_id)
+                deps.known_ncts = conversation_nct_numbers(history)
                 decision, category = await self._triage_turn(user_message, history)
                 if decision is TriageDecision.REFUSE and category is not None:
                     deps.refusal_directive = refusal_directive(refusal_reason(category))

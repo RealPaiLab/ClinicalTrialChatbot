@@ -52,6 +52,7 @@ class Settings(BaseSettings):
     langfuse_host: str = "http://localhost:3000"
     langfuse_clinical_trials_prompt_name: str = "clinical-trial-chatbot-system"
     langfuse_triage_prompt_name: str = "clinical-trial-chatbot-triage"
+    langfuse_translation_prompt_name: str = "clinical-trial-chatbot-translation"
     langfuse_prompt_label: str = "production"
     langfuse_seed_prompt: bool = True
     langfuse_capture_content: bool | None = None
@@ -59,6 +60,18 @@ class Settings(BaseSettings):
     conversation_store: str = "memory"
     redis_url: str = "redis://localhost:6379/0"
     conversation_ttl_seconds: int = 3600
+
+    translation_provider: str = "google"
+    google_project_id: str | None = None
+    # Falls back to llm_model when unset, like triage_llm_model.
+    translation_llm_model: str | None = None
+    translation_llm_retries: int = 2
+    translation_llm_concurrency: int = 10
+    translation_llm_fallback_max_lines: int = 20
+    translation_request_timeout: float = 30.0
+    # Cache keys are content-hashed, so they can never serve stale text and a
+    # long TTL is strictly cheaper against a paid API. 30 days.
+    translation_cache_ttl_seconds: int = 2_592_000
 
     search_default_limit: int = 5
     restrict_to_province: str | None = None

@@ -1,28 +1,33 @@
 import { HelpCircle, Sparkles } from 'lucide-react';
+import { Trans, useTranslation } from 'react-i18next';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
-import { AGENT_NAME } from '@/constants/chat';
 
 function AskAiHint() {
+  const { t } = useTranslation();
+
   return (
     <HoverCard openDelay={100} closeDelay={0}>
       <HoverCardTrigger asChild>
         <button
           type="button"
-          aria-label="How to get a term explained"
+          aria-label={t('chat.askAiHint')}
           className="text-muted-foreground hover:text-foreground shrink-0 transition-colors"
         >
           <HelpCircle className="size-3.5" />
         </button>
       </HoverCardTrigger>
       <HoverCardContent className="w-64 text-sm leading-relaxed">
-        Don't understand a word?{' '}
-        <mark className="bg-amber/40 text-foreground rounded px-1">Highlight</mark> it in the
-        conversation and click the{' '}
-        <span className="text-foreground inline-flex items-center gap-0.5 align-baseline font-medium underline underline-offset-2">
-          <Sparkles className="size-3" />
-          Ask AI
-        </span>{' '}
-        button that appears, and {AGENT_NAME} will explain it.
+        <Trans
+          i18nKey="chat.askAiHintBody"
+          components={{
+            mark: <mark className="bg-amber/40 text-foreground rounded px-1" />,
+            ask: (
+              <span className="text-foreground inline-flex items-center gap-0.5 align-baseline font-medium underline underline-offset-2">
+                <Sparkles className="size-3" />
+              </span>
+            ),
+          }}
+        />
       </HoverCardContent>
     </HoverCard>
   );

@@ -1,5 +1,6 @@
 import { StreamEventType } from '@/constants/chat';
-import type { ChatRole } from '@/constants/chat';
+import type { ChatErrorKey, ChatRole } from '@/constants/chat';
+import type { LanguageCode, TranslationSource } from '@/constants/language';
 
 export type { ChatRole };
 
@@ -34,6 +35,19 @@ export type TrialSummary = Pick<
   'nctNumber' | 'shortTitleEn' | 'officialTitleEn' | 'descriptionEn'
 >;
 
+export interface TrialTranslation {
+  nctNumber: string;
+  language: LanguageCode;
+  source: TranslationSource;
+  shortTitle: string | null;
+  officialTitle: string | null;
+  description: string | null;
+  inclusionCriteria: string | null;
+  exclusionCriteria: string | null;
+  cancerTypeNames: Record<string, string>;
+  treatmentTypeNames: Record<string, string>;
+}
+
 export type TrialStatus = 'recruiting' | 'opening_soon';
 
 export interface ChatResult {
@@ -54,12 +68,18 @@ export type StreamEvent =
   | { type: typeof StreamEventType.ChatResult; data: ChatResult }
   | { type: typeof StreamEventType.Error; data: string };
 
+export interface ChatError {
+  key: ChatErrorKey;
+  params?: { seconds?: number; limit?: number };
+}
+
 export interface ChatMessage {
   id: string;
   role: ChatRole;
   content: string;
   trials?: Trial[];
+  contextNctNumbers?: string[];
   followUpQuestions?: string[];
   observationId?: string;
-  isError?: boolean;
+  error?: ChatError;
 }

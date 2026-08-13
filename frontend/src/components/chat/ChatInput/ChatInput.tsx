@@ -1,4 +1,5 @@
 import type { ChatStatus } from 'ai';
+import { useTranslation } from 'react-i18next';
 import {
   PromptInput,
   PromptInputBody,
@@ -12,9 +13,6 @@ import {
 import AskAiHint from '@/components/chat/AskAiHint/AskAiHint';
 import SelectedTrials from '@/components/chat/SelectedTrials/SelectedTrials';
 import type { Trial } from '@/types/trial';
-
-const PLACEHOLDER = 'Describe your situation or ask about a trial...';
-const SEND_HINT = 'Enter to send';
 
 interface ChatInputProps {
   onSend: (text: string) => void;
@@ -31,6 +29,8 @@ function ChatInput({
   contextTrials = [],
   onRemoveContext,
 }: ChatInputProps) {
+  const { t } = useTranslation();
+
   const handleSubmit = (message: PromptInputMessage) => {
     if (status === 'streaming') {
       onStop?.();
@@ -58,11 +58,11 @@ function ChatInput({
         </PromptInputHeader>
       )}
       <PromptInputBody>
-        <PromptInputTextarea placeholder={PLACEHOLDER} className="min-h-14" />
+        <PromptInputTextarea placeholder={t('chat.placeholder')} className="min-h-14" />
       </PromptInputBody>
       <PromptInputFooter>
         <PromptInputTools>
-          <span className="text-caption text-muted-foreground px-1">{SEND_HINT}</span>
+          <span className="text-caption text-muted-foreground px-1">{t('chat.sendHint')}</span>
         </PromptInputTools>
         <PromptInputSubmit status={status} />
       </PromptInputFooter>

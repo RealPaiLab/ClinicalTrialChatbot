@@ -2,13 +2,13 @@ import { useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ChatStatus } from 'ai';
 import {
-  CHAT_ERROR,
+  CHAT_ERROR_KEY,
   ChatRole,
   MAX_MESSAGE_LENGTH,
   SELECTED_TRIALS_PROMPT,
   StreamEventType,
 } from '@/constants/chat';
-import { chatErrorForCode, chatErrorMessage, streamChat } from '@/services/chat';
+import { chatError, chatErrorForCode, streamChat } from '@/services/chat';
 import type { ChatMessage, StreamEvent, Trial } from '@/types/trial';
 
 type CreateStream = (text: string, signal?: AbortSignal) => AsyncGenerator<StreamEvent>;
@@ -57,8 +57,8 @@ export function useChat({
         {
           id: crypto.randomUUID(),
           role: ChatRole.Assistant,
-          content: CHAT_ERROR.messageTooLong,
-          isError: true,
+          content: '',
+          error: { key: CHAT_ERROR_KEY.messageTooLong, params: { limit: MAX_MESSAGE_LENGTH } },
         },
       ]);
       return;
@@ -75,15 +75,20 @@ export function useChat({
           signal,
         }));
 
-    const payload =
-      contextNctNumbers && contextNctNumbers.length > 0
-        ? `${text}\n\n${SELECTED_TRIALS_PROMPT}${contextNctNumbers.join(', ')}`
-        : text;
+    const hasContext = Boolean(contextNctNumbers && contextNctNumbers.length > 0);
+    const payload = hasContext
+      ? `${text}\n\n${SELECTED_TRIALS_PROMPT}${contextNctNumbers?.join(', ')}`
+      : text;
 
     const assistantId = crypto.randomUUID();
     setMessages((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), role: ChatRole.User, content: text },
+      {
+        id: crypto.randomUUID(),
+        role: ChatRole.User,
+        content: text,
+        ...(hasContext && { contextNctNumbers }),
+      },
       { id: assistantId, role: ChatRole.Assistant, content: '' },
     ]);
     setStatus('streaming');
@@ -109,17 +114,14 @@ export function useChat({
             onTrialsChange?.(event.data.trials);
           }
         } else {
-          patchMessage(assistantId, {
-            content: chatErrorForCode(event.data),
-            isError: true,
-          });
+          patchMessage(assistantId, { content: '', error: chatErrorForCode(event.data) });
         }
       }
     } catch (error) {
       if (controller.signal.aborted) {
         setMessages((prev) => prev.filter((m) => !(m.id === assistantId && m.content === '')));
       } else {
-        patchMessage(assistantId, { content: chatErrorMessage(error), isError: true });
+        patchMessage(assistantId, { content: '', error: chatError(error) });
       }
     } finally {
       setStatus('ready');

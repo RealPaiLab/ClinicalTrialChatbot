@@ -1,7 +1,9 @@
-import { Check, ExternalLink, Sparkles, X } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Check, ExternalLink, Sparkles, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { AGENT_NAME } from '@/constants/chat';
+import TrialTitle from '@/components/summary/TrialTitle/TrialTitle';
+import { useAppLanguage } from '@/hooks/useAppLanguage';
 import type { Trial } from '@/types/trial';
 
 const TRIAL_URL_BASE = 'https://www.cancertrialscanada.ca/trial/';
@@ -11,6 +13,8 @@ interface TrialSummaryHeaderProps {
   onClose?: () => void;
   onAddToContext?: (nctNumber: string) => void;
   isInContext?: boolean;
+  onToggleBookmark?: (nctNumber: string) => void;
+  isBookmarked?: boolean;
 }
 
 function TrialSummaryHeader({
@@ -18,7 +22,11 @@ function TrialSummaryHeader({
   onClose,
   onAddToContext,
   isInContext,
+  onToggleBookmark,
+  isBookmarked,
 }: TrialSummaryHeaderProps) {
+  const { t } = useTranslation();
+  const { language } = useAppLanguage();
   const title = trial.officialTitleEn ?? trial.shortTitleEn ?? trial.nctNumber ?? 'Trial';
   const trialUrl = trial.acronymOrProtocolId
     ? `${TRIAL_URL_BASE}${encodeURIComponent(trial.acronymOrProtocolId)}`
@@ -30,7 +38,7 @@ function TrialSummaryHeader({
         {trial.nctNumber && (
           <span className="text-eyebrow text-primary font-mono">{trial.nctNumber}</span>
         )}
-        <h2 className="font-display text-lg leading-snug font-semibold">{title}</h2>
+        <TrialTitle key={title} title={title} lang={language} />
       </div>
       <div className="flex shrink-0 items-center gap-1">
         {onAddToContext && trial.nctNumber && (
@@ -41,9 +49,7 @@ function TrialSummaryHeader({
                   variant="ghost"
                   size="icon"
                   data-tour="add-context"
-                  aria-label={
-                    isInContext ? 'Added to your chat' : `Ask ${AGENT_NAME} about this trial`
-                  }
+                  aria-label={isInContext ? t('summary.addedToChat') : t('summary.askAbout')}
                   disabled={isInContext}
                   onClick={() => onAddToContext(trial.nctNumber as string)}
                 >
@@ -51,9 +57,27 @@ function TrialSummaryHeader({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                {isInContext
-                  ? `Added, ask ${AGENT_NAME} anything about it`
-                  : `Ask ${AGENT_NAME} about this trial`}
+                {isInContext ? t('summary.addedToChatHint') : t('summary.askAbout')}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+        {onToggleBookmark && trial.nctNumber && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  data-tour="bookmark"
+                  aria-label={isBookmarked ? t('bookmarks.remove') : t('bookmarks.add')}
+                  onClick={() => onToggleBookmark(trial.nctNumber as string)}
+                >
+                  {isBookmarked ? <BookmarkCheck className="text-primary" /> : <Bookmark />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {isBookmarked ? t('bookmarks.added') : t('bookmarks.add')}
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -64,7 +88,7 @@ function TrialSummaryHeader({
             variant="ghost"
             size="icon"
             data-tour="trial-link"
-            aria-label="View on Cancer Trials Canada"
+            aria-label={t('summary.viewOnCtc')}
           >
             <a href={trialUrl} target="_blank" rel="noreferrer">
               <ExternalLink />
@@ -72,7 +96,7 @@ function TrialSummaryHeader({
           </Button>
         )}
         {onClose && (
-          <Button variant="ghost" size="icon" aria-label="Close" onClick={onClose}>
+          <Button variant="ghost" size="icon" aria-label={t('summary.close')} onClick={onClose}>
             <X />
           </Button>
         )}

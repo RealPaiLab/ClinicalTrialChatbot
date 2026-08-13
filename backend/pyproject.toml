@@ -7,9 +7,10 @@ requires-python = ">=3.14"
 dependencies = [
     "alembic>=1.18.4",
     "asyncpg>=0.31.0",
-    "cryptography>=49.0.0",
+    "cryptography>=50.0.0",
     "deepeval>=4.0.7",
     "fastapi>=0.136.3",
+    "google-cloud-translate>=3.27.0",
     "langfuse>=4.9.1",
     "openai>=2.38.0",
     "pgvector>=0.4.2",

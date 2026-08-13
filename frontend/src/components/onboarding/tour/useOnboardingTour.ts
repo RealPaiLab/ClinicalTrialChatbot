@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { driver, type Driver } from 'driver.js';
 import 'driver.js/dist/driver.css';
 import './tour.css';
+import i18n from '@/i18n';
 import { useAppStore } from '@/store/appStore';
 import { DEMO_MESSAGES, DEMO_TRIALS } from '../demoTrials';
 import { buildTourSteps, teardownAskAi } from '../tourSteps';
@@ -54,9 +55,9 @@ export function useOnboardingTour() {
       stagePadding: 6,
       stageRadius: 10,
       disableActiveInteraction: true,
-      nextBtnText: 'Next',
-      prevBtnText: 'Back',
-      doneBtnText: 'Done',
+      nextBtnText: i18n.t('tour.next'),
+      prevBtnText: i18n.t('tour.back'),
+      doneBtnText: i18n.t('tour.done'),
       steps: buildTourSteps(() => tour),
       onHighlighted: (element) => syncBlur(element),
       onDestroyed: () => {

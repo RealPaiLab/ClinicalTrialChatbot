@@ -18,3 +18,8 @@ scripts/compare_ontario.py
 .deepeval/
 .deepeval-cache.json
 .deepeval_telemetry.txt
+
+# GCP service-account credentials (never commit)
+gcp-*.json
+*-credentials.json
+sa-key*.json

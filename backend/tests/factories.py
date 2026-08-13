@@ -6,8 +6,16 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 from pydantic_ai import RunContext
+from pydantic_ai.messages import (
+    ModelMessage,
+    ModelResponse,
+    ToolCallPart,
+    UserPromptPart,
+)
+from pydantic_ai.models.function import AgentInfo, FunctionModel
 from pydantic_ai.models.test import TestModel
 from pydantic_ai.usage import RunUsage
+from redis.exceptions import RedisError
 
 from agents.clinical_trials.dependencies import AgentDeps
 from evals.schemas.expected import ExpectedOutput
@@ -30,12 +38,16 @@ def make_citation(
     province: str = "Quebec",
     state: str = "Recruiting",
     phases: Sequence[str] = ("PHASE3",),
+    treatments: Sequence[str] = ("Immunotherapy",),
 ) -> TrialCitation:
     """Build a TrialCitation DTO with one site."""
     return TrialCitation(
         nct_number=nct,
         short_title_en=title,
+        inclusion_criteria_en="Adults with the condition.",
+        exclusion_criteria_en="Prior treatment in the last year.",
         phases=list(phases),
+        treatment_type_names=list(treatments),
         sites=[
             TrialSiteInfo(
                 name_en="Site",
@@ -145,6 +157,65 @@ class StubGlossary:
         return list(self.results)
 
 
+class StubTranslationProvider:
+    """Translation provider that prefixes each text; records every batch."""
+
+    def __init__(self, *, fail: bool = False) -> None:
+        self.fail = fail
+        self.batches: list[tuple[list[str], str]] = []
+
+    async def translate(self, texts: list[str], target: Any) -> list[str]:
+        if self.fail:
+            raise RuntimeError("provider down")
+        self.batches.append((list(texts), str(target)))
+        return [f"[{target}] {text}" for text in texts]
+
+    async def aclose(self) -> None:
+        return None
+
+    @property
+    def translated_texts(self) -> list[str]:
+        return [text for batch, _ in self.batches for text in batch]
+
+
+class FakeRedis:
+    """Minimal async Redis double supporting mget and a setex pipeline."""
+
+    def __init__(self, *, fail: bool = False) -> None:
+        self.store: dict[str, str] = {}
+        self.fail = fail
+
+    async def mget(self, keys: Sequence[str]) -> list[bytes | None]:
+        if self.fail:
+            raise RedisError("redis down")
+        return [
+            self.store[k].encode("utf-8") if k in self.store else None for k in keys
+        ]
+
+    def pipeline(self, transaction: bool = True) -> Any:
+        outer = self
+
+        class _Pipe:
+            def __init__(self) -> None:
+                self.queued: list[tuple[str, str]] = []
+
+            async def __aenter__(self) -> Any:
+                return self
+
+            async def __aexit__(self, *exc: object) -> None:
+                return None
+
+            def setex(self, key: str, ttl: int, value: str) -> None:
+                self.queued.append((key, value))
+
+            async def execute(self) -> None:
+                if outer.fail:
+                    raise RedisError("redis down")
+                outer.store.update(dict(self.queued))
+
+        return _Pipe()
+
+
 class FakeSessionFactory:
     """Async session factory whose session returns canned rows from execute()."""
 
@@ -180,6 +251,44 @@ def make_test_model(
     if output is not None:
         kwargs["custom_output_args"] = output
     return TestModel(**kwargs)
+
+
+def make_fixed_line_model(lines: int) -> FunctionModel:
+    """A mock LLM that always returns ``lines`` translated lines, whatever it is
+    given: the misbehaving translator that loses alignment on a batch."""
+
+    def respond(messages: list[ModelMessage], info: AgentInfo) -> ModelResponse:
+        tool = info.output_tools[0].name
+        return ModelResponse(
+            parts=[ToolCallPart(tool, {"lines": [f"line {i}" for i in range(lines)]})]
+        )
+
+    return FunctionModel(respond)
+
+
+def make_echo_translation_model() -> FunctionModel:
+    """A mock translator that prefixes each numbered input line it was sent, so a
+    run's output can be traced back to the exact lines that produced it."""
+
+    def respond(messages: list[ModelMessage], info: AgentInfo) -> ModelResponse:
+        prompt = next(
+            part.content
+            for part in reversed(messages[-1].parts)
+            if isinstance(part, UserPromptPart)
+        )
+        lines = [
+            line.split(". ", 1)[1] for line in str(prompt).splitlines() if line.strip()
+        ]
+        return ModelResponse(
+            parts=[
+                ToolCallPart(
+                    info.output_tools[0].name,
+                    {"lines": [f"xx:{line}" for line in lines]},
+                )
+            ]
+        )
+
+    return FunctionModel(respond)
 
 
 def make_run_context(deps: AgentDeps) -> RunContext[AgentDeps]:

@@ -1,10 +1,11 @@
-import { AGENT_NAME, TRIAL_DATA } from '@/constants/chat';
+import { useTranslation } from 'react-i18next';
 
 function ChatDisclaimer() {
+  const { t } = useTranslation();
+
   return (
     <p className="text-muted-foreground text-center text-[0.7rem] leading-tight">
-      {AGENT_NAME} is AI and can make mistakes, always confirm details with your care team, and
-      don't share personal information. {TRIAL_DATA.shortNotice}
+      {t('chat.disclaimer')} {t('data.shortNotice')}
     </p>
   );
 }
