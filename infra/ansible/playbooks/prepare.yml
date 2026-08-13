@@ -9,7 +9,7 @@
     # - hardening  # PoC: deferred until post-PoC security review
     - docker
 
-# One nginx site per deployed environment (TLS on the App VM, plain HTTP on staging).
+# One nginx site per deployed environment, each with its own dehydrated cert.
 - name: Reverse proxy (every app environment)
   hosts: common
   vars_files:
