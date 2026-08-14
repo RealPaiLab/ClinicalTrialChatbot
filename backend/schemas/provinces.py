@@ -31,10 +31,11 @@ def split_locations(locations: list[str]) -> tuple[list[str], list[str]]:
     """Partition location terms into (cities, provinces); provinces are canonical."""
     cities: list[str] = []
     provinces: list[str] = []
-    for term in locations:
-        canonical = canonical_province(term)
+    parts = (part.strip() for term in locations for part in term.split(","))
+    for part in (p for p in parts if p):
+        canonical = canonical_province(part)
         if canonical is not None:
             provinces.append(canonical)
         else:
-            cities.append(term)
+            cities.append(part)
     return cities, provinces
