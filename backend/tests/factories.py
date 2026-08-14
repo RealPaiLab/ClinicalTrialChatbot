@@ -179,10 +179,11 @@ class StubTranslationProvider:
 
 
 class FakeRedis:
-    """Minimal async Redis double supporting mget and a setex pipeline."""
+    """Minimal async Redis double: get/setex/delete, mget, and a setex pipeline."""
 
     def __init__(self, *, fail: bool = False) -> None:
         self.store: dict[str, str] = {}
+        self.ttls: dict[str, int] = {}
         self.fail = fail
 
     async def mget(self, keys: Sequence[str]) -> list[bytes | None]:
@@ -191,6 +192,25 @@ class FakeRedis:
         return [
             self.store[k].encode("utf-8") if k in self.store else None for k in keys
         ]
+
+    async def get(self, key: str) -> bytes | None:
+        if self.fail:
+            raise RedisError("redis down")
+        value = self.store.get(key)
+        return value.encode("utf-8") if value is not None else None
+
+    async def setex(self, key: str, ttl: int, value: str | bytes) -> None:
+        if self.fail:
+            raise RedisError("redis down")
+        self.store[key] = value.decode("utf-8") if isinstance(value, bytes) else value
+        self.ttls[key] = ttl
+
+    async def delete(self, *keys: str) -> None:
+        if self.fail:
+            raise RedisError("redis down")
+        for key in keys:
+            self.store.pop(key, None)
+            self.ttls.pop(key, None)
 
     def pipeline(self, transaction: bool = True) -> Any:
         outer = self

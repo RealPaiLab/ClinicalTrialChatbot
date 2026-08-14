@@ -10,11 +10,21 @@ from pydantic_ai.messages import (
 from agents.clinical_trials.agent import get_clinical_trials_agent
 from agents.clinical_trials.dependencies import AgentDeps
 from agents.clinical_trials.guards import (
+    MEMORY_CALLS_LIMIT,
     conversation_nct_numbers,
     prefetch_referenced_trials,
 )
+from agents.clinical_trials.memory import render_memory
 from agents.clinical_trials.output import AgentResponse
-from tests.factories import StubTrialSearch, make_citation, make_test_model
+from agents.clinical_trials.tool_schemas import RememberInput
+from agents.clinical_trials.tools import remember
+from schemas.memory import ConversationMemory
+from tests.factories import (
+    StubTrialSearch,
+    make_citation,
+    make_run_context,
+    make_test_model,
+)
 
 
 async def test_prefetch_injects_verified_data_for_existing_trial() -> None:
@@ -143,7 +153,9 @@ async def test_agent_scrubs_unverified_nct_from_message() -> None:
         result = await agent.run("proofread this", deps=deps)
 
     assert "NCT09999999" not in result.output.message
+    assert "rephrase" in result.output.message
     assert result.output.used_nct_numbers == []
+    assert deps.hallucinated_ncts == ["NCT09999999"]
 
 
 async def test_agent_registers_expected_tools() -> None:
@@ -161,12 +173,14 @@ async def test_agent_registers_expected_tools() -> None:
     assert names == [
         "define_term",
         "get_trial_details",
+        "remember",
         "semantic_search",
         "syntactic_search",
     ]
 
 
 async def test_agent_hides_tools_when_budget_exhausted() -> None:
+    """The search budget is spent, but the scratchpad stays writable."""
     deps = AgentDeps(trial_search=StubTrialSearch(), tool_calls=99)
     agent = get_clinical_trials_agent()
     model = make_test_model(
@@ -181,5 +195,69 @@ async def test_agent_hides_tools_when_budget_exhausted() -> None:
 
     params = model.last_model_request_parameters
     assert params is not None
-    assert [t.name for t in params.function_tools] == []
+    assert [t.name for t in params.function_tools] == ["remember"]
     assert isinstance(result.output, AgentResponse)
+
+
+async def test_agent_hides_remember_past_its_call_cap() -> None:
+    deps = AgentDeps(
+        trial_search=StubTrialSearch(), memory_calls=MEMORY_CALLS_LIMIT, tool_calls=99
+    )
+    agent = get_clinical_trials_agent()
+    model = make_test_model(
+        output={"message": "x", "used_nct_numbers": [], "follow_up_questions": []}
+    )
+    with agent.override(model=model):
+        await agent.run("hi", deps=deps)
+
+    params = model.last_model_request_parameters
+    assert params is not None
+    assert [t.name for t in params.function_tools] == []
+
+
+async def test_remember_appends_notes_without_spending_the_search_budget() -> None:
+    deps = AgentDeps(trial_search=StubTrialSearch(), turn_index=2)
+    ctx = make_run_context(deps)
+    await remember(
+        ctx,
+        RememberInput(
+            reasoning="recording what she told me",
+            notes=["Lives in Thunder Bay", "Lives in Thunder Bay", " "],
+        ),
+    )
+
+    assert [(n.turn, n.text) for n in deps.memory.notes] == [
+        (2, "Lives in Thunder Bay")
+    ]
+    assert deps.tool_calls == 0
+    assert deps.memory_calls == 1
+
+
+async def test_remember_keeps_a_correction_as_its_own_note() -> None:
+    deps = AgentDeps(trial_search=StubTrialSearch(), turn_index=1)
+    ctx = make_run_context(deps)
+    await remember(
+        ctx, RememberInput(reasoning="first", notes=["Lives in Thunder Bay"])
+    )
+    deps.turn_index = 4
+    rendered = await remember(
+        ctx,
+        RememberInput(
+            reasoning="she moved", notes=["Now living in Ottawa, not Thunder Bay"]
+        ),
+    )
+
+    assert [n.turn for n in deps.memory.notes] == [1, 4]
+    assert "1. (turn 1) Lives in Thunder Bay" in rendered
+    assert "2. (turn 4) Now living in Ottawa, not Thunder Bay" in rendered
+
+
+def test_render_memory_is_empty_until_something_is_recorded() -> None:
+    memory = ConversationMemory()
+    assert render_memory(memory) is None
+
+    memory.record(1, "Breast cancer, stage II")
+    rendered = render_memory(memory)
+    assert rendered is not None
+    assert "# Your notes on this patient" in rendered
+    assert "1. (turn 1) Breast cancer, stage II" in rendered
