@@ -46,6 +46,8 @@ services:
       POSTGRES_DB: {{ postgres_db }}
       POSTGRES_USER: {{ postgres_user }}
       REDIS_URL: redis://redis:6379/0
+      CONVERSATION_STORE: "{{ conversation_store }}"
+      CONVERSATION_TTL_SECONDS: "{{ conversation_ttl_seconds }}"
       LLM_PROVIDER: {{ llm_provider }}
       LLM_MODEL: {{ llm_model }}
       EMBEDDING_PROVIDER: {{ embedding_provider }}
