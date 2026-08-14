@@ -273,6 +273,22 @@
   }
 }
 
+:root {
+  --scrim: rgb(255 255 255 / 0.45);
+}
+
+.dark {
+  --scrim: rgb(0 5 24 / 0.55);
+}
+
+@layer components {
+  .scrim-blur {
+    background-color: var(--scrim);
+    -webkit-backdrop-filter: blur(7px);
+    backdrop-filter: blur(7px);
+  }
+}
+
 @layer components {
   .panel-split-animating > [data-panel] {
     transition: flex-grow 520ms cubic-bezier(0.22, 1, 0.36, 1);

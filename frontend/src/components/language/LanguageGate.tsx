@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Languages } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -15,22 +15,25 @@ interface LanguageGateProps {
 function LanguageGate({ children }: LanguageGateProps) {
   const { t } = useTranslation();
   const { language, setLanguage } = useAppLanguage();
-  const hasChosenLanguage = useAppStore((state) => state.hasChosenLanguage);
   const markLanguageChosen = useAppStore((state) => state.markLanguageChosen);
+  const [needsChoice] = useState(() => !useAppStore.getState().hasChosenLanguage);
+  const [open, setOpen] = useState(true);
 
-  if (hasChosenLanguage) return <>{children}</>;
+  if (!needsChoice) return <>{children}</>;
 
   const choose = (code: LanguageCode) => {
     setLanguage(code);
     markLanguageChosen();
+    setOpen(false);
   };
 
   return (
     <>
       {children}
-      <Dialog open>
+      <Dialog open={open}>
         <DialogContent
           showCloseButton={false}
+          overlayClassName="bg-[var(--scrim)] backdrop-blur-[7px] supports-backdrop-filter:backdrop-blur-[7px]"
           className="gap-0 rounded-2xl p-6 shadow-xl sm:max-w-xs"
           onEscapeKeyDown={(event) => event.preventDefault()}
           onInteractOutside={(event) => event.preventDefault()}
