@@ -18,6 +18,9 @@ from agents.constants import AGENT_NAME
 from core.config import get_settings
 from schemas.trial import TrialCitation
 
+MEMORY_TOOL_NAME = "remember"
+MEMORY_CALLS_LIMIT = 3
+
 
 def count_tool_call(ctx: RunContext[AgentDeps]) -> None:
     """Count one tool call against the per-run budget."""
@@ -63,18 +66,33 @@ def guarded[ArgsT: ToolInput, OutT](
     return wrapper
 
 
-def tools_available(ctx: RunContext[AgentDeps], _tool: ToolDefinition) -> bool:
+def guarded_uncounted[ArgsT: ToolInput, OutT](
+    func: Callable[[RunContext[AgentDeps], ArgsT], Awaitable[OutT]],
+) -> Callable[[RunContext[AgentDeps], ArgsT], Awaitable[OutT]]:
+    """Reject exact repeats without spending the search budget."""
+
+    @functools.wraps(func)
+    async def wrapper(ctx: RunContext[AgentDeps], args: ArgsT) -> OutT:
+        guard_duplicate_call(ctx, func.__name__, args)
+        return await func(ctx, args)
+
+    return wrapper
+
+
+def tools_available(ctx: RunContext[AgentDeps], tool: ToolDefinition) -> bool:
     """Hide tools when the budget is spent or the turn was refused by triage."""
     if ctx.deps.refusal_directive is not None:
         return False
+    if tool.name == MEMORY_TOOL_NAME:
+        return ctx.deps.memory_calls < MEMORY_CALLS_LIMIT
     return ctx.deps.tool_calls < get_settings().agent_tool_calls_limit
 
 
 _NCT_PATTERN = re.compile(r"NCT\d{8}")
 
 _HALLUCINATED_TRIAL_FALLBACK = (
-    "I'm sorry, I lost the thread on that one and don't want to give you "
-    "anything I can't stand behind. Could you rephrase what you're after?"
+    "I'm sorry, but I couldn't quite understand your request. Could you rephrase "
+    "what you're after?"
 )
 
 
@@ -105,11 +123,13 @@ def enforce_citations(
         for nct in output.used_nct_numbers
         if nct in ctx.deps.fetched_trials and nct in mentioned
     ]
-    unverified = any(
-        nct not in ctx.deps.fetched_trials and nct not in ctx.deps.known_ncts
+    unverified = sorted(
+        nct
         for nct in mentioned
+        if nct not in ctx.deps.fetched_trials and nct not in ctx.deps.known_ncts
     )
     if unverified:
+        ctx.deps.hallucinated_ncts = unverified
         output.message = _HALLUCINATED_TRIAL_FALLBACK
         output.used_nct_numbers = []
         output.follow_up_questions = []

@@ -6,10 +6,12 @@ from langfuse import observe
 from pydantic_ai import RunContext
 
 from agents.clinical_trials.dependencies import AgentDeps
-from agents.clinical_trials.guards import guarded
+from agents.clinical_trials.guards import guarded, guarded_uncounted
+from agents.clinical_trials.memory import render_memory
 from agents.clinical_trials.tool_schemas import (
     DefineTermInput,
     GetTrialDetailsInput,
+    RememberInput,
     SemanticSearchInput,
     SyntacticSearchInput,
     TrialSearchHit,
@@ -131,6 +133,23 @@ async def define_term(
     return await ctx.deps.glossary.define(args.term, args.source)
 
 
+@observed
+@guarded_uncounted
+async def remember(ctx: RunContext[AgentDeps], args: RememberInput) -> str:
+    """Save what the patient just told you to your notes for the rest of the chat.
+
+    Call it whenever they give or change a fact worth keeping (cancer type, subtype,
+    stage, treatments tried, location, age, who they are asking for, what they hope
+    for, any constraint), before you search. Pass every new note in one call. The
+    notes come back to you on every later turn, so you never have to ask twice.
+    Returns your notes as they now stand.
+    """
+    ctx.deps.memory_calls += 1
+    for note in args.notes:
+        ctx.deps.memory.record(ctx.deps.turn_index, note)
+    return render_memory(ctx.deps.memory) or "Your notes are empty."
+
+
 def _first_line(doc: str | None) -> str:
     lines = (doc or "").strip().splitlines()
     return lines[0] if lines else ""
@@ -138,5 +157,11 @@ def _first_line(doc: str | None) -> str:
 
 TOOL_DESCRIPTIONS: dict[str, str] = {
     tool.__name__: _first_line(tool.__doc__)
-    for tool in (syntactic_search, semantic_search, get_trial_details, define_term)
+    for tool in (
+        syntactic_search,
+        semantic_search,
+        get_trial_details,
+        define_term,
+        remember,
+    )
 }

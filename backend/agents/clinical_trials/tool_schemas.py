@@ -22,6 +22,19 @@ class ToolInput(BaseModel):
     )
 
 
+class RememberInput(ToolInput):
+    notes: list[str] = Field(
+        description=(
+            "Short, self-contained notes to add to your scratchpad, one fact each, "
+            'in your own words about the patient, e.g. ["Stage IV, spread to the '
+            'bones", "Already had chemotherapy and surgery", "Prefers a trial close '
+            'to home"]. Record only what the patient actually said. When they '
+            "correct something, write the new fact as its own note naming what it "
+            'replaces, e.g. "Now living in Ottawa, not Thunder Bay as said earlier".'
+        )
+    )
+
+
 class SyntacticSearchInput(ToolInput):
     cancer_types: list[CancerType] = Field(
         default_factory=list,
