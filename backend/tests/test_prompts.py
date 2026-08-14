@@ -8,6 +8,7 @@ from agents.clinical_trials.prompts import (
 )
 from agents.input_triage.prompts import LOCAL_TRIAGE_PROMPT, get_triage_prompt
 from core import prompts
+from core.config import Environment, Settings
 
 
 def test_falls_back_to_local_when_langfuse_unavailable(
@@ -61,6 +62,40 @@ def test_promote_raises_when_the_source_label_is_missing(
             "clinical-trial-chatbot-system", from_label="staging", to_label="production"
         )
     client.update_prompt.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("environment", "override", "expected"),
+    [
+        (Environment.DEVELOPMENT, None, "development"),
+        (Environment.STAGING, None, "staging"),
+        (Environment.PRODUCTION, None, "production"),
+        (Environment.DEVELOPMENT, "staging", "staging"),
+    ],
+)
+def test_prompt_label_follows_the_environment_unless_overridden(
+    environment: Environment, override: str | None, expected: str
+) -> None:
+    settings = Settings(environment=environment, langfuse_prompt_label=override)
+
+    assert settings.prompt_label == expected
+
+
+def test_fetch_reads_the_environments_label(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A local run must not read (or seed) the label another environment serves."""
+    client = MagicMock()
+    monkeypatch.setattr(prompts, "get_langfuse_client", lambda: client)
+    monkeypatch.setattr(
+        prompts,
+        "get_settings",
+        lambda: Settings(
+            environment=Environment.DEVELOPMENT, langfuse_prompt_label=None
+        ),
+    )
+
+    get_clinical_trials_prompt()
+
+    assert client.get_prompt.call_args.kwargs["label"] == "development"
 
 
 def test_each_agent_fetches_its_own_prompt_name(

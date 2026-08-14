@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from typing import Protocol
 
 from schemas.glossary import GlossaryDefinition, GlossarySource
+from schemas.memory import ConversationMemory
 from schemas.trial import TrialCitation, TrialFilter
 
 
@@ -62,3 +63,7 @@ class AgentDeps:
     seen_calls: set[str] = field(default_factory=set)
     refusal_directive: str | None = None
     verified_context: str | None = None
+    memory: ConversationMemory = field(default_factory=ConversationMemory)
+    turn_index: int = 1
+    memory_calls: int = 0
+    hallucinated_ncts: list[str] = field(default_factory=list)

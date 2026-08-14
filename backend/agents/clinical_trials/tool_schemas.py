@@ -22,6 +22,19 @@ class ToolInput(BaseModel):
     )
 
 
+class RememberInput(ToolInput):
+    notes: list[str] = Field(
+        description=(
+            "Short, self-contained notes to add to your scratchpad, one fact each, "
+            'in your own words about the patient, e.g. ["Stage IV, spread to the '
+            'bones", "Already had chemotherapy and surgery", "Prefers a trial close '
+            'to home"]. Record only what the patient actually said. When they '
+            "correct something, write the new fact as its own note naming what it "
+            'replaces, e.g. "Now living in Ottawa, not Thunder Bay as said earlier".'
+        )
+    )
+
+
 class SyntacticSearchInput(ToolInput):
     cancer_types: list[CancerType] = Field(
         default_factory=list,
@@ -96,6 +109,13 @@ class SemanticSearchInput(ToolInput):
 class GetTrialDetailsInput(ToolInput):
     nct_numbers: list[str] = Field(
         description='NCT numbers to fetch full details for, e.g. ["NCT01234567"].'
+    )
+    all_sites: bool = Field(
+        default=False,
+        description="Leave false: details then keep the locations your search was "
+        "narrowed to. Set true ONLY when the patient asks where else a trial runs, "
+        "which returns every site it has, including ones outside the city they asked "
+        "about.",
     )
 
 

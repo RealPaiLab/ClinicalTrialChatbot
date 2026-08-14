@@ -16,6 +16,9 @@ frontend_host_port: 8080
 postgres_db: ctc_db
 postgres_user: ctc
 
+conversation_store: redis
+conversation_ttl_seconds: 3600
+
 api_base_url: "/api"
 
 langfuse_host: "http://{{ hostvars[groups['langfuse'][0]].public_domain }}:3000"

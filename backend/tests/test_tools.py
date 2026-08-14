@@ -17,6 +17,7 @@ from agents.clinical_trials.tools import (
 )
 from schemas.cancer_types import CancerType
 from schemas.glossary import GlossaryDefinition, GlossarySource
+from schemas.trial import TrialCitation
 from tests.factories import (
     StubGlossary,
     StubTrialSearch,
@@ -162,3 +163,50 @@ async def test_get_trial_details_returns_found_only() -> None:
 
     assert [c.nct_number for c in result] == ["NCT-3"]
     assert "NCT-3" in deps.fetched_trials
+
+
+def _two_site_trial() -> TrialCitation:
+    """The trial as get_by_ncts returns it: every site, unfiltered."""
+    full = make_citation("NCT-4", city="Thunder Bay")
+    full.sites = [*full.sites, *make_citation("NCT-4", city="Toronto").sites]
+    return full
+
+
+async def test_details_keep_the_sites_the_search_narrowed_to() -> None:
+    """Details must not re-add cities the patient filtered out: sites are map pins."""
+    searched = make_citation("NCT-4", city="Thunder Bay")
+    deps = AgentDeps(trial_search=StubTrialSearch(by_nct={"NCT-4": _two_site_trial()}))
+    deps.fetched_trials["NCT-4"] = searched
+    ctx = make_run_context(deps)
+
+    result = await get_trial_details(
+        ctx, GetTrialDetailsInput(reasoning="r", nct_numbers=["NCT-4"])
+    )
+
+    assert [s.city for s in result[0].sites] == ["Thunder Bay"]
+    assert [s.city for s in deps.fetched_trials["NCT-4"].sites] == ["Thunder Bay"]
+
+
+async def test_all_sites_widens_on_request() -> None:
+    searched = make_citation("NCT-4", city="Thunder Bay")
+    deps = AgentDeps(trial_search=StubTrialSearch(by_nct={"NCT-4": _two_site_trial()}))
+    deps.fetched_trials["NCT-4"] = searched
+    ctx = make_run_context(deps)
+
+    result = await get_trial_details(
+        ctx,
+        GetTrialDetailsInput(reasoning="r", nct_numbers=["NCT-4"], all_sites=True),
+    )
+
+    assert [s.city for s in result[0].sites] == ["Thunder Bay", "Toronto"]
+
+
+async def test_details_are_unfiltered_for_a_trial_not_seen_before() -> None:
+    deps = AgentDeps(trial_search=StubTrialSearch(by_nct={"NCT-4": _two_site_trial()}))
+    ctx = make_run_context(deps)
+
+    result = await get_trial_details(
+        ctx, GetTrialDetailsInput(reasoning="r", nct_numbers=["NCT-4"])
+    )
+
+    assert [s.city for s in result[0].sites] == ["Thunder Bay", "Toronto"]

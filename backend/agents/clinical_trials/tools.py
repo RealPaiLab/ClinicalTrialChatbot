@@ -6,10 +6,12 @@ from langfuse import observe
 from pydantic_ai import RunContext
 
 from agents.clinical_trials.dependencies import AgentDeps
-from agents.clinical_trials.guards import guarded
+from agents.clinical_trials.guards import guarded, guarded_uncounted
+from agents.clinical_trials.memory import render_memory
 from agents.clinical_trials.tool_schemas import (
     DefineTermInput,
     GetTrialDetailsInput,
+    RememberInput,
     SemanticSearchInput,
     SyntacticSearchInput,
     TrialSearchHit,
@@ -98,6 +100,16 @@ async def semantic_search(
     return _record(ctx, citations)
 
 
+def _keep_narrowed_sites(
+    ctx: RunContext[AgentDeps], citation: TrialCitation
+) -> TrialCitation:
+    """Re-apply the site list a search already narrowed for this trial."""
+    known = ctx.deps.fetched_trials.get(citation.nct_number or "")
+    if known is None or not known.sites:
+        return citation
+    return citation.model_copy(update={"sites": known.sites})
+
+
 @observed
 @guarded
 async def get_trial_details(
@@ -106,9 +118,13 @@ async def get_trial_details(
     """Fetch full details for one or more trials by NCT number.
 
     Use when the patient wants to go deeper on specific trials; pass every NCT
-    number you need in one call. Returns only the trials that were found.
+    number you need in one call. Returns only the trials that were found. Keeps
+    whatever locations the search was narrowed to; set `all_sites` only when the
+    patient asks where else a trial runs.
     """
     citations = await ctx.deps.trial_search.get_by_ncts(args.nct_numbers)
+    if not args.all_sites:
+        citations = [_keep_narrowed_sites(ctx, c) for c in citations]
     for citation in citations:
         if citation.nct_number:
             ctx.deps.fetched_trials[citation.nct_number] = citation
@@ -131,6 +147,23 @@ async def define_term(
     return await ctx.deps.glossary.define(args.term, args.source)
 
 
+@observed
+@guarded_uncounted
+async def remember(ctx: RunContext[AgentDeps], args: RememberInput) -> str:
+    """Save what the patient just told you to your notes for the rest of the chat.
+
+    Call it whenever they give or change a fact worth keeping (cancer type, subtype,
+    stage, treatments tried, location, age, who they are asking for, what they hope
+    for, any constraint), before you search. Pass every new note in one call. The
+    notes come back to you on every later turn, so you never have to ask twice.
+    Returns your notes as they now stand.
+    """
+    ctx.deps.memory_calls += 1
+    for note in args.notes:
+        ctx.deps.memory.record(ctx.deps.turn_index, note)
+    return render_memory(ctx.deps.memory) or "Your notes are empty."
+
+
 def _first_line(doc: str | None) -> str:
     lines = (doc or "").strip().splitlines()
     return lines[0] if lines else ""
@@ -138,5 +171,11 @@ def _first_line(doc: str | None) -> str:
 
 TOOL_DESCRIPTIONS: dict[str, str] = {
     tool.__name__: _first_line(tool.__doc__)
-    for tool in (syntactic_search, semantic_search, get_trial_details, define_term)
+    for tool in (
+        syntactic_search,
+        semantic_search,
+        get_trial_details,
+        define_term,
+        remember,
+    )
 }

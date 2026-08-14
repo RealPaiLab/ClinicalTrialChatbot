@@ -3,6 +3,7 @@ from typing import Any, cast
 import pytest
 
 from core.embeddings import EmbeddingProvider
+from schemas.provinces import split_locations
 from schemas.trial import TrialFilter
 from services.trial_search_service import (
     TrialSearchService,
@@ -25,6 +26,22 @@ def test_site_matches_location_is_accent_insensitive() -> None:
     assert _site_matches_location(site, ["montreal"]) is True
     assert _site_matches_location(site, ["toronto"]) is False
     assert _site_matches_location(site, []) is True
+
+
+def test_split_locations_separates_a_city_province_pair() -> None:
+    """A "City, Province" term must not be read as one very unusual city name."""
+    assert split_locations(["London, Ontario"]) == (["London"], ["Ontario"])
+    assert split_locations(["Ontario"]) == ([], ["Ontario"])
+    assert split_locations(["London"]) == (["London"], [])
+    assert split_locations(["Toronto,"]) == (["Toronto"], [])
+
+
+def test_site_matches_location_accepts_a_city_province_pair() -> None:
+    london = make_orm_trial("NCT-1", sites=[("London", "Ontario", ())]).sites[0]
+    toronto = make_orm_trial("NCT-1", sites=[("Toronto", "Ontario", ())]).sites[0]
+
+    assert _site_matches_location(london, ["London, Ontario"]) is True
+    assert _site_matches_location(toronto, ["London, Ontario"]) is False
 
 
 def test_site_matches_location_city_and_province_narrow_not_widen() -> None:

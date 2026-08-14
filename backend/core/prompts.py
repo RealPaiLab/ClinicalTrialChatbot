@@ -13,9 +13,7 @@ def fetch_prompt(name: str, fallback: str) -> str:
     """Return the Langfuse-versioned prompt, falling back to the local constant."""
     settings = get_settings()
     try:
-        prompt = get_langfuse_client().get_prompt(
-            name, label=settings.langfuse_prompt_label
-        )
+        prompt = get_langfuse_client().get_prompt(name, label=settings.prompt_label)
         return str(prompt.compile())
     except Exception as exc:
         logger.warning("Using local prompt %r (Langfuse fetch failed): %s", name, exc)
@@ -28,7 +26,7 @@ def seed_prompt(name: str, content: str) -> None:
     if not settings.langfuse_seed_prompt:
         return
     client = get_langfuse_client()
-    label = settings.langfuse_prompt_label
+    label = settings.prompt_label
     try:
         client.get_prompt(name, label=label)
         return
@@ -67,9 +65,7 @@ def publish_prompt(name: str, content: str) -> None:
     client.create_prompt(
         name=name,
         prompt=content,
-        labels=[settings.langfuse_prompt_label],
+        labels=[settings.prompt_label],
         type="text",
     )
-    logger.info(
-        "Published prompt %r with label %r.", name, settings.langfuse_prompt_label
-    )
+    logger.info("Published prompt %r with label %r.", name, settings.prompt_label)

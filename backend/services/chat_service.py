@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 
-from langfuse import propagate_attributes
+from langfuse import LangfuseSpan, propagate_attributes
 from pydantic_ai.messages import ModelMessage
 
 from agents.clinical_trials.agent import get_clinical_trials_agent
@@ -21,7 +21,11 @@ from core.langfuse import get_langfuse_client, trace_id_from_session
 from core.logger import get_logger
 from repository.glossary_repository import GlossaryRepository
 from schemas.chat import ChatResult
-from services.conversation_service import ConversationService, user_facing_turns
+from services.conversation_service import (
+    ConversationService,
+    turn_count,
+    user_facing_turns,
+)
 
 logger = get_logger(__name__)
 
@@ -70,6 +74,19 @@ class ChatService:
             follow_up_questions=output.follow_up_questions,
         )
 
+    def _report_hallucination(
+        self, span: LangfuseSpan, session_id: str, nct_numbers: list[str]
+    ) -> None:
+        """Flag a turn whose reply invented an NCT number, in logs and on the trace."""
+        logger.warning(
+            "Hallucinated NCT numbers (session=%s): %s", session_id, nct_numbers
+        )
+        span.update(
+            level="WARNING",
+            status_message=f"hallucinated NCT: {', '.join(nct_numbers)}",
+            metadata={"hallucinated_ncts": nct_numbers},
+        )
+
     async def stream_chat(
         self, session_id: str, user_message: str
     ) -> AsyncIterator[StreamItem]:
@@ -90,6 +107,8 @@ class ChatService:
             try:
                 history = await self._conversation_service.get_history(session_id)
                 deps.known_ncts = conversation_nct_numbers(history)
+                deps.memory = await self._conversation_service.get_memory(session_id)
+                deps.turn_index = turn_count(history) + 1
                 decision, category = await self._triage_turn(user_message, history)
                 if decision is TriageDecision.REFUSE and category is not None:
                     deps.refusal_directive = refusal_directive(refusal_reason(category))
@@ -110,11 +129,14 @@ class ChatService:
                     messages = result.all_messages()
 
                 await self._conversation_service.save_history(session_id, messages)
+                await self._conversation_service.save_memory(session_id, deps.memory)
                 chat_result = self._to_chat_result(output, deps)
-                observation_id = self._langfuse.get_current_observation_id()
-                chat_result.observation_id = observation_id or ""
+                observation_id = self._langfuse.get_current_observation_id() or ""
+                chat_result.observation_id = observation_id
                 if self._capture_content:
                     span.update(output=chat_result.message)
+                if deps.hallucinated_ncts:
+                    self._report_hallucination(span, session_id, deps.hallucinated_ncts)
                 yield chat_result
             except Exception as exc:
                 logger.exception(
