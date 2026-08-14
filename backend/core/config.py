@@ -53,7 +53,7 @@ class Settings(BaseSettings):
     langfuse_clinical_trials_prompt_name: str = "clinical-trial-chatbot-system"
     langfuse_triage_prompt_name: str = "clinical-trial-chatbot-triage"
     langfuse_translation_prompt_name: str = "clinical-trial-chatbot-translation"
-    langfuse_prompt_label: str = "production"
+    langfuse_prompt_label: str | None = None
     langfuse_seed_prompt: bool = True
     langfuse_capture_content: bool | None = None
 
@@ -91,6 +91,17 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.environment is Environment.PRODUCTION
+
+    @property
+    def prompt_label(self) -> str:
+        """The Langfuse label this deployment reads and seeds prompts under.
+
+        One label per environment, so a local run can never read (or seed) the
+        prompt another environment is serving. LANGFUSE_PROMPT_LABEL overrides it.
+        """
+        if self.langfuse_prompt_label is not None:
+            return self.langfuse_prompt_label
+        return self.environment.value
 
     @property
     def capture_patient_text(self) -> bool:
