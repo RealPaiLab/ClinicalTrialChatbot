@@ -22,7 +22,7 @@ class RedisKeyValueStore:
         except RedisError as exc:
             logger.warning("Redis read failed for %s, treating as miss: %s", key, exc)
             return None
-        return value if isinstance(value, bytes) else value.encode("utf-8")
+        return value.encode("utf-8") if isinstance(value, str) else value
 
     async def set(self, key: str, value: bytes, *, ttl_seconds: int) -> None:
         try:
