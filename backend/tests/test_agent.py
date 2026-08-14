@@ -39,6 +39,27 @@ async def test_prefetch_injects_verified_data_for_existing_trial() -> None:
     assert "Pancreatic study" in context
 
 
+async def test_prefetch_keeps_every_site_when_no_place_is_named() -> None:
+    citation = make_citation("NCT06115499", city="Thunder Bay")
+    citation.sites = [*citation.sites, *make_citation("x", city="Toronto").sites]
+    deps = AgentDeps(trial_search=StubTrialSearch(by_nct={"NCT06115499": citation}))
+    await prefetch_referenced_trials(deps, "tell me about NCT06115499")
+
+    sites = deps.fetched_trials["NCT06115499"].sites
+    assert [s.city for s in sites] == ["Thunder Bay", "Toronto"]
+
+
+async def test_prefetch_narrows_to_the_place_the_patient_named() -> None:
+    citation = make_citation("NCT06115499", city="Thunder Bay")
+    citation.sites = [*citation.sites, *make_citation("x", city="Toronto").sites]
+    deps = AgentDeps(trial_search=StubTrialSearch(by_nct={"NCT06115499": citation}))
+    await prefetch_referenced_trials(deps, "is NCT06115499 running in thunder bay?")
+
+    sites = deps.fetched_trials["NCT06115499"].sites
+    assert [s.city for s in sites] == ["Thunder Bay"]
+    assert "Toronto" not in (deps.verified_context or "")
+
+
 async def test_prefetch_refuses_when_named_trial_missing() -> None:
     deps = AgentDeps(trial_search=StubTrialSearch())
     await prefetch_referenced_trials(deps, "is NCT09999999 any good?")
