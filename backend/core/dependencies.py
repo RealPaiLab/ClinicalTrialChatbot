@@ -6,8 +6,9 @@ from core.config import get_settings
 from core.database import ReadOnlySessionFactory, create_isolated_session_factory
 from core.embeddings import get_embedder
 from core.http_retry import get_retrying_client
+from core.kv.factory import get_key_value_store
 from core.redis import get_redis_client
-from repository.conversation.factory import get_conversation_repository
+from repository.conversation.repository import ConversationRepository
 from repository.translation.cache import TranslationCache
 from repository.translation.factory import get_translation_provider
 from services.chat_service import ChatService
@@ -15,6 +16,13 @@ from services.conversation_service import ConversationService
 from services.translation_service import TranslationService
 from services.trial_search_service import TrialSearchService
 from services.turnstile_service import TurnstileService
+
+
+@lru_cache
+def get_conversation_repository() -> ConversationRepository:
+    return ConversationRepository(
+        get_key_value_store(), ttl_seconds=get_settings().conversation_ttl_seconds
+    )
 
 
 @lru_cache
