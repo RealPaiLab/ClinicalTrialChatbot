@@ -14,6 +14,9 @@ import { useAppStore } from '@/store/appStore';
 import { PANEL_SPLIT } from '@/constants/layout';
 import type { Trial } from '@/types/trial';
 
+const TOUR_SETTLE_MS = 600;
+const LANGUAGE_GATE_EXIT_MS = 160;
+
 function HomePage() {
   const trials = useAppStore((state) => state.trials);
   const selectedNctNumber = useAppStore((state) => state.selectedNctNumber);
@@ -21,6 +24,7 @@ function HomePage() {
   const contextNctNumbers = useAppStore((state) => state.contextNctNumbers);
   const bookmarkedNctNumbers = useAppStore((state) => state.bookmarkedNctNumbers);
   const theme = useAppStore((state) => state.theme);
+  const hasChosenLanguage = useAppStore((state) => state.hasChosenLanguage);
   const setTrials = useAppStore((state) => state.setTrials);
   const selectTrial = useAppStore((state) => state.selectTrial);
   const addToContext = useAppStore((state) => state.addToContext);
@@ -42,6 +46,7 @@ function HomePage() {
   const splitGroupRef = useRef<HTMLDivElement | null>(null);
 
   const { startTour } = useOnboardingTour();
+  const languageChosenOnLoad = useRef(hasChosenLanguage);
 
   useEffect(() => {
     const group = splitGroupRef.current;
@@ -62,11 +67,15 @@ function HomePage() {
   }, [dark]);
 
   useEffect(() => {
-    if (!useAppStore.getState().hasSeenTour) {
-      const timer = window.setTimeout(startTour, 600);
+    if (!hasChosenLanguage) return;
+    if (useAppStore.getState().hasSeenTour) return;
+
+    if (languageChosenOnLoad.current) {
+      const timer = window.setTimeout(() => startTour(), TOUR_SETTLE_MS);
       return () => window.clearTimeout(timer);
     }
-  }, [startTour]);
+    startTour({ driveDelayMs: LANGUAGE_GATE_EXIT_MS });
+  }, [hasChosenLanguage, startTour]);
 
   // A bookmark can outlive the conversation that surfaced it, so opening one
   // puts the trial back on the map before selecting it.
@@ -108,7 +117,7 @@ function HomePage() {
         dark={dark}
         bookmarkCount={bookmarkedNctNumbers.length}
         onOpenBookmarks={() => setBookmarksOpen(true)}
-        onStartTour={startTour}
+        onStartTour={() => startTour()}
         onToggleTheme={toggleTheme}
       />
 
