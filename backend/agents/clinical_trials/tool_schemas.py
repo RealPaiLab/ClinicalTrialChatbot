@@ -110,6 +110,13 @@ class GetTrialDetailsInput(ToolInput):
     nct_numbers: list[str] = Field(
         description='NCT numbers to fetch full details for, e.g. ["NCT01234567"].'
     )
+    all_sites: bool = Field(
+        default=False,
+        description="Leave false: details then keep the locations your search was "
+        "narrowed to. Set true ONLY when the patient asks where else a trial runs, "
+        "which returns every site it has, including ones outside the city they asked "
+        "about.",
+    )
 
 
 class DefineTermInput(ToolInput):

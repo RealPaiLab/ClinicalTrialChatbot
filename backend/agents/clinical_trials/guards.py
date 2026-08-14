@@ -17,6 +17,7 @@ from agents.clinical_trials.tool_schemas import ToolInput
 from agents.constants import AGENT_NAME
 from core.config import get_settings
 from schemas.trial import TrialCitation
+from utils.text import fold
 
 MEMORY_TOOL_NAME = "remember"
 MEMORY_CALLS_LIMIT = 3
@@ -182,13 +183,37 @@ def _verified_trials_context(citations: list[TrialCitation]) -> str:
     return "\n\n".join(blocks)
 
 
+def _names_place(folded_message: str, place: str | None) -> bool:
+    if not place:
+        return False
+    return re.search(rf"\b{re.escape(fold(place))}\b", folded_message) is not None
+
+
+def _narrow_to_named_places(
+    citation: TrialCitation, folded_message: str
+) -> TrialCitation:
+    """Keep only the sites whose city or province the patient named this message."""
+    named = [
+        s
+        for s in citation.sites
+        if _names_place(folded_message, s.city)
+        or _names_place(folded_message, s.province)
+    ]
+    if not named or len(named) == len(citation.sites):
+        return citation
+    return citation.model_copy(update={"sites": named})
+
+
 async def prefetch_referenced_trials(deps: AgentDeps, user_message: str) -> None:
     """Verify any NCT the patient named before the agent runs."""
     ncts = list(dict.fromkeys(_NCT_PATTERN.findall(user_message.upper())))
     if not ncts:
         return
     found = await deps.trial_search.get_by_ncts(ncts)
-    by_nct = {c.nct_number: c for c in found if c.nct_number}
+    folded = fold(user_message)
+    by_nct = {
+        c.nct_number: _narrow_to_named_places(c, folded) for c in found if c.nct_number
+    }
     missing = [nct for nct in ncts if nct not in by_nct]
     if missing:
         deps.refusal_directive = _missing_trials_directive(missing)

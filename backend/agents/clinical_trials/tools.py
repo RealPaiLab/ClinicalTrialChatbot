@@ -100,6 +100,16 @@ async def semantic_search(
     return _record(ctx, citations)
 
 
+def _keep_narrowed_sites(
+    ctx: RunContext[AgentDeps], citation: TrialCitation
+) -> TrialCitation:
+    """Re-apply the site list a search already narrowed for this trial."""
+    known = ctx.deps.fetched_trials.get(citation.nct_number or "")
+    if known is None or not known.sites:
+        return citation
+    return citation.model_copy(update={"sites": known.sites})
+
+
 @observed
 @guarded
 async def get_trial_details(
@@ -108,9 +118,13 @@ async def get_trial_details(
     """Fetch full details for one or more trials by NCT number.
 
     Use when the patient wants to go deeper on specific trials; pass every NCT
-    number you need in one call. Returns only the trials that were found.
+    number you need in one call. Returns only the trials that were found. Keeps
+    whatever locations the search was narrowed to; set `all_sites` only when the
+    patient asks where else a trial runs.
     """
     citations = await ctx.deps.trial_search.get_by_ncts(args.nct_numbers)
+    if not args.all_sites:
+        citations = [_keep_narrowed_sites(ctx, c) for c in citations]
     for citation in citations:
         if citation.nct_number:
             ctx.deps.fetched_trials[citation.nct_number] = citation
