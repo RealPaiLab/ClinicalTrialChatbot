@@ -156,9 +156,14 @@ def test_factory_builds_each_store(monkeypatch: pytest.MonkeyPatch) -> None:
     assert isinstance(_STORE_BUILDERS["redis"](), RedisKeyValueStore)
 
 
-def test_get_key_value_store_default_is_memory() -> None:
+def test_get_key_value_store_builds_the_configured_store(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake = type("S", (), {"conversation_store": "memory"})
+    monkeypatch.setattr(kv_factory, "get_settings", fake)
     get_key_value_store.cache_clear()
     assert isinstance(get_key_value_store(), InMemoryKeyValueStore)
+    get_key_value_store.cache_clear()
 
 
 def test_get_key_value_store_unknown_store_raises(
