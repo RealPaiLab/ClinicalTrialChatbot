@@ -1,0 +1,93 @@
+---
+title: Overview
+description: A patient-facing chatbot that finds Canadian cancer clinical trials by conversation, and puts every trial it cites on a map.
+---
+
+Camille is a chatbot for people looking for a cancer clinical trial in Canada. Instead of a filter
+form, <u>it holds a conversation</u>: it asks what it needs: `cancer type`, `stage`, `prior treatment`,
+`where the patient can travel`. Then it searches the trial database, and answers in plain language.
+
+It was built as a Google Summer of Code 2026 project in collaboration with Open Genome Informatics and the Ontario Institute for Cancer Research.
+
+<Backers />
+
+## Who it is for
+
+Patients and their families first. That single decision drives most of the design: answers are
+written at reading level, medical terms are defined inline on
+hover, and the system refuses to give medical advice.
+
+Clinicians, caregivers and researchers are welcome to use it too. The same conversation works as a
+quick way to see what is open and where, without leaving the answer in registry shorthand.
+
+## What it does
+
+<Cards>
+  <Card title="Search by meaning" href="/docs/agent">
+    The patient describes their situation in their own words. The agent turns the hard parts of that
+    description into filters that narrow the search space first, then ranks what is left by meaning.
+  </Card>
+  <Card title="Answers as it thinks" href="/docs/streaming">
+    The reply streams into the chat as it is written.
+    Each trial the answer relies on is cited inline, visible to the user for quick reference and checking.
+  </Card>
+  <Card title="Shows reach on a map" href="/docs/frontend">
+    Every trial location is geocoded, so a cited trial becomes pins the moment it is mentioned.
+    Clicking a citation flies the map to that trial. Clicking a pin opens the trial summary.
+  </Card>
+  <Card title="Safeguard protection" href="/docs/agent#guardrails">
+    A prompt triage gateway classifies each message before the main agent runs, guardrails constrain
+    what the agent may say and which trials it may cite, and the whole path has been exercised
+    against red-teaming scenarios.
+  </Card>
+</Cards>
+
+## The three panels
+
+The whole application is one screen, split three ways and resizable.
+
+<Shot
+  src="platform.png"
+  alt="The application: chat on the left, map top right, trial summary bottom right."
+  caption="One selection, three views of it."
+/>
+
+**Chat**, on the left, carries the conversation. Trials are cited inline as the answer is written.
+Unfamiliar medical terms are defined on hover, and each turn can be rated.
+
+**Map**, top right, holds every site of every trial in the current answer, coloured by recruiting
+status. Trials at the same address collapse into one pin.
+
+**Summary**, bottom right, is the full record of one selected trial: facts, eligibility criteria and
+the list of sites running it.
+
+The panels are not independent views of the same data; <u>they are one selection</u>. A trial selected by
+clicking its citation in the chat is the same selection as a pin clicked on the map, and both open
+the same summary. See [Interface](/docs/frontend).
+
+## Where the data comes from
+
+Trials come from [Cancer Trials Canada](https://www.cancertrialscanada.ca). The current snapshot was taken
+on 28 May 2026. Records carry titles, descriptions, cancer types, phases, eligibility criteria and site
+addresses with per-site recruiting status.
+
+<u>Addresses</u> are geocoded and <u>Embeddings</u> are
+computed once at seed time and stored.
+
+<Callout title="A snapshot, not a live feed">
+  The interface says so on every turn, and the agent is instructed to send patients to their care
+  team for anything that depends on current status.
+</Callout>
+
+## Status
+
+<u>Pre-release</u>. The system runs end to end and is <u>focused on Ontario for now</u>, with other
+provinces to follow.
+
+Every turn is traced, and an evaluation harness scores the agent against a dataset so changes to the
+prompt or the search can be compared rather than guessed at.
+
+## Read next
+
+[Architecture](/docs/architecture) for the shape of the codebase, or [Agent](/docs/agent) for how a
+question turns into trials.

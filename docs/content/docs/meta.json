@@ -1,0 +1,15 @@
+{
+  "title": "Documentation",
+  "pages": [
+    "---Introduction---",
+    "index",
+    "architecture",
+    "---Flows---",
+    "agent",
+    "streaming",
+    "frontend",
+    "deployment",
+    "---Working on it---",
+    "development"
+  ]
+}
