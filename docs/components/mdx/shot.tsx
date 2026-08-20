@@ -2,8 +2,6 @@
 
 import { useState } from 'react';
 
-/* `src` is relative to docs/public. Until the file is there, the frame renders a
-   placeholder naming the exact path it expects. */
 export function Shot({ src, alt, caption }: { src: string; alt: string; caption?: string }) {
   const [missing, setMissing] = useState(false);
   const path = src.replace(/^\//, '');

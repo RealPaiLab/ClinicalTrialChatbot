@@ -121,12 +121,6 @@ h4 {
   }
 }
 
-/* ---------------------------------------------------------------------------
-   Yellow. The app spends it on one mark per view, so the docs do the same:
-   it marks where a section starts, what row is live, and what is selected.
-   --------------------------------------------------------------------------- */
-
-/* Section rule: a hairline across the measure with a yellow tick at its start. */
 .prose h2 {
   position: relative;
   margin-top: 3rem;
@@ -144,7 +138,6 @@ h4 {
   background: var(--color-signal);
 }
 
-/* Underline for the one phrase in a section that carries its point. */
 .prose u {
   text-decoration-line: underline;
   text-decoration-color: var(--color-signal);
@@ -161,7 +154,6 @@ h4 {
   border-bottom: 2px solid var(--color-signal);
 }
 
-/* The heading you are at. */
 #nd-toc a[data-active='true'] {
   color: var(--color-fd-foreground);
   border-inline-start-color: var(--color-signal);

@@ -7,7 +7,6 @@ const docs = defineDocs({
   dir: 'content/docs',
   docs: {
     schema: pageSchema,
-    // Read from git, so a page shows a date only once its edit is committed.
     lastModified: true,
     postprocess: {
       includeProcessedMarkdown: true,

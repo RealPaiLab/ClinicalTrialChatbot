@@ -16,8 +16,6 @@ import { gitConfig } from '@/lib/shared';
 import { statSync } from 'node:fs';
 import { join } from 'node:path';
 
-/* `lastModified` is read from git, so it is undefined for a page whose edit is
-   not committed yet. Fall back to the file's own mtime, which is always there. */
 function lastUpdated(page: { path: string; data: { lastModified?: Date } }): Date | undefined {
   if (page.data.lastModified) return page.data.lastModified;
 
