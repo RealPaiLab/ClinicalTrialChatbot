@@ -1,0 +1,122 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+/* ===========================================================================
+   Camille docs — the app's own design tokens, ported onto Fumadocs.
+   Palette anchors (frontend/src/index.css):
+     Deep Navy #2F3F7B · Signal Yellow #FBD813 · Light Blue #91ABDA
+     Ink Navy #16203F · Cool White #F7F9FC · Night #000518
+   Yellow is the single accent. It is spent on one mark per view, never twice.
+   =========================================================================== */
+
+@theme {
+  --color-fd-background: #ffffff;
+  --color-fd-foreground: #16203f;
+  --color-fd-muted: #eef2f9;
+  --color-fd-muted-foreground: #5d6b8a;
+  --color-fd-popover: #ffffff;
+  --color-fd-popover-foreground: #16203f;
+  --color-fd-card: #f7f9fc;
+  --color-fd-card-foreground: #16203f;
+  --color-fd-border: #d8e0ef;
+  --color-fd-primary: #2f3f7b;
+  --color-fd-primary-foreground: #ffffff;
+  --color-fd-secondary: #e7edf8;
+  --color-fd-secondary-foreground: #2f3f7b;
+  --color-fd-accent: #e7edf8;
+  --color-fd-accent-foreground: #2f3f7b;
+  --color-fd-ring: #91abda;
+  --color-fd-overlay: rgba(22, 32, 63, 0.28);
+
+  --color-ink: #16203f;
+  --color-navy: #2f3f7b;
+  --color-signal: #fbd813;
+  --color-sky: #91abda;
+  --color-canvas: #eef2f9;
+  --color-night: #000518;
+
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
+.dark {
+  --color-fd-background: #00030e;
+  --color-fd-foreground: #e6ecf8;
+  --color-fd-muted: #0b1330;
+  --color-fd-muted-foreground: #9fb0d2;
+  --color-fd-popover: #070d24;
+  --color-fd-popover-foreground: #e6ecf8;
+  --color-fd-card: #070d24;
+  --color-fd-card-foreground: #e6ecf8;
+  --color-fd-border: #1b264c;
+  --color-fd-primary: #7e9ce6;
+  --color-fd-primary-foreground: #000518;
+  --color-fd-secondary: #101b3c;
+  --color-fd-secondary-foreground: #e6ecf8;
+  --color-fd-accent: #101b3c;
+  --color-fd-accent-foreground: #e6ecf8;
+  --color-fd-ring: #7e9ce6;
+
+  --color-ink: #e6ecf8;
+  --color-navy: #7e9ce6;
+  --color-sky: #7e9ce6;
+  --color-canvas: #070d24;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0px !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+/* Display face carries the headings, as it does in the app. */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+/* Section label: mono, uppercase, opened up. The app uses the same device for
+   taxonomy labels, so the docs inherit it rather than inventing a new one. */
+@layer components {
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-fd-muted-foreground);
+  }
+
+  /* NCT numbers and other registry identifiers, wherever they appear. */
+  .nct {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    letter-spacing: 0.02em;
+    color: var(--color-navy);
+  }
+}
+
+/* Documentation reads long-form, so the prose is set a step larger than the
+   Fumadocs default and given a looser measure. */
+@layer components {
+  .prose {
+    font-size: 1.0625rem;
+    line-height: 1.75;
+  }
+
+  .prose :is(h2, h3) {
+    letter-spacing: -0.02em;
+  }
+}
