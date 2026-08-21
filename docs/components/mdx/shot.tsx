@@ -2,12 +2,22 @@
 
 import { useState } from 'react';
 
-export function Shot({ src, alt, caption }: { src: string; alt: string; caption?: string }) {
+export function Shot({
+  src,
+  alt,
+  caption,
+  width,
+}: {
+  src: string;
+  alt: string;
+  caption?: string;
+  width?: number;
+}) {
   const [missing, setMissing] = useState(false);
   const path = src.replace(/^\//, '');
 
   return (
-    <figure className="not-prose my-8">
+    <figure className="not-prose mx-auto my-8" style={width ? { maxWidth: width } : undefined}>
       <div className="border-fd-border bg-fd-card overflow-hidden rounded-xl border shadow-[0_18px_45px_-30px_rgba(22,32,63,0.5)]">
         {missing ? (
           <div className="text-fd-muted-foreground flex aspect-[16/9] flex-col items-center justify-center gap-2 text-center">

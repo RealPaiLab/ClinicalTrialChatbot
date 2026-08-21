@@ -1,0 +1,130 @@
+---
+title: Interface
+description: Three resizable panels, one selection.
+---
+
+The application is a <u>single screen</u>. There is no navigation, because a patient who has to
+navigate has already lost the thread of their own question.
+
+## The layout
+
+<PanelMap />
+
+The header and footer are fixed. Everything between them is a **resizable panel group**: chat on the
+left, and on the right a second group split vertically into the map and the trial summary. Dragging
+any divider re-lays out the panels.
+
+The three panels share <u>one selection</u>, held in a **zustand** store. None of them talk to each
+other: each reads that store and writes back to it.
+
+### Chat panel
+
+<Shot
+  src="shots/chat-panel.png"
+  alt="The chat panel, mid-conversation, with an inline trial citation."
+  caption="The conversation, with trials cited inline as the answer is written."
+  width={420}
+/>
+
+The chat is where the whole conversation happens, and it is the only panel the patient types into.
+Four things are worth naming.
+
+- **Inline citations.** A trial referenced in the answer renders as a card.
+  Hovering shows the trial's title, and clicking it <u>flies the map</u> to that trial's sites.
+- **Term definitions.** Medical vocabulary is marked in the text, and
+  hovering opens a plain-language definition.
+- **Ask AI on a selection.** Highlighting any text in the panel raises an **Ask AI** popover, so a
+  follow-up question can be asked about the exact phrase that was unclear.
+- **Per-turn feedback.** Every answer carries a thumbs control, and a rating can be sent with a
+  comment.
+
+### Map panel
+
+<Shot
+  src="shots/map-panel.png"
+  alt="The map panel showing status-coloured trial pins across a province."
+  caption="Every site of every trial in the current answer, coloured by recruiting status."
+/>
+
+The map holds the sites of the trials in the current answer. Pins are grouped
+<u>per coordinate</u>, because a single hospital may host many studies and a
+stack of overlapping teardrops is unreadable.
+
+- **Count pins.** Every pin shows how many trials sit at that coordinate.
+- **Dual pins.** When trials at one address have different recruiting statuses, one tip carries two
+  balloons, each with its own status colour and count.
+- **Clusters.** Co-located trials open a popup list anchored to the pin.
+
+### Summary panel
+
+<Shot
+  src="shots/summary-panel.png"
+  alt="The trial summary panel showing facts, eligibility criteria and site list."
+  caption="One selected trial, in full: facts, eligibility criteria, and every site running it."
+/>
+
+The summary is the full record of <u>one selected trial</u>, whichever panel selected it. It carries
+the title, the facts (status, phase, cancer types, sponsor), the eligibility criteria as written, and
+the list of sites. Long titles clamp with a control to show the rest.
+
+## Gates before the app
+
+A first-time visitor passes two gates, in a deliberate order.
+
+<Mermaid
+  chart={`
+flowchart LR
+  V([Visitor]) --> C{Terms accepted?}
+  C -- no --> CD[Consent dialog]
+  CD --> C
+  C -- yes --> T{Bot check needed?}
+  T -- production only --> TW[Cloudflare Turnstile]
+  TW -- verified --> APP([Three panel app])
+  TW -- "15s, no token" --> RETRY[Retry screen]
+  T -- non production --> APP
+
+  classDef edgeNode fill:#91abda,stroke:#2f3f7b,color:#16203f
+  classDef stepNode fill:#2f3f7b,stroke:#16203f,color:#ffffff
+  classDef guardNode fill:#fdeb8a,stroke:#c9a800,color:#16203f
+  classDef refuseNode fill:#f7d7d1,stroke:#c07260,color:#5a2018
+
+  class V,APP edgeNode
+  class T stepNode
+  class C,CD,TW guardNode
+  class RETRY refuseNode
+`}
+/>
+
+### Consent comes first
+
+Consent sits <u>outside</u> first. The dialog withholds the entire application until the checkbox is
+ticked, and it re-prompts everyone when the terms version changes.
+
+### The bot check
+
+Turnstile is verified <u>once per browser</u>, against a persistent verification ID to protect the site from automated traffic.
+
+Outside production the bot gate is off entirely.
+
+## Design system
+
+The interface has <u>one visual identity</u>, defined as CSS custom properties and exposed as
+Tailwind utilities. This documentation site uses the same tokens, which is why the two look like one
+product.
+
+### Colour
+
+<Palette />
+
+### Type
+
+Three typefaces, each with one job.
+
+| Face | Used for |
+| --- | --- |
+| **Bricolage Grotesque** | Display and headings |
+| **Hanken Grotesk** | Body text and interface |
+| **JetBrains Mono** | Numbers and identifiers |
+
+The scale is a fixed set of classes (`.text-display`, `.text-headline`, `.text-title`,
+`.text-subhead`, `.text-eyebrow`, `.text-caption`).
