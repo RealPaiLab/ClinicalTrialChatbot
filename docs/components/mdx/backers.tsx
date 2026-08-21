@@ -3,9 +3,9 @@
 import { useState } from 'react';
 
 const BACKERS = [
-  { file: 'open-genome.png', name: 'Open Genome Informatics' },
-  { file: 'oicr.png', name: 'Ontario Institute for Cancer Research' },
-  { file: 'GSoC-icon.svg.png', name: 'Google Summer of Code' },
+  { file: 'open-genome.webp', name: 'Open Genome Informatics' },
+  { file: 'oicr.webp', name: 'Ontario Institute for Cancer Research' },
+  { file: 'gsoc.webp', name: 'Google Summer of Code' },
 ];
 
 export function Backers() {

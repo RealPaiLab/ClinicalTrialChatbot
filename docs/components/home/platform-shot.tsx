@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { siteUrl } from '@/lib/shared';
 
-const SHOT = 'platform.png';
+const SHOT = 'platform.webp';
 
 export function PlatformShot() {
   const [missing, setMissing] = useState(false);

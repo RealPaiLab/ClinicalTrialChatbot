@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: { absolute: appTitle },
   description:
     'Camille helps you search and find suitable cancer clinical trials in Canada, and shows you where they run.',
-  openGraph: { images: '/hero_upscaled.webp' },
+  openGraph: { images: '/hero.webp' },
 };
 
 const WALKTHROUGH = [
@@ -43,7 +43,7 @@ export default function HomePage() {
         <section className="relative isolate flex min-h-[clamp(34rem,88svh,64rem)] items-center overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/hero_upscaled.webp`}
+          src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/hero.webp`}
           alt=""
           aria-hidden
           className="absolute inset-0 -z-20 size-full object-cover object-[center_18%]"
