@@ -10,7 +10,7 @@ else is configuration.
 
 ```
 ├── frontend/            React + TypeScript + Vite, served by nginx
-├── backend/             FastAPI + pydantic-ai, served by uvicorn
+├── backend/             FastAPI + Pydantic AI, served by uvicorn
 ├── infra/               on-premise deployment
 ├── .github/workflows/   CI, image build and scan, release
 └── docker-compose.yml   local stack
@@ -38,7 +38,7 @@ An <u>async FastAPI service</u>, managed by uv as dependency manager.
 | Layer | Choice | Why this one |
 | --- | --- | --- |
 | Framework | FastAPI, async throughout, uv | Fast and optimal performance |
-| Agent | pydantic-ai | Typed tools and structured output, provider-agnostic |
+| Agent | Pydantic AI | Typed tools and structured output, provider-agnostic |
 | Model | OpenAI | Fast and performant models with many capabilities |
 | Database | PostgreSQL + SQLAlchemy | One denormalized read-optimized trial table |
 | Vector search | pgvector | Same database, no second store to operate |
