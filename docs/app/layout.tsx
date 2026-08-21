@@ -8,7 +8,7 @@ import './global.css';
 export const metadata: Metadata = {
   title: {
     default: appTitle,
-    template: `%s — ${appTitle}`,
+    template: `%s · ${appTitle}`,
   },
 };
 

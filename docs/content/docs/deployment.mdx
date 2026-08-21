@@ -75,6 +75,20 @@ triggers the build workflow, and that workflow pushes the versioned image.
 
 The deploy is <u>manual on purpose</u>: no self-hosted runner can reach the VMs.
 
+### Before the first run
+
+Three files hold every real value. Copy each one from its
+example and fill it in before running any playbook.
+
+| Copy | To | Holds |
+| --- | --- | --- |
+| `secrets.yml.example` | `secrets.yml` | Credentials and keys |
+| `inventory/hosts.example.yml` | `inventory/hosts.yml` | The real hostnames |
+| `inventory/group_vars/all/local.example.yml` | `local.yml` | Admin networks and private addresses |
+
+The committed tree carries only the examples, so a real hostname or network range belongs in one of
+these and <u>never in a role</u>.
+
 ```bash
 cd infra/ansible
 ansible-playbook playbooks/deploy.yml \
