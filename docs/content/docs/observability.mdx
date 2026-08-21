@@ -1,0 +1,57 @@
+---
+title: Observability
+description: Every conversation is one Langfuse trace, prompts are versioned there, and patient feedback lands on the turn it belongs to.
+---
+
+The system is observed through <u>Langfuse</u>, self-hosted on a VM of its own.
+
+## Built on Langfuse
+
+[Langfuse](https://langfuse.com) is an open-source observability platform for LLM applications. It
+records what a model was asked, what it answered, and everything the application did in between, and
+it holds the **prompts** and the **evaluation datasets** alongside those records.
+
+Beyond the traces themselves, it is where the operational numbers live.
+
+- **Traffic.** How many conversations and turns the system is handling, and when.
+- **Token usage and cost.** Per turn, per conversation and in aggregate.
+- **Latency.** Where a slow turn spent its time, which separates <u>a slow model from a slow
+  search</u> and makes a spike traceable to the step that caused it.
+- **Errors.** Failed turns and the guardrails that fired, findable without reading logs.
+
+## One conversation, one trace
+
+<Shot
+  src="shots/langfuse-trace.webp"
+  alt="The Langfuse trace list with a single conversation opened, showing its turn and tool spans."
+  caption="A conversation in Langfuse: every turn, every tool call, and the answer that came out."
+/>
+
+A conversation is a <u>single trace</u>, and each turn hangs off it as spans: the triage verdict,
+every tool call with its arguments and its results, the model spans, and the final answer. When
+somebody says the assistant gave a bad answer, the question is never "what did the model say" but
+"what did it look at".
+
+## Prompts are versioned
+
+<Shot
+  src="shots/langfuse-prompts.webp"
+  alt="The Langfuse prompt list showing successive versions of the clinical-trials prompt."
+  caption="Prompts live in Langfuse as versioned records, with the constant in the code as a fallback."
+/>
+
+Prompts are fetched from Langfuse by <u>name and label</u>, with the constant in the source as a
+fallback on any error.
+
+Promotion moves the label onto <u>the version that was tested</u>.
+
+## Feedback lands on the turn
+
+The thumbs on a chat message write a score onto <u>that turn</u>, not onto the conversation as a
+whole. So a thumbs-down is not a number in a dashboard: it is attached to the exact answer, its tool
+calls and the trials it cited, which is what makes it worth reading later.
+
+## What gets captured
+
+Patient-authored text is captured only where the environment allows it. Three places carry it (the
+Pydantic AI spans, the turn span, and the observed tools) and all three read the same setting. See [Environments](/docs/architecture#environments).

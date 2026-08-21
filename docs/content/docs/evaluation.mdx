@@ -1,0 +1,64 @@
+---
+title: Evaluation
+description: A dataset held in Langfuse, an experiment triggered from the dashboard, and DeepEval metrics scoring what the agent actually answered.
+---
+
+Prompt changes are easy to make and hard to judge. The harness in `../evals/` exists so that a
+change to the prompt, the tools or the search <u>can be compared</u>.
+
+## How a run works
+
+<Shot
+  src="shots/langfuse-experiment.webp"
+  alt="A Langfuse experiment run, showing each dataset item with its scores."
+  caption="An experiment run in Langfuse: one row per dataset item, scored and traceable."
+/>
+
+The dataset lives in <u>Langfuse</u>. An experiment is triggered from the
+dashboard, and it replays each dataset conversation through <u>the real agent</u>, tools and all,
+then scores what comes back. Langfuse stores the run, the scores and a trace per item, so a
+regression can be opened and read like any other conversation.
+
+## Built on DeepEval
+
+[DeepEval](https://deepeval.com) is an open-source evaluation framework for LLM applications. It
+supplies the **judged** metrics: a second model reads the question, the retrieved trials and the
+answer, and scores them against a defined rubric.
+
+That matters because there is no single correct answer to grade against. Two answers can cite the
+same trials, phrase things differently, and both be right. A judge can score whether the answer is
+supported by what was retrieved.
+
+## The metrics
+
+The judged metrics come from <u>DeepEval</u>, and the set-based ones are computed directly.
+
+| Metric | Kind | Asks |
+| --- | --- | --- |
+| Faithfulness | Judged | Does the answer stay true to the trial data it retrieved? |
+| Answer relevancy | Judged | Does it answer the question that was asked? |
+| Contextual relevancy | Judged | Were the retrieved trials relevant to the question? |
+| Answer correctness | Judged | Does it agree with the expected answer? |
+| Tool correctness | Judged | Were the right tools called? |
+| Context precision, recall | Deterministic | Set arithmetic over the cited trials |
+
+The judged metrics need a model of their own, so a <u>judge is configured separately</u> from the
+agent's. The deterministic ones need gold trials on the dataset item.
+
+## Keeping the harness current
+
+An evaluation set is only as good as its coverage, and the system it measures keeps moving. The
+dataset is therefore treated as <u>living, not fixed</u>: new cases are added as the agent gains
+tools, as the prompt changes, and as real conversations reveal question shapes nobody anticipated.
+
+Two habits keep it honest.
+
+- **A failure becomes a case.** A bad answer found in a trace is worth more as a dataset item,
+  because it is the only way the same failure gets caught again.
+- **New capability, new coverage.** A tool or a guardrail added without a case that exercises it is
+  untested by the harness, whatever the metrics say.
+
+## No CI gate
+
+The experiment needs the full secret set and a live database, so it does not run on a pull request.
+It runs server-side and regressions are reviewed in the <u>Langfuse</u> dashboard.

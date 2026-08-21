@@ -1,0 +1,151 @@
+---
+title: Running it locally
+description: What to install, what to seed, and the commands worth knowing.
+---
+
+Everything runs on one machine. The <u>database</u> and the <u>cache</u> come up in Docker, the two
+packages run from their own directories, and the model is whatever you point the backend at.
+
+## Prerequisites
+
+- **Node 22+ and <u>pnpm</u>** for the frontend..
+- **<u>uv</u>** for the backend.
+- **<u>Docker</u>** for PostgreSQL, Redis and Langfuse.
+- **A model provider**: either a reachable <u>Ollama</u> server with a chat and an embedding model
+  pulled, or an <u>OpenAI</u> key.
+
+<Callout type="warn">
+  When adding dependencies, use the CLI command (`uv add`, `pnpm add`), never by editing `pyproject.toml`
+  or `package.json` manually.
+</Callout>
+
+## First run
+
+### Infrastructure
+
+```bash
+cp .env.example .env          # then fill it in
+docker compose up -d postgres redis
+```
+
+### Observability
+
+<u>Langfuse</u> runs locally from the same compose file.
+
+```bash
+docker compose up -d clickhouse minio langfuse-worker langfuse-web
+```
+
+It comes up on `localhost:3000`. The `LANGFUSE_INIT_*` values in the root `.env` provision the
+organization, project and first user on <u>first boot</u>.
+
+### Backend
+
+```bash
+cd backend
+cp .env.example .env          # then fill it in
+uv sync --dev
+uv run pre-commit install     # once per clone, covers both packages
+```
+
+The backend **seeds its prompts** into Langfuse on startup, under the label its environment maps to.
+
+### Frontend
+
+```bash
+cd frontend
+cp .env.example .env          # then fill it in
+pnpm install
+```
+
+### Data
+
+The database is restored from a <u>dump</u> that already holds the trials, their geocoded sites and
+their embeddings.
+
+```bash
+docker compose exec -T postgres \
+  pg_restore --no-owner --no-privileges --clean --if-exists \
+  -U ctc -d ctc_db < ctc_seed.dump
+
+cd backend && uv run alembic stamp head
+```
+
+### Serve
+
+Two terminals, one per package.
+
+```bash
+cd backend
+uv run uvicorn main:app --reload   # http://localhost:8000
+```
+
+```bash
+cd frontend
+pnpm dev                           # http://localhost:5173
+```
+
+## Everyday commands
+
+### Backend
+
+```bash
+uv run uvicorn main:app --reload                                      # dev server
+uv run python -m cli.chat_cli                                         # talk to the agent in a REPL
+uv run pytest                                                         # tests
+uv run ruff check . && uv run ruff format --check . && uv run mypy .  # lint, format, types
+uv run alembic revision --autogenerate -m "description"               # new migration
+```
+
+The **chat REPL** is worth knowing about. It streams a real turn and prints the trials that were
+cited, so the agent can be exercised without the frontend running at all.
+
+After editing a **local fallback prompt** in the source, publish it. This writes a new version under
+this environment's label.
+
+```bash
+uv run python scripts/bootstrap_prompt.py                             # all prompts
+uv run python scripts/bootstrap_prompt.py --prompt triage             # or just one
+```
+
+### Frontend
+
+```bash
+pnpm dev                                 # Vite dev server
+pnpm test                                # Vitest
+pnpm lint && pnpm format --check
+pnpm build                               # production build
+```
+
+### Documentation
+
+```bash
+cd docs
+pnpm dev                                 # http://localhost:3000
+pnpm build                               # static export into docs/out
+```
+
+## Testing
+
+The backend runs on <u>pytest</u> and the frontend on <u>Vitest</u>.
+
+The tests cover behaviour that can <u>break silently</u>: the chat state machine, citation
+linkification, status derivation.
+
+```bash
+cd backend  && uv run pytest
+cd frontend && pnpm test
+```
+
+## Useful local surfaces
+
+| Surface | Where | Available |
+| --- | --- | --- |
+| API docs | `localhost:8000/docs` | Development only |
+| Trial search debug page | `localhost:5173/debug` | Development only |
+| Langfuse | `localhost:3000` | Traces, prompts and evaluation runs |
+| pgAdmin | `localhost:5050` | `docker compose up -d postgres pgadmin` |
+
+The `/debug` page runs filtered lexical and semantic searches <u>directly against the database</u>,
+with a provider toggle for comparing embedding models on the same query. It is the fastest way to
+tell a **retrieval problem**.
