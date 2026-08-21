@@ -3,6 +3,7 @@ import type { MDXComponents } from 'mdx/types';
 import { Backers } from '@/components/mdx/backers';
 import { Mermaid } from '@/components/mdx/mermaid';
 import { Shot } from '@/components/mdx/shot';
+import { Swatch } from '@/components/mdx/swatch';
 
 export function getMDXComponents(components?: MDXComponents) {
   return {
@@ -10,6 +11,7 @@ export function getMDXComponents(components?: MDXComponents) {
     Backers,
     Mermaid,
     Shot,
+    Swatch,
     ...components,
   } satisfies MDXComponents;
 }
