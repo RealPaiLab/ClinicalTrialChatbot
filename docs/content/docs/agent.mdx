@@ -1,0 +1,259 @@
+---
+title: Agent
+description: How a patient's message becomes a set of verified trials, and the guardrails between the model and the answer.
+---
+
+A turn runs <u>two agents</u>. A small **triage agent** decides whether the message should be answered
+at all, then the **clinical-trials agent** answers it with a set of tools and a set of guards that sit
+between the model's output and the patient.
+
+## The turn, end to end
+
+<Mermaid
+  chart={`
+flowchart TD
+  MSG([Patient message]) --> TRIAGE{Triage}
+
+  TRIAGE -- refuse --> DIR[Refusal directive<br/>tools hidden]
+  TRIAGE -- allow --> PRE[Prefetch named NCTs]
+  TRIAGE -. "error, fail open" .-> PRE
+
+  PRE --> FOUND{NCT named?}
+  FOUND -- "yes, known" --> CTX[Pin verified record]
+  FOUND -- "yes, unknown" --> MISS[Not-found directive<br/>tools hidden]
+  FOUND -- no --> RUN
+
+  DIR --> RUN
+  CTX --> RUN
+  MISS --> RUN
+
+  RUN[Clinical trials agent] --> TOOLS{Tool needed?}
+  TOOLS -- yes --> BUDGET{Budget left?<br/>Already called?}
+  BUDGET -- ok --> CALL[Set of tools]
+  BUDGET -- duplicate --> RETRY[Retry with<br/>new parameters]
+  CALL --> RUN
+  RETRY --> RUN
+
+  TOOLS -- no --> OUT[Structured output]
+  BUDGET -- "spent, tools hidden" --> OUT
+  OUT --> VAL{Citation validator}
+  VAL -- verified --> KEEP[Keep cited trials]
+  VAL -- invented --> FALL[Replace the reply]
+  KEEP --> DONE([Answer + trials])
+  FALL --> DONE
+
+  classDef edgeNode fill:#91abda,stroke:#2f3f7b,color:#16203f
+  classDef stepNode fill:#2f3f7b,stroke:#16203f,color:#ffffff
+  classDef guardNode fill:#fdeb8a,stroke:#c9a800,color:#16203f
+  classDef refuseNode fill:#f7d7d1,stroke:#c07260,color:#5a2018
+  classDef toolNode fill:#eef2f9,stroke:#5d6b8a,color:#16203f
+
+  class MSG,DONE edgeNode
+  class RUN,TOOLS,OUT stepNode
+  class TRIAGE,PRE,FOUND,CTX,BUDGET,RETRY,VAL,KEEP guardNode
+  class DIR,MISS,FALL refuseNode
+  class CALL toolNode
+`}
+/>
+
+Colour carries the point.
+
+- <Swatch tone="guard">Yellow</Swatch> is a guardrail: the gate before the agent, the deterministic
+  prefetch, the limits on tool use, and the check on what was written.
+- <Swatch tone="refuse">Red</Swatch> is a refusal, where the model's own output is discarded or never
+  asked for.
+- <Swatch tone="step">Navy</Swatch> is the ordinary path of the turn, and it is deliberately the
+  smallest part of the picture.
+- <Swatch tone="edge">Blue</Swatch> is the patient: the message in, and the answer that goes back
+  out.
+
+## Built on Pydantic AI
+
+Both agents are built with [Pydantic AI](https://ai.pydantic.dev), an agent framework from the team
+behind Pydantic. It is what makes the tools and the answer <u>typed</u>.
+
+Three of its properties decided the choice.
+
+- **A short learning curve.** It reads like ordinary Python, so the framework stays out of the way:
+  <u>capable where it needs to be, and flexible enough</u> to shape the turn around the product.
+- **Output validators.** A validator can reject an answer and hand the model a `ModelRetry`, which is
+  exactly how the citation and duplicate-call guards are written.
+- **Provider-agnostic.** The model is chosen by configuration, so <u>swapping providers is an
+  environment change</u>.
+
+## Before the agent runs
+
+### Input triage
+
+A <u>tool-less classifier agent</u> reads the message and returns a
+verdict: **allow** or **refuse**, plus a category if refused. It sees a short window of recent turns
+so it can tell a follow-up from a fresh topic.
+
+Refusing does not short-circuit the turn. Instead the main agent runs with **every tool hidden** and
+a **refusal directive** injected into its instructions, so the patient still gets a warm answer.
+<u>Classifying and answering are kept separate</u> because a
+model asked to both refuse and stay in character tends to do one of them badly.
+
+### Prefetch
+
+If the patient's message contains an NCT number, it is <u>looked up deterministically</u> before the
+agent runs, and one of two things is attached to the run:
+
+- **Found.** The verified record is pinned into the agent's instructions as <u>the only source of
+  truth</u> about that trial, with an instruction to fact-check the patient's description against it
+  and never repeat their version.
+- **Not found.** The same **refusal directive** triage uses. It writes the same field, so the tools
+  are hidden for the rest of the turn.
+
+This exists because the failure mode it prevents is specific and bad: a patient describes a trial
+slightly wrong, and the model politely agrees with them.
+
+## Answering
+
+### The tools
+
+The **set of tools** available to the agent.
+
+| Tool | Use |
+| --- | --- |
+| `syntactic_search` | Hard constraints: cancer type, location, status, phase, plus optional keyword text matching |
+| `semantic_search` | The same hard constraints, then ranking by how well a trial matches what the patient described |
+| `get_trial_details` | The full record of a specific trial |
+| `define_term` | Plain-language definition of a medical term |
+
+### Why the search is split in two
+
+Both searches start from the <u>same hard constraints</u>, which narrow the search space before
+anything is ranked. What differs is how they read the rest of the message.
+
+`syntactic_search` matches **text patterns**, so it is the right tool for a straightforward keyword
+query: a drug name, a study title, a term the patient quoted. `semantic_search` matches **meaning**,
+so it is the right tool for the details a keyword cannot capture: stage, prior treatment, and the
+situation the patient described in their own words.
+
+### Every call says why
+
+Every tool input carries a **`reasoning` field**, which the model fills in before the call is made.
+It changes nothing about the search, and it is not shown to the patient. It exists so that a trace
+records not just <u>what the agent did but why it thought it should</u>.
+
+### What a tool call leaves behind
+
+Every tool call is recorded on `deps`, both the raw citations and a compact hit summary. That record
+is what the citation validator checks against, and what becomes map pins at the end of the turn.
+
+## Guardrails
+
+Every guard lives in <u>one file</u>, `guards.py`, so the whole set can be read in one sitting.
+
+### Tool budget
+
+Tools are filtered out of the toolset once the per-run call budget is spent, and whenever the turn
+was refused by triage. The model does not see a disabled tool and fail to call it; <u>it does not see
+the tool at all</u>.
+
+### Duplicate calls
+
+Each call is canonicalized (trimmed, lowercased, lists sorted, the free-text `reasoning` field
+ignored) into a <u>signature</u>. An exact repeat raises a `ModelRetry` telling the model to change
+its parameters or answer, which converts a stuck loop into a usable nudge.
+
+### Citation enforcement
+
+The output validator does two separate jobs, and the distinction matters:
+
+```python
+mentioned = set(_NCT_PATTERN.findall(output.message))
+output.used_nct_numbers = [
+    nct for nct in output.used_nct_numbers
+    if nct in ctx.deps.fetched_trials and nct in mentioned
+]
+```
+
+A citation survives only if a tool returned it **and** it appears in the prose. That keeps the
+citation list and the answer in agreement, so the map never shows a trial the text does not mention.
+
+```python
+unverified = any(
+    nct not in ctx.deps.fetched_trials
+    for nct in _NCT_PATTERN.findall(output.message)
+)
+if unverified:
+    output.message = _HALLUCINATED_TRIAL_FALLBACK
+```
+
+If the prose names a trial no tool ever returned, the model has probably invented the trial and
+everything it said about it. Scrubbing the number would leave the invented claims behind, so <u>the
+whole reply is replaced</u>.
+
+<Callout type="warn">
+  These two checks are not the same check at different strengths. The first keeps the citation list
+  honest; the second treats an invented NCT number as evidence that the reply itself is unsound.
+</Callout>
+
+## Streaming the answer
+
+The answer is written as it is generated. The reply is <u>streamed</u>.
+place.
+
+### The event flow
+
+<Mermaid
+  chart={`
+sequenceDiagram
+  autonumber
+  box rgb(145,171,218) Browser
+    participant U as Chat panel
+  end
+  box rgb(196,208,232) FastAPI
+    participant R as POST /chat/stream
+    participant T as Turnstile gate
+    participant C as ChatService
+    participant A as Agent
+  end
+  box rgb(238,242,249) Data
+    participant D as Postgres / Redis
+  end
+
+  U->>R: session_id, user_message, turnstile token
+  R->>T: verify once per browser
+  alt not verified
+    T-->>U: error: turnstile_failed
+  else verified
+    R->>C: stream_chat(session_id, message)
+    C->>D: load conversation history
+    C->>A: run_stream(message, history)
+    loop while the model writes
+      A-->>C: partial AgentResponse
+      C-->>U: AgentResponse (message so far)
+    end
+    A->>D: tool calls (search, details)
+    A-->>C: final output + full message list
+    C->>D: save history
+    C-->>U: ChatResult (message, trials, follow-ups, observation_id)
+  end
+`}
+/>
+
+### Errors are codes, not messages
+
+The route never leaks an exception. Pydantic AI failures are classified into a small
+stable enum, and the frontend owns the wording.
+
+| Code | Shown as |
+| --- | --- |
+| `usage_limit` | This conversation reached its processing limit. |
+| `model_unavailable` | The assistant is temporarily unavailable. |
+| `model_error` | I couldn't complete that request. Please try rephrasing. |
+| `turnstile_failed` | We couldn't verify that you're human. |
+| `generic` | Something went wrong. |
+
+Diagnostic detail stays in the logs and in the Langfuse span.
+
+### Session memory
+
+Conversation history lives in <u>Redis</u>, under one key per session with a **time to live**, and is
+serialized through Pydantic AI's own message adapter.
+
+The store sits behind a protocol with an in-memory implementation, so tests exercise the same
+serialization path without <u>Redis</u>.

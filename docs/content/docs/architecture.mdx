@@ -1,0 +1,188 @@
+---
+title: Architecture
+description: A two-package monorepo, an async FastAPI backend, a React frontend.
+---
+
+The repository holds **two deployable packages** and the infrastructure that ships them. Everything
+else is configuration.
+
+## Repository layout
+
+```
+├── frontend/            React + TypeScript + Vite, served by nginx
+├── backend/             FastAPI + Pydantic AI, served by uvicorn
+├── infra/               on-premise deployment
+├── .github/workflows/   CI, image build and scan, release
+└── docker-compose.yml   local stack
+```
+
+## The stack
+
+### Frontend
+
+A <u>single-page React application</u>, built with Vite and served as static files by nginx.
+
+| Layer | Choice | Why this one |
+| --- | --- | --- |
+| Framework | React + TypeScript + Vite, pnpm | Fast dev loop and optimal performance |
+| Map | react-map-gl (Mapbox GL JS) | Vector tiles, and each marker is a React component |
+| Layout | react-resizable-panels | The three panels are user-resizable |
+| Server state | TanStack Query | Trial fetches are cached and shared across panels |
+| Client state | zustand | Selection, theme and consent, persisted where it matters |
+| Styling | Tailwind CSS + shadcn primitives | The design tokens are the styling system |
+
+### Backend
+
+An <u>async FastAPI service</u>, managed by uv as dependency manager.
+
+| Layer | Choice | Why this one |
+| --- | --- | --- |
+| Framework | FastAPI, async throughout, uv | Fast and optimal performance |
+| Agent | Pydantic AI | Typed tools and structured output, provider-agnostic |
+| Model | OpenAI | Fast and performant models with many capabilities |
+| Database | PostgreSQL + SQLAlchemy | One denormalized read-optimized trial table |
+| Vector search | pgvector | Same database, no second store to operate |
+| Embeddings | OpenAI | Cheap and better embeddings results |
+| Sessions | Redis | Conversation history keyed by session ID, with a TTL |
+| Migrations | Alembic | Schema changes are reviewed like code |
+
+## The request path
+
+One chat turn touches every layer.
+
+<Mermaid
+  chart={`
+flowchart LR
+  subgraph browser [Browser]
+    direction TB
+    UI[Chat panel]
+    MAP[Map + summary]
+  end
+  subgraph api [FastAPI]
+    direction TB
+    R["/chat/stream"]
+    CS[ChatService]
+    AG[Agents]
+  end
+  subgraph data [Data]
+    direction TB
+    RD[(Redis)]
+    PG[(PostgreSQL<br/>+ pgvector)]
+  end
+  LLM["LLM provider"]
+  LF[Langfuse]
+
+  UI <-- "POST · SSE" --> R
+  UI --> MAP
+  R --> CS
+  CS --> AG
+  CS -- "save conversation" --> RD
+  CS -.-> LF
+  AG -- tools --> PG
+  AG <--> LLM
+
+  classDef browserNode fill:#91abda,stroke:#2f3f7b,color:#16203f
+  classDef apiNode fill:#2f3f7b,stroke:#16203f,color:#ffffff
+  classDef dataNode fill:#eef2f9,stroke:#5d6b8a,color:#16203f
+  classDef externalNode fill:#fdeb8a,stroke:#c9a800,color:#16203f
+  classDef observeNode fill:#8295bb,stroke:#2f3f7b,color:#ffffff
+
+  class UI,MAP browserNode
+  class R,CS,AG apiNode
+  class PG,RD dataNode
+  class LLM externalNode
+  class LF observeNode
+`}
+/>
+
+### Nothing in it blocks
+
+SQLAlchemy runs on asyncpg, the model is reached over an async HTTP client with retry and
+`Retry-After` handling, and the response is a `StreamingResponse` that yields as the model produces
+tokens.
+
+## Inside the backend
+
+### Layering
+
+The backend keeps a <u>strict one-way dependency order</u>. Routes know about services, services know
+about repositories, and nothing below knows about anything above.
+
+| Directory | Holds |
+| --- | --- |
+| `routes/` | HTTP handlers only |
+| `services/` | orchestration over abstractions |
+| `repository/` | all data access, DB or otherwise |
+| `agents/` | one subpackage per agent: prompts, tools, guards, deps |
+| `core/` | config, database, LLM and embedding factories, dependency wiring |
+| `schemas/` | pydantic DTOs shared across the layers |
+| `models/` | SQLAlchemy ORM tables |
+
+### The composition root
+
+`core/dependencies.py` is the **only place** that knows which concrete repository backs which
+protocol.
+That is what lets the agent depend on a `TrialSearch` protocol it can be tested against without a
+database.
+
+### The trial model
+
+Trials are stored **denormalized and read-optimized**.
+
+<Mermaid
+  chart={`
+erDiagram
+  TRIAL ||--o{ TRIAL_SITE : "runs at"
+  LOCATION ||--o{ TRIAL_SITE : "is at"
+`}
+/>
+
+<u>Recruiting status is per site, not per trial</u>, so a trial
+can be recruiting in one province and opening soon in another and the map shows both truthfully.
+
+The indexes follow the same read pattern: <u>GIN indexes</u> on the array columns that get filtered
+(`phases`, `treatment_type_names`, `intervention_names` on the trial, `cancer_type_names` on the
+site), a plain index on per-site recruiting `state`, and city, province and the pair of them on
+locations.
+
+### Why the vectors are not indexed
+
+The embedding columns carry no index, because <u>the dataset is far too small for one</u>. Scanning
+every row is quick at this size, and it is exact. An HNSW index becomes worth adding once the corpus
+is much larger.
+
+## Running it
+
+### Deployment
+
+The system is deployed <u>on-premise</u>. Both packages ship as container
+images built and scanned in CI, and Ansible puts them on the VM. See [Deployment](/docs/deployment)
+for the pipeline and the environments.
+
+### Observability
+
+Everything the system does is observed through <u>Langfuse</u>, self-hosted on a VM of its own. Each
+conversation is **one trace**. **Prompts are versioned there**, with a fallback in code, so a wording change
+can be published to one environment, tried, and promoted without a deploy. Feedback from the thumbs
+on a chat turn lands on the same trace as a score, which is what makes a bad answer findable later.
+See [Observability](/docs/observability).
+
+### Evaluation
+
+An <u>evaluation harness</u> lives alongside the traces. The dataset is held in Langfuse, and a
+<u>custom experiment</u> can be triggered from the dashboard: it replays conversation items through
+the real agent and scores the answer with <u>DeepEval</u> metrics, next to deterministic precision
+and recall. See [Evaluation](/docs/evaluation).
+
+## Environments
+
+`ENVIRONMENT` is the <u>only switch</u>, and all it decides is which features, endpoints and prompts
+are in play.
+
+| Affordance | Development | Production |
+| --- | --- | --- |
+| `/debug` trial search page | on | off |
+| OpenAPI docs and `/redoc` | on | off |
+| Free-text feedback fields | on | off |
+| Patient text captured in Langfuse | on | currently on |
+| Cloudflare Turnstile bot gate | off | on |

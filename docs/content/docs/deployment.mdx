@@ -1,0 +1,171 @@
+---
+title: Deployment
+description: From a pull request to a container running on an on-premise VM, and the gates in between.
+---
+
+<u>Two VMs</u>. Images are built and scanned by GitHub Actions, and the deploy itself is an
+**Ansible** playbook run by hand, because no runner can reach the internal network yet.
+
+## The pipeline
+
+<Mermaid
+  chart={`
+flowchart LR
+  PR([Pull request]) --> CI{Lint, test, scan}
+  CI -- fails --> STOP[Nothing published]
+  CI -- passes --> MERGE[Merge to main]
+  MERGE -- "release tag" --> BUILD[Build and scan image]
+  BUILD --> REG[(Container registry)]
+  REG -. "manual deploy" .-> VM([App VM])
+
+  classDef edgeNode fill:#91abda,stroke:#2f3f7b,color:#16203f
+  classDef stepNode fill:#2f3f7b,stroke:#16203f,color:#ffffff
+  classDef guardNode fill:#fdeb8a,stroke:#c9a800,color:#16203f
+  classDef refuseNode fill:#f7d7d1,stroke:#c07260,color:#5a2018
+  classDef dataNode fill:#eef2f9,stroke:#5d6b8a,color:#16203f
+
+  class PR,VM edgeNode
+  class MERGE,BUILD stepNode
+  class CI guardNode
+  class STOP refuseNode
+  class REG dataNode
+`}
+/>
+
+The <Swatch tone="guard">yellow</Swatch> step is the only gate that matters: nothing reaches the
+registry that did not pass it. The <u>dotted arrow is the manual hop</u>.
+
+### Continuous integration
+
+The backend and frontend workflows are **path-filtered**, so a frontend-only change does not run the
+backend suite. Both open with a gate job that skips push-triggered CI when the branch already has an
+open pull request, which prevents redundant checks.
+
+### Scanning
+
+Trivy runs on both the dependencies and the built image, twice each: once producing a <u>full report
+at every severity</u> as an artifact, and once as a gate that fails only on **fixable**
+<u>CRITICAL</u> or <u>HIGH</u> findings.
+
+Failing on unfixable vulnerabilities would block merges.
+
+### Images
+
+One reusable workflow builds, scans and optionally pushes a package's image.
+
+| Called by | Pushes | Tags |
+| --- | --- | --- |
+| The CI workflows | No | Built and scanned |
+| The release workflow | Yes | `X.Y.Z`, `X.Y`, `X`, and `latest` |
+
+
+### Releases
+
+`release-please` watches `main` and maintains a release pull request per package, parsing
+conventional commits into a changelog and a version bump. Merging it creates the tag, the tag
+triggers the build workflow, and that workflow pushes the versioned image.
+
+<Callout type="warn">
+  Feature pull requests **squash-merge**, one conventional commit each. A promotion pull request into
+  `main` must use a **merge commit**, not a squash, or release-please loses the individual commits it
+  parses.
+</Callout>
+
+## Deploying
+
+The deploy is <u>manual on purpose</u>: no self-hosted runner can reach the VMs.
+
+### Before the first run
+
+Three files hold every real value. Copy each one from its
+example and fill it in before running any playbook.
+
+| Copy | To | Holds |
+| --- | --- | --- |
+| `secrets.yml.example` | `secrets.yml` | Credentials and keys |
+| `inventory/hosts.example.yml` | `inventory/hosts.yml` | The real hostnames |
+| `inventory/group_vars/all/local.example.yml` | `local.yml` | Admin networks and private addresses |
+
+The committed tree carries only the examples, so a real hostname or network range belongs in one of
+these and <u>never in a role</u>.
+
+```bash
+cd infra/ansible
+ansible-playbook playbooks/deploy.yml \
+  -e deploy_package=backend \
+  -e image_tag=1.2.3
+```
+
+### The playbooks
+
+| Playbook | Does |
+| --- | --- |
+| `prepare.yml` | One-time host setup: users, SSH hardening, Docker, the rendered `.env` |
+| `app.yml` | Application stack: compose file, nginx site, certificate |
+| `deploy.yml` | Pull the image tag, run migrations, restart |
+| `restore_db.yml` | One-time database restore from a dump |
+| `langfuse.yml` | The observability VM |
+
+### Rolling back
+
+A rollback run <u>swaps the image tag and skips migrations</u>.
+
+## The hosts
+
+<Mermaid
+  chart={`
+flowchart TB
+  U([User])
+  subgraph appvm [App VM]
+    direction LR
+    NGINX[nginx + certbot]
+    FE[Frontend]
+    BE[Backend]
+    PG[(PostgreSQL<br/>+ pgvector)]
+    RD[(Redis)]
+    NGINX --> FE
+    NGINX --> BE
+    BE --> PG
+    BE --> RD
+  end
+  LLM["LLM provider"]
+  subgraph lfvm [Langfuse VM]
+    LF[Langfuse]
+  end
+
+  U -- HTTPS --> NGINX
+  BE <--> LLM
+  BE -. traces .-> LF
+
+  classDef edgeNode fill:#91abda,stroke:#2f3f7b,color:#16203f
+  classDef stepNode fill:#2f3f7b,stroke:#16203f,color:#ffffff
+  classDef dataNode fill:#eef2f9,stroke:#5d6b8a,color:#16203f
+  classDef externalNode fill:#fdeb8a,stroke:#c9a800,color:#16203f
+  classDef observeNode fill:#8295bb,stroke:#2f3f7b,color:#ffffff
+
+  class U edgeNode
+  class NGINX,FE,BE stepNode
+  class PG,RD dataNode
+  class LLM externalNode
+  class LF observeNode
+`}
+/>
+
+Every request from a user arrives through <u>nginx</u>, which terminates TLS and routes it to either
+the frontend or the backend. Nothing else on the VM is reachable from outside.
+
+**Langfuse runs on a VM of its own**, so the observability stack doesn't compete with the application for resources.
+
+## Configuration and secrets
+
+### Secrets
+
+Secrets are written onto the VM once, <u>while config setup</u> is running.
+
+That is enough for a proof of concept, but it is not the destination: secrets should move into a
+<u>vault</u>, so they can be rotated and audited.
+
+### Runtime configuration
+
+The frontend has <u>no variables baked in at build time</u>. It is configured at runtime, so the same
+image runs in every environment.
