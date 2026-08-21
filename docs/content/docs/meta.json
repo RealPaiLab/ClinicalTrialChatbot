@@ -6,8 +6,10 @@
     "architecture",
     "---Flows---",
     "agent",
-    "streaming",
     "frontend",
+    "---Operating it---",
+    "observability",
+    "evaluation",
     "deployment",
     "---Working on it---",
     "development"
