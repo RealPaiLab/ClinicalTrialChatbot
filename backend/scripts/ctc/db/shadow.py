@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 
 from alembic.config import Config
 from alembic.script import ScriptDirectory
-from sqlalchemy import text
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession
 
 from core.database import AsyncSessionFactory, engine
@@ -57,3 +57,14 @@ async def recreate(schema: str) -> None:
 
     async with shadow_connection(schema) as connection:
         await connection.run_sync(Base.metadata.create_all)
+
+
+async def counts(schema: str) -> dict[str, int]:
+    """Row counts per table, for the validation gate and the run summary."""
+    async with shadow_connection(schema) as connection:
+        return {
+            table.name: (
+                await connection.execute(select(func.count()).select_from(table))
+            ).scalar_one()
+            for table in Base.metadata.sorted_tables
+        }

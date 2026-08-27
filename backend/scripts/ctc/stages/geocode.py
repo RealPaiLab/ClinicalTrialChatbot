@@ -9,9 +9,10 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 import httpx
-from sqlalchemy import bindparam, text
+from sqlalchemy import bindparam, select, update
 
 from core.http_retry import build_retrying_client
+from models import Location
 from scripts.ctc.db.shadow import BUILD_SCHEMA, shadow_connection
 
 MAPBOX_URL = "https://api.mapbox.com/search/geocode/v6/forward"
@@ -44,13 +45,14 @@ class GeocodeResult:
 
 async def _pending(schema: str, limit: int | None) -> list[tuple[uuid.UUID, str]]:
     statement = (
-        f'SELECT id, address FROM "{schema}".locations '
-        "WHERE lat IS NULL AND address IS NOT NULL ORDER BY id"
+        select(Location.id, Location.address)
+        .where(Location.lat.is_(None), Location.address.is_not(None))
+        .order_by(Location.id)
     )
     if limit is not None:
-        statement += f" LIMIT {int(limit)}"
+        statement = statement.limit(limit)
     async with shadow_connection(schema) as connection:
-        rows = await connection.execute(text(statement))
+        rows = await connection.execute(statement)
         return [(row.id, row.address) for row in rows]
 
 
@@ -102,14 +104,16 @@ async def _resolve(
 async def _write(schema: str, resolved: list[Coordinates]) -> int:
     if not resolved:
         return 0
-    statement = text(
-        f'UPDATE "{schema}".locations SET lat = :lat, lon = :lon WHERE id = :id'
-    ).bindparams(bindparam("id", type_=None))
+    statement = (
+        update(Location)
+        .where(Location.id == bindparam("location_id"))
+        .values(lat=bindparam("lat"), lon=bindparam("lon"))
+    )
     async with shadow_connection(schema) as connection:
         await connection.execute(
             statement,
             [
-                {"id": item.location_id, "lat": item.lat, "lon": item.lon}
+                {"location_id": item.location_id, "lat": item.lat, "lon": item.lon}
                 for item in resolved
             ],
         )
