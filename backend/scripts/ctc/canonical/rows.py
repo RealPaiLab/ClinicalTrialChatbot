@@ -56,7 +56,7 @@ def to_trial_row(trial: CanonicalTrial) -> TrialRow:
 
 
 def to_location_rows(trial: CanonicalTrial) -> list[LocationRow]:
-    """One row per site. lat/lon are the geocode stage's business, not the source's."""
+    """lat/lon belong to the geocode stage, not the source."""
     rows: list[LocationRow] = []
     for site in trial.sites:
         address = site.address

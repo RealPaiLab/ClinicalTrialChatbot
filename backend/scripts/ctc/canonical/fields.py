@@ -1,4 +1,4 @@
-"""Annotated field types: the shapes a source wraps values in, unwrapped on parse."""
+"""The shapes a source wraps values in, unwrapped on parse."""
 
 from __future__ import annotations
 

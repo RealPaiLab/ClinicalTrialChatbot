@@ -1,4 +1,4 @@
-"""What every ingestion source has to provide, whatever it reads from."""
+"""What every ingestion source provides, whatever it reads from."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ PageCallback = Callable[[int], None]
 
 @dataclass(frozen=True, slots=True)
 class SourceRecords:
-    """A source's output: the canonical records, plus whatever it was served."""
+    """`raw` keeps what the source served, so a capture is never lossy."""
 
     trials: list[CanonicalTrial]
     raw: list[JsonValue] = field(default_factory=list)

@@ -64,7 +64,7 @@ class CtcApiSource:
         )
 
     async def count(self) -> int:
-        """The trial count the API reports, for a cheap reachability check."""
+        """A cheap reachability check."""
         async with self._client() as client:
             return await self._count(client)
 
@@ -94,7 +94,7 @@ class CtcApiSource:
 
     @staticmethod
     def _dedupe(pages: list[list[JsonValue]]) -> list[JsonValue]:
-        """Paging can serve a trial twice when the corpus shifts mid-fetch."""
+        """Paging serves a trial twice when the corpus shifts mid-fetch."""
         seen: set[str] = set()
         trials: list[JsonValue] = []
         for page in pages:

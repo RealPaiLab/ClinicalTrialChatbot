@@ -10,6 +10,6 @@ ID_NAMESPACE = uuid.UUID("6f6a1a3e-0a1f-5c2b-9d5e-0d1a2b3c4d5e")
 
 
 def derived_id(*parts: str | None) -> uuid.UUID:
-    """Our own primary key, hashed from the business key. The business key is the
-    acronym/protocol ID plus the NCT number, or the site name."""
+    """The business key is the acronym/protocol ID plus the NCT number, or the
+    site name."""
     return uuid.uuid5(ID_NAMESPACE, "|".join(norm_text(part) for part in parts))

@@ -1,4 +1,4 @@
-"""How a source decides whether a record it just served differs from the stored one."""
+"""Whether a served record differs from the stored one."""
 
 from __future__ import annotations
 
@@ -12,7 +12,10 @@ from scripts.ctc.canonical import CanonicalTrial
 
 
 class ChangeStrategy[LiveState](Protocol):
-    """`LiveState` is whatever this strategy needs to remember about a stored trial."""
+    """A strategy owns both halves: what to read from live, and how to compare it.
+
+    `LiveState` is whatever it needs to remember about a stored trial.
+    """
 
     name: str
 

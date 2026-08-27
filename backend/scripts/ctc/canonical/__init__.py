@@ -2,6 +2,7 @@
 
 from scripts.ctc.canonical.address import CanonicalAddress
 from scripts.ctc.canonical.base import CanonicalBase
+from scripts.ctc.canonical.collect import index_trials
 from scripts.ctc.canonical.coordinator import CanonicalCoordinator
 from scripts.ctc.canonical.identity import ID_NAMESPACE, derived_id
 from scripts.ctc.canonical.normalize import BLANKS, clean, norm_text
@@ -35,6 +36,7 @@ __all__ = [
     "TrialRow",
     "clean",
     "derived_id",
+    "index_trials",
     "norm_text",
     "to_location_rows",
     "to_site_rows",

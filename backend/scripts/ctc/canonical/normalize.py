@@ -1,4 +1,4 @@
-"""Text normalization shared by every source: the rules that decide what is blank."""
+"""What counts as blank, shared by every source."""
 
 from __future__ import annotations
 
