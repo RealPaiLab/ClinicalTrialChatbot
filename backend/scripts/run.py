@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any, cast
 
 import yaml
+from dotenv import load_dotenv
 from rich.console import Console
 
 from scripts.ctc import orchestrator
@@ -71,6 +72,8 @@ def _list() -> None:
 
 
 def main() -> None:
+    load_dotenv()
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("pipeline", nargs="?", help="registry entry to run")
     parser.add_argument(
@@ -108,8 +111,8 @@ def main() -> None:
         console.print(f"restored [bold]{restored}[/bold]")
         return
 
-    config = _load(args.config, args.pipeline)
     try:
+        config = _load(args.config, args.pipeline)
         asyncio.run(pipeline.run(config, args.stages))
     except (RuntimeError, ValueError) as error:
         raise SystemExit(f"[{args.pipeline}] {error}") from error

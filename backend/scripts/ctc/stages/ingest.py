@@ -8,7 +8,7 @@ from pathlib import Path
 
 from scripts.ctc.canonical import CanonicalTrial
 from scripts.ctc.paths import dated_canonical_path, dated_trials_path
-from scripts.ctc.sources.base import PageCallback, TrialSource
+from scripts.ctc.sources.base import TrialSource
 
 
 @dataclass(frozen=True, slots=True)
@@ -24,9 +24,7 @@ def _write(path: Path, payload: object) -> Path:
     return path
 
 
-async def ingest(
-    source: TrialSource, *, on_page: PageCallback | None = None
-) -> tuple[list[CanonicalTrial], IngestResult]:
+async def ingest(source: TrialSource) -> tuple[list[CanonicalTrial], IngestResult]:
     records = await source.load()
 
     raw_path = _write(dated_trials_path(), records.raw) if records.raw else None
