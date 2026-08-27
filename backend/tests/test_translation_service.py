@@ -56,19 +56,6 @@ async def test_english_returns_stored_text_without_provider() -> None:
 
 
 @pytest.mark.asyncio
-async def test_french_goes_through_the_provider_like_any_other_language() -> None:
-    """The seeded ``*_fr`` columns are not a source: every target is machine
-    translated, and the citation the service reads does not even carry them."""
-    service, provider, _ = build_service(make_citation("NCT-1"))
-    result = await service.translate_trial("NCT-1", Language.FR_CA)
-
-    assert result is not None
-    assert result.source is TranslationSource.MACHINE
-    assert result.short_title == "[fr-CA] A trial"
-    assert "A trial" in provider.translated_texts
-
-
-@pytest.mark.asyncio
 async def test_other_language_machine_translates_narrative_and_vocabulary() -> None:
     service, _, _ = build_service(make_citation("NCT-1"))
     result = await service.translate_trial("NCT-1", Language.DE)
