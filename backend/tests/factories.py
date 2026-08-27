@@ -343,3 +343,33 @@ def make_eval_sample(
             else None,
         ),
     )
+
+
+def make_source_trial(
+    nct: str = "NCT01",
+    *,
+    acronym: str | None = None,
+    updated_at: str | None = None,
+    sites: Sequence[tuple[str, str | None, str | None]] = (),
+    cancer_types: Sequence[str] = (),
+    **overrides: object,
+) -> dict[str, object]:
+    """A Cancer Trials Canada API payload, as `CanonicalTrial.model_validate` takes it.
+
+    `sites` entries are (name, street, state); everything else is overridable.
+    """
+    payload: dict[str, object] = {
+        "nctNumber": nct,
+        "acronymOrProtocolId": acronym if acronym is not None else f"ACR-{nct}",
+        "updatedAt": updated_at,
+        "sites": [
+            {
+                "nameEn": name,
+                "state": state,
+                "addresses": [{"street": street}] if street else [],
+                "cancerTypes": [{"nameEn": name} for name in cancer_types],
+            }
+            for name, street, state in sites
+        ],
+    }
+    return payload | overrides

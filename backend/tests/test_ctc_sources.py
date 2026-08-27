@@ -5,6 +5,7 @@ from collections.abc import Callable
 import httpx
 
 from scripts.ctc.sources import CtcApiSource
+from tests.factories import make_source_trial
 
 BASE_URL = "https://api.example.test/api/studies"
 
@@ -12,22 +13,15 @@ Handler = Callable[[httpx.Request], httpx.Response]
 
 
 def trial(source_id: str, nct: str, acronym: str) -> dict[str, object]:
-    return {
-        "id": source_id,
-        "nctNumber": nct,
-        "acronymOrProtocolId": acronym,
-        "shortTitleEn": "A trial",
-        "updatedAt": "2026-08-21T17:45:56.916749+00:00",
-        "sites": [
-            {
-                "id": "a13daf58-cb15-4b8c-867e-4e8c8ed3c842",
-                "nameEn": "Cross Cancer Institute",
-                "addresses": [{"city": "Edmonton", "province": "Alberta"}],
-                "state": "recruiting",
-                "cancerTypes": [{"nameEn": "Sarcoma"}],
-            }
-        ],
-    }
+    return make_source_trial(
+        nct,
+        acronym=acronym,
+        updated_at="2026-08-21T17:45:56.916749+00:00",
+        sites=[("Cross Cancer Institute", "11562 University Ave", "recruiting")],
+        cancer_types=["Sarcoma"],
+        id=source_id,
+        shortTitleEn="A trial",
+    )
 
 
 def build_source(handler: Handler, pages: list[int]) -> CtcApiSource:

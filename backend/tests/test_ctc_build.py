@@ -4,15 +4,12 @@ import uuid
 
 from scripts.ctc.canonical import CanonicalTrial, index_trials
 from scripts.ctc.stages.build import BuildResult
+from tests.factories import make_source_trial
 
 
 def make_trial(nct: str, sites: list[str]) -> CanonicalTrial:
     return CanonicalTrial.model_validate(
-        {
-            "nctNumber": nct,
-            "acronymOrProtocolId": f"ACR-{nct}",
-            "sites": [{"nameEn": name} for name in sites],
-        }
+        make_source_trial(nct, sites=[(name, None, None) for name in sites])
     )
 
 

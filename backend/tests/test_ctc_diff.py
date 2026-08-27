@@ -11,6 +11,7 @@ from scripts.ctc.stages.diff import (
     site_changes,
 )
 from scripts.ctc.strategies import TimestampStrategy
+from tests.factories import make_source_trial
 
 MAY = datetime(2026, 5, 30, tzinfo=UTC)
 AUGUST = datetime(2026, 8, 21, tzinfo=UTC)
@@ -24,15 +25,11 @@ def make_trial(
     sites: list[tuple[str, str, str | None]] | None = None,
 ) -> CanonicalTrial:
     return CanonicalTrial.model_validate(
-        {
-            "nctNumber": nct,
-            "acronymOrProtocolId": f"ACR-{nct}",
-            "updatedAt": updated_at.isoformat() if updated_at else None,
-            "sites": [
-                {"nameEn": name, "state": state, "addresses": [{"street": street}]}
-                for name, street, state in (sites or [])
-            ],
-        }
+        make_source_trial(
+            nct,
+            updated_at=updated_at.isoformat() if updated_at else None,
+            sites=sites or [],
+        )
     )
 
 
@@ -41,7 +38,7 @@ def snapshot(
     *,
     stored_at: datetime | None = MAY,
     geocoded: bool = True,
-) -> LiveSnapshot[datetime | None]:
+) -> LiveSnapshot:
     return LiveSnapshot(
         trials=dict.fromkeys(incoming, stored_at),
         locations={
