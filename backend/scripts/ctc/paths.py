@@ -6,7 +6,6 @@ from datetime import date
 from pathlib import Path
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
-DUMPS_DIR = DATA_DIR / "dumps"
 
 TRIALS_PREFIX = "trials-"
 CANONICAL_PREFIX = "canonical-"

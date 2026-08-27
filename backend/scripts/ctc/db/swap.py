@@ -8,8 +8,8 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from core.database import engine
-from models.base import Base
 from scripts.ctc.db.shadow import BUILD_SCHEMA, LIVE_SCHEMA
+from scripts.ctc.db.tables import PIPELINE_TABLE_NAMES
 
 GENERATION_PREFIX = "ctc_gen_"
 DEFAULT_KEEP_GENERATIONS = 3
@@ -23,7 +23,7 @@ def _generation_name() -> str:
 
 def _move_order() -> list[str]:
     """Dependents first, so a partially applied move never dangles a foreign key."""
-    return [table.name for table in reversed(Base.metadata.sorted_tables)]
+    return list(reversed(PIPELINE_TABLE_NAMES))
 
 
 async def _move(connection: AsyncConnection, source: str, target: str) -> None:

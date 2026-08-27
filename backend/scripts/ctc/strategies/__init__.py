@@ -1,19 +1,16 @@
 """The change strategies a pipeline can name in its config."""
 
 from collections.abc import Callable
-from typing import cast
 
 from scripts.ctc.strategies.base import ChangeStrategy
 from scripts.ctc.strategies.timestamp import TimestampStrategy
 
-StrategyFactory = Callable[[], ChangeStrategy[object]]
+StrategyFactory = Callable[[], ChangeStrategy]
 
-STRATEGIES: dict[str, StrategyFactory] = {
-    TimestampStrategy.name: cast(StrategyFactory, TimestampStrategy),
-}
+STRATEGIES: dict[str, StrategyFactory] = {TimestampStrategy.name: TimestampStrategy}
 
 
-def get_strategy(name: str) -> ChangeStrategy[object]:
+def get_strategy(name: str) -> ChangeStrategy:
     factory = STRATEGIES.get(name)
     if factory is None:
         known = ", ".join(sorted(STRATEGIES))

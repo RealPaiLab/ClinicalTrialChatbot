@@ -10,7 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models import Location, TrialSite
-from scripts.ctc.canonical import CanonicalTrial, LocationRow, to_location_rows
+from scripts.ctc.canonical import CanonicalTrial, LocationRow, collect_location_rows
 from scripts.ctc.strategies import ChangeStrategy
 
 
@@ -26,11 +26,10 @@ class LiveLocation:
 
 
 @dataclass(frozen=True, slots=True)
-class LiveSnapshot[LiveState]:
-    """Read once. `LiveState` is whatever the strategy stored per trial, so a
-    snapshot cannot be paired with a strategy that did not produce it."""
+class LiveSnapshot:
+    """Read once. `trials` holds whatever the strategy chose to remember."""
 
-    trials: Mapping[uuid.UUID, LiveState]
+    trials: Mapping[uuid.UUID, object]
     locations: Mapping[uuid.UUID, LiveLocation]
     site_states: Mapping[tuple[uuid.UUID, uuid.UUID], str | None]
 
@@ -48,14 +47,8 @@ class DiffPlan:
         """A touched trial gets a fresh vector; a copied one keeps its own."""
         return self.changed | self.added
 
-    @property
-    def total_incoming(self) -> int:
-        return len(self.unchanged) + len(self.changed) + len(self.added)
 
-
-async def load_live[LiveState](
-    session: AsyncSession, strategy: ChangeStrategy[LiveState]
-) -> LiveSnapshot[LiveState]:
+async def load_live(session: AsyncSession, strategy: ChangeStrategy) -> LiveSnapshot:
     trials = await strategy.snapshot(session)
 
     location_rows = await session.execute(
@@ -74,10 +67,10 @@ async def load_live[LiveState](
     return LiveSnapshot(trials=trials, locations=locations, site_states=site_states)
 
 
-def build_plan[LiveState](
+def build_plan(
     incoming: Mapping[uuid.UUID, CanonicalTrial],
-    live: LiveSnapshot[LiveState],
-    strategy: ChangeStrategy[LiveState],
+    live: LiveSnapshot,
+    strategy: ChangeStrategy,
     *,
     full_refresh: bool = False,
 ) -> DiffPlan:
@@ -97,8 +90,7 @@ def build_plan[LiveState](
 
     geocode = {
         row.id
-        for trial in incoming.values()
-        for row in to_location_rows(trial)
+        for row in collect_location_rows(incoming.values()).values()
         if not _carried_forward(row, live)
     }
 
@@ -111,9 +103,7 @@ def build_plan[LiveState](
     )
 
 
-def _carried_forward[LiveState](
-    row: LocationRow, live: LiveSnapshot[LiveState]
-) -> bool:
+def _carried_forward(row: LocationRow, live: LiveSnapshot) -> bool:
     stored = live.locations.get(row.id)
     return stored is not None and stored.matches(row)
 
@@ -129,9 +119,9 @@ class SiteChange:
     restated: tuple[tuple[str, str | None, str | None], ...]
 
 
-def site_changes[LiveState](
+def site_changes(
     incoming: Mapping[uuid.UUID, CanonicalTrial],
-    live: LiveSnapshot[LiveState],
+    live: LiveSnapshot,
     plan: DiffPlan,
 ) -> list[SiteChange]:
     """Site add/drop and status flips, for the standalone report."""

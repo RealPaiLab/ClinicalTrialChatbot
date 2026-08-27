@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession
 
 from core.database import AsyncSessionFactory, engine
 from models.base import Base
+from scripts.ctc.db.tables import PIPELINE_TABLES
 
 BUILD_SCHEMA = "ctc_build"
 LIVE_SCHEMA = "public"
@@ -63,8 +64,8 @@ async def counts(schema: str) -> dict[str, int]:
     """Row counts per table, for the validation gate and the run summary."""
     async with shadow_connection(schema) as connection:
         return {
-            table.name: (
-                await connection.execute(select(func.count()).select_from(table))
+            entity.__tablename__: (
+                await connection.execute(select(func.count()).select_from(entity))
             ).scalar_one()
-            for table in Base.metadata.sorted_tables
+            for entity in PIPELINE_TABLES
         }

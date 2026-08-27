@@ -3,27 +3,23 @@
 from __future__ import annotations
 
 import asyncio
-import os
 import uuid
-from collections.abc import Callable
 from dataclasses import dataclass
 
 import httpx
 from sqlalchemy import bindparam, select, update
 
+from core.config import get_settings
 from core.http_retry import build_retrying_client
 from models import Location
 from scripts.ctc.db.shadow import BUILD_SCHEMA, shadow_connection
 
 MAPBOX_URL = "https://api.mapbox.com/search/geocode/v6/forward"
-TOKEN_ENV = "MAPBOX_TOKEN"
 DEFAULT_CONCURRENCY = 20
 
 MAX_RETRIES = 3
 MAX_WAIT_SECONDS = 30.0
 READ_TIMEOUT_SECONDS = 30.0
-
-ResultCallback = Callable[[], None]
 
 
 @dataclass(frozen=True, slots=True)
@@ -76,7 +72,6 @@ async def _resolve(
     location_id: uuid.UUID,
     address: str,
     token: str,
-    on_result: ResultCallback | None,
 ) -> Coordinates | None:
     """An address that will not resolve is skipped, never fatal to the run."""
     async with semaphore:
@@ -93,9 +88,6 @@ async def _resolve(
             parsed = parse_coordinates(response.json())
         except httpx.HTTPError, AttributeError, TypeError, ValueError:
             parsed = None
-        finally:
-            if on_result is not None:
-                on_result()
     if parsed is None:
         return None
     return Coordinates(location_id=location_id, lat=parsed[0], lon=parsed[1])
@@ -126,16 +118,15 @@ async def geocode(
     token: str | None = None,
     concurrency: int = DEFAULT_CONCURRENCY,
     limit: int | None = None,
-    on_result: ResultCallback | None = None,
     transport: httpx.AsyncBaseTransport | None = None,
 ) -> GeocodeResult:
-    access_token = token or os.environ.get(TOKEN_ENV)
+    access_token = token or get_settings().mapbox_token
     pending = await _pending(schema, limit)
     if not pending:
         return GeocodeResult(requested=0, resolved=0)
     if not access_token:
         raise RuntimeError(
-            f"{len(pending)} addresses need coordinates but {TOKEN_ENV} is unset"
+            f"{len(pending)} addresses need coordinates but MAPBOX_TOKEN is unset"
         )
 
     semaphore = asyncio.Semaphore(concurrency)
@@ -147,9 +138,7 @@ async def geocode(
     ) as client:
         results = await asyncio.gather(
             *(
-                _resolve(
-                    client, semaphore, location_id, address, access_token, on_result
-                )
+                _resolve(client, semaphore, location_id, address, access_token)
                 for location_id, address in pending
             )
         )

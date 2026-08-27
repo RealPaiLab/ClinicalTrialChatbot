@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     triage_history_turns: int = 3
     ollama_base_url: str = "http://localhost:11434/v1"
     openai_api_key: str | None = None
+    mapbox_token: str | None = None
 
     eval_llm_model: str = "gpt-5.4-mini"
     eval_webhook_secret: str | None = None

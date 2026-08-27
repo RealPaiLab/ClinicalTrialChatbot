@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 from models import Location, Trial, TrialSite
 from scripts.ctc.canonical import (
     CanonicalTrial,
-    to_location_rows,
+    collect_location_rows,
     to_site_rows,
     to_trial_row,
 )
@@ -114,20 +114,16 @@ async def build(
     await assert_migrations_are_current()
     await recreate(schema)
 
-    locations = {
-        row.id: row.model_dump()
-        for trial in incoming.values()
-        for row in to_location_rows(trial)
-    }
+    locations = [
+        row.model_dump() for row in collect_location_rows(incoming.values()).values()
+    ]
     trials = [to_trial_row(trial).model_dump() for trial in incoming.values()]
     sites = [
         row.model_dump() for trial in incoming.values() for row in to_site_rows(trial)
     ]
 
     async with shadow_connection(schema) as connection:
-        location_count = await _insert(
-            connection, Location, list(locations.values()), batch_size
-        )
+        location_count = await _insert(connection, Location, locations, batch_size)
         trial_count = await _insert(connection, Trial, trials, batch_size)
         site_count = await _insert(connection, TrialSite, sites, batch_size)
 

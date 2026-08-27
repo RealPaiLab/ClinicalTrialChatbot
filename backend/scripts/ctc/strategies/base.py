@@ -11,16 +11,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from scripts.ctc.canonical import CanonicalTrial
 
 
-class ChangeStrategy[LiveState](Protocol):
+class ChangeStrategy(Protocol):
     """A strategy owns both halves: what to read from live, and how to compare it.
 
-    `LiveState` is whatever it needs to remember about a stored trial.
+    `snapshot` returns whatever it needs to remember per trial; `has_changed` is the
+    only thing that interprets it, so the pair cannot disagree.
     """
 
     name: str
 
-    async def snapshot(self, session: AsyncSession) -> Mapping[uuid.UUID, LiveState]:
+    async def snapshot(self, session: AsyncSession) -> Mapping[uuid.UUID, object]:
         """The stored state of every live trial, keyed by primary key."""
         ...
 
-    def has_changed(self, incoming: CanonicalTrial, live: LiveState) -> bool: ...
+    def has_changed(self, incoming: CanonicalTrial, live: object) -> bool: ...

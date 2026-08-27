@@ -11,11 +11,6 @@ from core.http_retry import build_retrying_client
 from scripts.ctc.canonical import CanonicalTrial
 from scripts.ctc.sources.base import PageCallback, SourceRecords
 
-DEFAULT_BASE_URL = "https://api.oncoquebec.com/api/studies"
-DEFAULT_SEARCH_SCOPE = "CA"
-DEFAULT_PAGE_SIZE = 100
-DEFAULT_CONCURRENCY = 5
-
 MAX_RETRIES = 3
 MAX_WAIT_SECONDS = 30.0
 READ_TIMEOUT_SECONDS = 60.0
@@ -27,10 +22,10 @@ class CtcApiSource:
     def __init__(
         self,
         *,
-        base_url: str = DEFAULT_BASE_URL,
-        search_scope: str = DEFAULT_SEARCH_SCOPE,
-        page_size: int = DEFAULT_PAGE_SIZE,
-        concurrency: int = DEFAULT_CONCURRENCY,
+        base_url: str,
+        search_scope: str = "CA",
+        page_size: int = 100,
+        concurrency: int = 5,
         on_page: PageCallback | None = None,
         transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
@@ -62,11 +57,6 @@ class CtcApiSource:
         return SourceRecords(
             trials=[CanonicalTrial.model_validate(entry) for entry in raw], raw=raw
         )
-
-    async def count(self) -> int:
-        """A cheap reachability check."""
-        async with self._client() as client:
-            return await self._count(client)
 
     async def _count(self, client: httpx.AsyncClient) -> int:
         response = await client.get(

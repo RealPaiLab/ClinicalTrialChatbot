@@ -5,13 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from sqlalchemy import func, select
-from sqlalchemy.orm import InstrumentedAttribute
+from sqlalchemy.orm import DeclarativeBase, InstrumentedAttribute
 
-from core.config import get_settings
 from core.embeddings import EmbeddingProvider
-from models import Location
+from core.embeddings.columns import EMBEDDING_COLUMNS, resolve_provider
+from models import Location, Trial
 from scripts.ctc.db.shadow import BUILD_SCHEMA, LIVE_SCHEMA, counts, shadow_connection
-from scripts.ctc.stages.embed import COLUMNS
 
 DEFAULT_MAX_DROP_PCT = 5.0
 DEFAULT_MIN_GEOCODE_COVERAGE = 0.95
@@ -51,12 +50,10 @@ def _coverage(filled: int, total: int) -> float:
 
 
 async def _column_coverage(
-    schema: str, column: InstrumentedAttribute[object]
+    schema: str, table: type[DeclarativeBase], column: InstrumentedAttribute[object]
 ) -> tuple[int, int]:
     """`count(column)` counts non-nulls, `count(*)` counts rows."""
-    statement = select(func.count(column), func.count()).select_from(
-        column.parent.tables[0]
-    )
+    statement = select(func.count(column), func.count()).select_from(table)
     async with shadow_connection(schema) as connection:
         filled, total = (await connection.execute(statement)).one()
         return filled, total
@@ -70,11 +67,11 @@ async def validate(
     max_location_drop_pct: float = DEFAULT_MAX_DROP_PCT,
     max_site_drop_pct: float = DEFAULT_MAX_DROP_PCT,
     min_geocode_coverage: float = DEFAULT_MIN_GEOCODE_COVERAGE,
-    min_embedding_coverage: float = DEFAULT_MIN_EMBEDDING_COVERAGE,
+    min_embed_coverage: float = DEFAULT_MIN_EMBEDDING_COVERAGE,
     coverage_must_not_regress: bool = True,
     provider: EmbeddingProvider | None = None,
 ) -> ValidationReport:
-    active = provider or EmbeddingProvider(get_settings().embedding_provider)
+    active = resolve_provider(provider)
 
     build_counts = await counts(schema)
     live_counts = await counts(live)
@@ -102,12 +99,12 @@ async def validate(
             )
         )
 
-    for name, column, minimum in (
-        ("geocode coverage", Location.lat, min_geocode_coverage),
-        ("embedding coverage", COLUMNS[active], min_embedding_coverage),
+    for name, entity, column, minimum in (
+        ("geocode coverage", Location, Location.lat, min_geocode_coverage),
+        ("embedding coverage", Trial, EMBEDDING_COLUMNS[active], min_embed_coverage),
     ):
-        build_filled, build_total = await _column_coverage(schema, column)
-        live_filled, live_total = await _column_coverage(live, column)
+        build_filled, build_total = await _column_coverage(schema, entity, column)
+        live_filled, live_total = await _column_coverage(live, entity, column)
         build_ratio = _coverage(build_filled, build_total)
         live_ratio = _coverage(live_filled, live_total)
 

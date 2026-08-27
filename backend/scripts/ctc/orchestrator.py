@@ -180,7 +180,7 @@ async def _validate(context: RunContext) -> StageOutcome:
         max_location_drop_pct=settings.max_location_drop_pct,
         max_site_drop_pct=settings.max_site_drop_pct,
         min_geocode_coverage=settings.min_geocode_coverage,
-        min_embedding_coverage=settings.min_embedding_coverage,
+        min_embed_coverage=settings.min_embedding_coverage,
         coverage_must_not_regress=settings.coverage_must_not_regress,
         provider=context.config.embed.provider,
     )

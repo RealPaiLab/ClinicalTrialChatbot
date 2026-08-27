@@ -3,25 +3,18 @@
 from __future__ import annotations
 
 import uuid
-from collections.abc import Callable
 from dataclasses import dataclass
 
-from sqlalchemy import select, update
-from sqlalchemy.orm import InstrumentedAttribute, selectinload
+from sqlalchemy import bindparam, select, update
+from sqlalchemy.orm import selectinload
 
 from core.config import get_settings
 from core.embeddings import EmbeddingProvider, get_embedder
+from core.embeddings.columns import EMBEDDING_COLUMNS, resolve_provider
 from core.embeddings.openai_batch import OpenAIBatchEmbedder
 from models import Trial
-from scripts.ctc.db.shadow import BUILD_SCHEMA, shadow_session
+from scripts.ctc.db.shadow import BUILD_SCHEMA, shadow_connection, shadow_session
 from services.documents import compose_trial_document
-
-BatchCallback = Callable[[int], None]
-
-COLUMNS: dict[EmbeddingProvider, InstrumentedAttribute[list[float] | None]] = {
-    EmbeddingProvider.OLLAMA: Trial.qwen_embedding,
-    EmbeddingProvider.OPENAI: Trial.openai_embedding,
-}
 
 
 @dataclass(frozen=True, slots=True)
@@ -35,7 +28,7 @@ class EmbedResult:
 async def _pending_documents(
     schema: str, provider: EmbeddingProvider, force: bool, limit: int | None
 ) -> dict[uuid.UUID, str]:
-    column = COLUMNS[provider]
+    column = EMBEDDING_COLUMNS[provider]
     statement = select(Trial).options(selectinload(Trial.sites)).order_by(Trial.id)
     if not force:
         statement = statement.where(column.is_(None))
@@ -49,21 +42,27 @@ async def _pending_documents(
 async def _write(
     schema: str, provider: EmbeddingProvider, vectors: dict[uuid.UUID, list[float]]
 ) -> int:
-    column = COLUMNS[provider]
-    async with shadow_session(schema) as session:
-        for trial_id, vector in vectors.items():
-            await session.execute(
-                update(Trial).where(Trial.id == trial_id).values({column: vector})
-            )
-        await session.commit()
+    if not vectors:
+        return 0
+    column = EMBEDDING_COLUMNS[provider]
+    statement = (
+        update(Trial)
+        .where(Trial.id == bindparam("trial_id"))
+        .values({column: bindparam("vector")})
+    )
+    async with shadow_connection(schema) as connection:
+        await connection.execute(
+            statement,
+            [
+                {"trial_id": trial_id, "vector": vector}
+                for trial_id, vector in vectors.items()
+            ],
+        )
     return len(vectors)
 
 
 async def _embed_ollama(
-    schema: str,
-    documents: dict[uuid.UUID, str],
-    batch_size: int,
-    on_batch: BatchCallback | None,
+    schema: str, documents: dict[uuid.UUID, str], batch_size: int
 ) -> int:
     embedder = get_embedder(EmbeddingProvider.OLLAMA)
     trial_ids = list(documents)
@@ -74,8 +73,6 @@ async def _embed_ollama(
         embedded += await _write(
             schema, EmbeddingProvider.OLLAMA, dict(zip(chunk, vectors, strict=True))
         )
-        if on_batch is not None:
-            on_batch(len(chunk))
     return embedded
 
 
@@ -103,10 +100,9 @@ async def embed(
     force: bool = False,
     limit: int | None = None,
     batch_id: str | None = None,
-    on_batch: BatchCallback | None = None,
 ) -> EmbedResult:
     settings = get_settings()
-    active = provider or EmbeddingProvider(settings.embedding_provider)
+    active = resolve_provider(provider)
     documents = await _pending_documents(schema, active, force, limit)
 
     if not documents and batch_id is None:
@@ -122,6 +118,6 @@ async def embed(
         )
 
     embedded = await _embed_ollama(
-        schema, documents, batch_size or settings.embedding_batch_size, on_batch
+        schema, documents, batch_size or settings.embedding_batch_size
     )
     return EmbedResult(provider=active, pending=len(documents), embedded=embedded)

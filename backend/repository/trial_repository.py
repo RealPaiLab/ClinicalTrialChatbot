@@ -6,22 +6,16 @@ from typing import cast
 
 from sqlalchemy import ColumnElement, Select, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import InstrumentedAttribute, selectinload
+from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.operators import ColumnOperators
 
 from core.embeddings import EmbeddingProvider
+from core.embeddings.columns import EMBEDDING_COLUMNS
 from models.location import Location
 from models.trial import Trial
 from models.trial_site import TrialSite
 from schemas.provinces import split_locations
 from schemas.trial import TrialFilter
-
-_EMBEDDING_COLUMNS: dict[
-    EmbeddingProvider, InstrumentedAttribute[list[float] | None]
-] = {
-    EmbeddingProvider.OLLAMA: Trial.qwen_embedding,
-    EmbeddingProvider.OPENAI: Trial.openai_embedding,
-}
 
 
 def _contains(column: ColumnOperators, term: str) -> ColumnElement[bool]:
@@ -175,7 +169,7 @@ class TrialRepository:
     ) -> list[Trial]:
         """Vector search: filter conditions, ranked by cosine distance against
         the column matching the provider that produced the query embedding."""
-        column = _EMBEDDING_COLUMNS[provider]
+        column = EMBEDDING_COLUMNS[provider]
         conditions = [
             *_filter_conditions(flt, self._restrict_to_province),
             column.is_not(None),

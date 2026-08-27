@@ -18,11 +18,10 @@ class TimestampStrategy:
 
     name = "timestamp"
 
-    async def snapshot(
-        self, session: AsyncSession
-    ) -> Mapping[uuid.UUID, datetime | None]:
+    async def snapshot(self, session: AsyncSession) -> Mapping[uuid.UUID, object]:
         rows = await session.execute(select(Trial.id, Trial.source_updated_at))
         return {row.id: row.source_updated_at for row in rows}
 
-    def has_changed(self, incoming: CanonicalTrial, live: datetime | None) -> bool:
-        return live is None or incoming.source_updated_at != live
+    def has_changed(self, incoming: CanonicalTrial, live: object) -> bool:
+        stored = live if isinstance(live, datetime) else None
+        return stored is None or incoming.source_updated_at != stored

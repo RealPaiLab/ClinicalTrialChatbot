@@ -15,7 +15,6 @@ import asyncio
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, cast
 
 import yaml
 from dotenv import load_dotenv
@@ -30,26 +29,28 @@ DEFAULT_CONFIG = Path(__file__).resolve().parent / "pipelines.yaml"
 console = Console()
 
 
-ConfigParser = Callable[[object], object]
-PipelineRunner = Callable[[object, list[str] | None], Coroutine[Any, Any, None]]
-Rollback = Callable[[], Coroutine[Any, Any, str]]
+# Each entry owns its whole run, so the registry never has to name a config type
+PipelineRunner = Callable[[object, list[str] | None], Coroutine[None, None, None]]
+Rollback = Callable[[], Coroutine[None, None, str]]
 
 
 @dataclass(frozen=True, slots=True)
 class Pipeline:
-    """A registry entry: how to parse its block and how to run it."""
+    """A registry entry: how to run it, how to undo it, and what it is made of."""
 
-    parse: ConfigParser
     run: PipelineRunner
     rollback: Rollback
     stages: tuple[str, ...]
 
 
+async def _run_ctc(block: object, stages: list[str] | None) -> None:
+    await orchestrator.run(CtcConfig.model_validate(block), stages)
+
+
 PIPELINES: dict[str, Pipeline] = {
     "ctc": Pipeline(
-        parse=cast(ConfigParser, CtcConfig.model_validate),
-        run=cast(PipelineRunner, orchestrator.run),
-        rollback=cast(Rollback, undo),
+        run=_run_ctc,
+        rollback=undo,
         stages=tuple(orchestrator.STAGES),
     ),
 }
@@ -63,7 +64,7 @@ def _load(path: Path, name: str) -> object:
     if name not in document:
         known = ", ".join(sorted(document)) or "none"
         raise SystemExit(f"no {name!r} entry in {path} (found: {known})")
-    return PIPELINES[name].parse(expand(document[name]) or {})
+    return expand(document[name]) or {}
 
 
 def _list() -> None:

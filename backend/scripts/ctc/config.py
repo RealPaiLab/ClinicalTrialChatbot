@@ -2,22 +2,9 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 from pydantic import BaseModel, ConfigDict, Field
 
 from core.embeddings import EmbeddingProvider
-from scripts.ctc.db.shadow import BUILD_SCHEMA, LIVE_SCHEMA
-from scripts.ctc.db.swap import DEFAULT_KEEP_GENERATIONS, DEFAULT_LOCK_TIMEOUT
-from scripts.ctc.paths import DATA_DIR
-from scripts.ctc.sources.api import (
-    DEFAULT_BASE_URL,
-    DEFAULT_CONCURRENCY,
-    DEFAULT_PAGE_SIZE,
-    DEFAULT_SEARCH_SCOPE,
-)
-from scripts.ctc.stages import geocode as geocode_stage
-from scripts.ctc.stages import validate as validate_stage
 
 STAGE_ORDER: tuple[str, ...] = (
     "ingest",
@@ -37,16 +24,15 @@ class Strict(BaseModel):
 
 
 class ApiSourceConfig(Strict):
-    base_url: str = DEFAULT_BASE_URL
-    search_scope: str = DEFAULT_SEARCH_SCOPE
-    page_size: int = DEFAULT_PAGE_SIZE
-    concurrency: int = DEFAULT_CONCURRENCY
+    base_url: str
+    search_scope: str
+    page_size: int
+    concurrency: int
 
 
 class SourceConfig(Strict):
     kind: str = "api"
-    api: ApiSourceConfig = Field(default_factory=ApiSourceConfig)
-    output_dir: Path = DATA_DIR
+    api: ApiSourceConfig
 
 
 class DiffConfig(Strict):
@@ -55,13 +41,13 @@ class DiffConfig(Strict):
 
 
 class BuildConfig(Strict):
-    schema_name: str = Field(default=BUILD_SCHEMA, alias="schema")
-    source_schema: str = LIVE_SCHEMA
+    schema_name: str = Field(default="ctc_build", alias="schema")
+    source_schema: str = "public"
     batch_size: int = 500
 
 
 class GeocodeConfig(Strict):
-    concurrency: int = geocode_stage.DEFAULT_CONCURRENCY
+    concurrency: int = 20
     limit: int | None = None
 
 
@@ -74,21 +60,21 @@ class EmbedConfig(Strict):
 
 
 class ValidateConfig(Strict):
-    max_trial_drop_pct: float = validate_stage.DEFAULT_MAX_DROP_PCT
-    max_location_drop_pct: float = validate_stage.DEFAULT_MAX_DROP_PCT
-    max_site_drop_pct: float = validate_stage.DEFAULT_MAX_DROP_PCT
-    min_geocode_coverage: float = validate_stage.DEFAULT_MIN_GEOCODE_COVERAGE
-    min_embedding_coverage: float = validate_stage.DEFAULT_MIN_EMBEDDING_COVERAGE
+    max_trial_drop_pct: float = 5.0
+    max_location_drop_pct: float = 5.0
+    max_site_drop_pct: float = 5.0
+    min_geocode_coverage: float = 0.95
+    min_embedding_coverage: float = 0.99
     coverage_must_not_regress: bool = True
 
 
 class PublishConfig(Strict):
-    keep_generations: int = DEFAULT_KEEP_GENERATIONS
-    lock_timeout: str = DEFAULT_LOCK_TIMEOUT
+    keep_generations: int = 3
+    lock_timeout: str = "5s"
 
 
 class CtcConfig(Strict):
-    source: SourceConfig = Field(default_factory=SourceConfig)
+    source: SourceConfig
     diff: DiffConfig = Field(default_factory=DiffConfig)
     build: BuildConfig = Field(default_factory=BuildConfig)
     geocode: GeocodeConfig = Field(default_factory=GeocodeConfig)

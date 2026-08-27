@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from collections.abc import Iterable
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
@@ -87,4 +88,23 @@ def to_site_rows(trial: CanonicalTrial) -> list[SiteRow]:
                 cancer_type_names=site.cancer_type_names,
             )
         )
+    return rows
+
+
+def collect_location_rows(
+    trials: Iterable[CanonicalTrial],
+) -> dict[uuid.UUID, LocationRow]:
+    rows: dict[uuid.UUID, LocationRow] = {}
+    for trial in trials:
+        for site in trial.sites:
+            if site.id in rows:
+                continue
+            address = site.address
+            rows[site.id] = LocationRow(
+                id=site.id,
+                name_en=site.name_en,
+                address=address.as_text() if address else None,
+                city=address.city if address else None,
+                province=address.province if address else None,
+            )
     return rows
