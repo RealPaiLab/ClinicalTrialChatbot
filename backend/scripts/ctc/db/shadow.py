@@ -8,9 +8,9 @@ from contextlib import asynccontextmanager
 from alembic.config import Config
 from alembic.script import ScriptDirectory
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncConnection
+from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession
 
-from core.database import engine
+from core.database import AsyncSessionFactory, engine
 from models.base import Base
 
 BUILD_SCHEMA = "ctc_build"
@@ -22,6 +22,16 @@ async def shadow_connection(schema: str) -> AsyncGenerator[AsyncConnection, None
     """A connection whose unqualified tables resolve to `schema`."""
     async with engine.begin() as connection:
         yield await connection.execution_options(schema_translate_map={None: schema})
+
+
+@asynccontextmanager
+async def shadow_session(schema: str) -> AsyncGenerator[AsyncSession, None]:
+    """A session whose unqualified tables resolve to `schema`, for ORM loading."""
+    async with AsyncSessionFactory() as session:
+        await session.connection(
+            execution_options={"schema_translate_map": {None: schema}}
+        )
+        yield session
 
 
 async def assert_migrations_are_current() -> None:

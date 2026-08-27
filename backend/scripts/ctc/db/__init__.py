@@ -4,6 +4,7 @@ from scripts.ctc.db.shadow import (
     assert_migrations_are_current,
     recreate,
     shadow_connection,
+    shadow_session,
 )
 
 __all__ = [
@@ -12,4 +13,5 @@ __all__ = [
     "assert_migrations_are_current",
     "recreate",
     "shadow_connection",
+    "shadow_session",
 ]
