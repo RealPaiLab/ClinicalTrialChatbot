@@ -57,7 +57,7 @@ async def test_extra_calls_are_not_penalized() -> None:
         answer="...",
         tool_calls=[
             ToolCall(name="semantic_search", args={"reasoning": "r"}),
-            ToolCall(name="get_trial_details", args={"nct_numbers": ["NCT1"]}),
+            ToolCall(name="get_trial_details", args={"trial_refs": ["CTC-00000001"]}),
             ToolCall(name="define_term", args={"term": "refractory"}),
         ],
     )
@@ -110,12 +110,12 @@ def test_glossary_correctness_hit_and_miss() -> None:
 
 def test_inline_citation_consistency() -> None:
     grounded = AgentEvalOutput(
-        answer="See [NCT01234567].", retrieved_ncts=["NCT01234567"]
+        answer="See [CTC-12345678].", retrieved_refs=["CTC-12345678"]
     )
     ok = inline_citation_consistency(grounded)
     assert ok is not None and ok.value == 1.0
     hallucinated = AgentEvalOutput(
-        answer="See [NCT09999999].", retrieved_ncts=["NCT01234567"]
+        answer="See [CTC-99999999].", retrieved_refs=["CTC-12345678"]
     )
     bad = inline_citation_consistency(hallucinated)
     assert bad is not None and bad.value == 0.0
@@ -129,13 +129,15 @@ def test_to_cases() -> None:
         Turn(role="user", content="q2"),
     ]
     assert question_from(turns) == "q2"
-    output = AgentEvalOutput(answer="ans", contexts=["doc"], retrieved_ncts=["NCT1"])
+    output = AgentEvalOutput(
+        answer="ans", contexts=["doc"], retrieved_refs=["CTC-00000001"]
+    )
     expected = ExpectedOutput(
-        nct_numbers=["NCT1", "NCT2"], reference_facts=["f1", "f2"]
+        trial_refs=["CTC-00000001", "CTC-00000002"], reference_facts=["f1", "f2"]
     )
     retrieval = to_retrieval_case(output, expected)
-    assert list(retrieval.retrieved) == ["NCT1"]
-    assert list(retrieval.relevant) == ["NCT1", "NCT2"]
+    assert list(retrieval.retrieved) == ["CTC-00000001"]
+    assert list(retrieval.relevant) == ["CTC-00000001", "CTC-00000002"]
     generation = to_generation_case(turns, output, expected)
     assert generation.question == "q2"
     assert generation.contexts == ["doc"]

@@ -30,8 +30,9 @@ from schemas.trial import TrialCitation, TrialSiteInfo
 
 
 def make_citation(
-    nct: str,
+    ref: str,
     *,
+    nct: str | None = None,
     title: str = "A trial",
     cancer: Sequence[str] = ("Breast Cancer",),
     city: str = "Montréal",
@@ -39,15 +40,18 @@ def make_citation(
     state: str = "Recruiting",
     phases: Sequence[str] = ("PHASE3",),
     treatments: Sequence[str] = ("Immunotherapy",),
+    stages: Sequence[str] = ("Metastatic",),
 ) -> TrialCitation:
     """Build a TrialCitation DTO with one site."""
     return TrialCitation(
+        trial_ref=ref,
         nct_number=nct,
         short_title_en=title,
         inclusion_criteria_en="Adults with the condition.",
         exclusion_criteria_en="Prior treatment in the last year.",
         phases=list(phases),
         treatment_type_names=list(treatments),
+        disease_stages=list(stages),
         sites=[
             TrialSiteInfo(
                 name_en="Site",
@@ -61,8 +65,9 @@ def make_citation(
 
 
 def make_orm_trial(
-    nct: str,
+    ref: str,
     *,
+    nct: str | None = None,
     sites: Sequence[tuple[str, str, Sequence[str]]] = (
         ("Montréal", "Quebec", ("Breast Cancer",)),
     ),
@@ -70,6 +75,7 @@ def make_orm_trial(
 ) -> Trial:
     """Build an in-memory ORM Trial; each site is (city, province, cancer_types)."""
     trial = Trial(
+        trial_ref=ref,
         nct_number=nct,
         short_title_en="A trial",
         inclusion_criteria_en="Adults with the condition.",
@@ -96,10 +102,10 @@ class StubTrialSearch:
     def __init__(
         self,
         results: Sequence[TrialCitation] = (),
-        by_nct: dict[str, TrialCitation] | None = None,
+        by_ref: dict[str, TrialCitation] | None = None,
     ) -> None:
         self.results = list(results)
-        self.by_nct = dict(by_nct or {})
+        self.by_ref = dict(by_ref or {})
         self.calls: list[tuple[str, object]] = []
 
     async def syntactic_search(
@@ -123,9 +129,17 @@ class StubTrialSearch:
         self.calls.append(("semantic_search", query))
         return list(self.results)
 
+    async def get_by_refs(self, trial_refs: list[str]) -> list[TrialCitation]:
+        self.calls.append(("get_by_refs", trial_refs))
+        return [self.by_ref[r] for r in trial_refs if r in self.by_ref]
+
     async def get_by_ncts(self, nct_numbers: list[str]) -> list[TrialCitation]:
         self.calls.append(("get_by_ncts", nct_numbers))
-        return [self.by_nct[n] for n in nct_numbers if n in self.by_nct]
+        return [
+            c
+            for c in self.by_ref.values()
+            if c.nct_number and c.nct_number in nct_numbers
+        ]
 
 
 class StubEmbedder:
@@ -320,7 +334,7 @@ def make_run_context(deps: AgentDeps) -> RunContext[AgentDeps]:
 def make_eval_sample(
     *,
     question: str = "breast cancer trials recruiting in Quebec",
-    nct_numbers: Sequence[str] = ("NCT01", "NCT02"),
+    trial_refs: Sequence[str] = ("CTC-00000001", "CTC-00000002"),
     expected_tools: Sequence[ToolCall] | None = None,
     glossary_terms: Sequence[str] = ("metastatic",),
     reference_facts: Sequence[str] | None = ("NCT01 is recruiting in Quebec.",),
@@ -336,7 +350,7 @@ def make_eval_sample(
     return EvalSample(
         input=[Turn(role="user", content=question)],
         expected=ExpectedOutput(
-            nct_numbers=list(nct_numbers),
+            trial_refs=list(trial_refs),
             expected_tools=list(expected_tools),
             glossary_terms=list(glossary_terms),
             reference_facts=list(reference_facts)

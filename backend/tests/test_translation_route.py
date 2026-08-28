@@ -18,13 +18,13 @@ class StubTranslationService:
         self.calls: list[tuple[str, Language, bool]] = []
 
     async def translate_trial(
-        self, nct_number: str, target: Language, *, cached_only: bool = False
+        self, trial_ref: str, target: Language, *, cached_only: bool = False
     ) -> TrialTranslation | None:
-        self.calls.append((nct_number, target, cached_only))
+        self.calls.append((trial_ref, target, cached_only))
         if not self.found:
             return None
         return TrialTranslation(
-            nct_number=nct_number,
+            trial_ref=trial_ref,
             language=target,
             source=TranslationSource.MACHINE,
             short_title="Un essai",
@@ -40,26 +40,28 @@ def make_client(service: Any) -> TestClient:
 
 def test_returns_translation() -> None:
     service = StubTranslationService()
-    response = make_client(service).get("/trials/NCT-1/translation?language=fr-CA")
+    response = make_client(service).get(
+        "/trials/CTC-00000001/translation?language=fr-CA"
+    )
 
     assert response.status_code == 200
     assert response.json()["short_title"] == "Un essai"
-    assert service.calls == [("NCT-1", Language.FR_CA, False)]
+    assert service.calls == [("CTC-00000001", Language.FR_CA, False)]
 
 
 def test_cached_only_is_passed_through() -> None:
     service = StubTranslationService()
     response = make_client(service).get(
-        "/trials/NCT-1/translation?language=fr-CA&cached_only=true"
+        "/trials/CTC-00000001/translation?language=fr-CA&cached_only=true"
     )
 
     assert response.status_code == 200
-    assert service.calls == [("NCT-1", Language.FR_CA, True)]
+    assert service.calls == [("CTC-00000001", Language.FR_CA, True)]
 
 
 def test_unknown_trial_is_404() -> None:
     response = make_client(StubTranslationService(found=False)).get(
-        "/trials/NCT-missing/translation?language=de"
+        "/trials/CTC-M15S1NGX/translation?language=de"
     )
     assert response.status_code == 404
 
@@ -68,7 +70,7 @@ def test_unknown_trial_is_404() -> None:
 def test_unsupported_language_is_rejected(language: str) -> None:
     service = StubTranslationService()
     response = make_client(service).get(
-        f"/trials/NCT-1/translation?language={language}"
+        f"/trials/CTC-00000001/translation?language={language}"
     )
 
     assert response.status_code == 422
@@ -78,7 +80,7 @@ def test_unsupported_language_is_rejected(language: str) -> None:
 def test_language_is_required() -> None:
     assert (
         make_client(StubTranslationService())
-        .get("/trials/NCT-1/translation")
+        .get("/trials/CTC-00000001/translation")
         .status_code
         == 422
     )

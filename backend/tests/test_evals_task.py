@@ -6,7 +6,7 @@ from tests.factories import StubGlossary, StubTrialSearch, make_citation
 
 async def test_run_agent_on_item_populates_output() -> None:
     task = build_task(
-        trial_search=StubTrialSearch(results=[make_citation("NCT01234567")]),
+        trial_search=StubTrialSearch(results=[make_citation("CTC-12345678")]),
         glossary=StubGlossary(),
     )
     item = DatasetItem.model_construct(
@@ -16,14 +16,14 @@ async def test_run_agent_on_item_populates_output() -> None:
     output = await task(item=item)
 
     assert isinstance(output.answer, str)
-    assert "NCT01234567" in output.retrieved_ncts
+    assert "CTC-12345678" in output.retrieved_refs
     assert output.tool_calls
     assert "syntactic_search" in output.trajectory
 
 
 async def test_run_agent_on_item_replays_multi_turn() -> None:
     task = build_task(
-        trial_search=StubTrialSearch(results=[make_citation("NCT01234567")]),
+        trial_search=StubTrialSearch(results=[make_citation("CTC-12345678")]),
         glossary=StubGlossary(),
     )
     item = DatasetItem.model_construct(

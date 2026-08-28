@@ -102,13 +102,13 @@ def _chat(
 
 
 async def test_stream_yields_partials_then_result() -> None:
-    citation = make_citation("NCT01111111")
-    chat = _chat(StubTrialSearch(results=[citation], by_nct={"NCT01111111": citation}))
+    citation = make_citation("CTC-11111111")
+    chat = _chat(StubTrialSearch(results=[citation], by_ref={"CTC-11111111": citation}))
     model = make_test_model(
         call_tools=["syntactic_search"],
         output={
-            "message": "see [NCT01111111]",
-            "used_nct_numbers": ["NCT01111111"],
+            "message": "see [CTC-11111111]",
+            "used_trial_refs": ["CTC-11111111"],
             "follow_up_questions": ["where are you?"],
         },
     )
@@ -123,7 +123,7 @@ async def test_stream_yields_partials_then_result() -> None:
     assert any(isinstance(i, AgentResponse) for i in items)
     assert isinstance(items[-1], ChatResult)
     final = items[-1]
-    assert [c.nct_number for c in final.trials] == ["NCT01111111"]
+    assert [c.trial_ref for c in final.trials] == ["CTC-11111111"]
     assert final.follow_up_questions == ["where are you?"]
 
 
@@ -132,8 +132,8 @@ async def test_stream_strips_unverified_nct_without_retrying() -> None:
     model = make_test_model(
         call_tools=[],
         output={
-            "message": "I found [NCT09999999] for you.",
-            "used_nct_numbers": ["NCT09999999"],
+            "message": "I found [CTC-99999999] for you.",
+            "used_trial_refs": ["CTC-99999999"],
             "follow_up_questions": [],
         },
     )
@@ -147,7 +147,7 @@ async def test_stream_strips_unverified_nct_without_retrying() -> None:
 
     final = items[-1]
     assert isinstance(final, ChatResult)
-    assert "NCT09999999" not in final.message
+    assert "CTC-99999999" not in final.message
     assert final.trials == []
 
 
@@ -158,7 +158,7 @@ async def test_history_persists_across_turns() -> None:
     chat = _chat(StubTrialSearch(), conversation)
     model = make_test_model(
         call_tools=[],
-        output={"message": "hi", "used_nct_numbers": [], "follow_up_questions": []},
+        output={"message": "hi", "used_trial_refs": [], "follow_up_questions": []},
     )
     with (
         get_input_triage_agent().override(model=_allow_triage()),
@@ -188,7 +188,7 @@ async def test_scratchpad_persists_across_turns() -> None:
     chat = _chat(StubTrialSearch(), conversation)
     model = make_test_model(
         call_tools=["remember"],
-        output={"message": "hi", "used_nct_numbers": [], "follow_up_questions": []},
+        output={"message": "hi", "used_trial_refs": [], "follow_up_questions": []},
     )
     with (
         get_input_triage_agent().override(model=_allow_triage()),
@@ -213,8 +213,8 @@ async def test_hallucinated_turn_is_flagged_in_langfuse() -> None:
     model = make_test_model(
         call_tools=[],
         output={
-            "message": "I found [NCT09999999] for you.",
-            "used_nct_numbers": ["NCT09999999"],
+            "message": "I found [CTC-99999999] for you.",
+            "used_trial_refs": ["CTC-99999999"],
             "follow_up_questions": [],
         },
     )
@@ -229,8 +229,8 @@ async def test_hallucinated_turn_is_flagged_in_langfuse() -> None:
     span = observation.__enter__.return_value
     flagged = span.update.call_args.kwargs
     assert flagged["level"] == "WARNING"
-    assert "NCT09999999" in flagged["status_message"]
-    assert flagged["metadata"] == {"hallucinated_ncts": ["NCT09999999"]}
+    assert "CTC-99999999" in flagged["status_message"]
+    assert flagged["metadata"] == {"hallucinated_trials": ["CTC-99999999"]}
 
 
 async def test_stream_reraises_on_failure() -> None:
@@ -250,7 +250,7 @@ async def test_reset_clears_history() -> None:
     chat = _chat(StubTrialSearch(), conversation)
     model = make_test_model(
         call_tools=[],
-        output={"message": "hi", "used_nct_numbers": [], "follow_up_questions": []},
+        output={"message": "hi", "used_trial_refs": [], "follow_up_questions": []},
     )
     with (
         get_input_triage_agent().override(model=_allow_triage()),
@@ -264,12 +264,12 @@ async def test_reset_clears_history() -> None:
 
 
 async def test_refused_turn_runs_without_search_tools() -> None:
-    search = StubTrialSearch(results=[make_citation("NCT-1")])
+    search = StubTrialSearch(results=[make_citation("CTC-00000001")])
     chat = _chat(search)
     model = make_test_model(
         output={
             "message": "I can't help with that, but I can find trials.",
-            "used_nct_numbers": [],
+            "used_trial_refs": [],
             "follow_up_questions": [],
         }
     )
@@ -284,7 +284,7 @@ async def test_refused_turn_runs_without_search_tools() -> None:
 
 
 async def test_triage_failure_allows_turn() -> None:
-    search = StubTrialSearch(results=[make_citation("NCT-1")])
+    search = StubTrialSearch(results=[make_citation("CTC-00000001")])
     chat = _chat(search)
     chat._triage_agent = AsyncMock()
     chat._triage_agent.run.side_effect = RuntimeError("triage down")
@@ -292,7 +292,7 @@ async def test_triage_failure_allows_turn() -> None:
         call_tools=["syntactic_search"],
         output={
             "message": "found some",
-            "used_nct_numbers": [],
+            "used_trial_refs": [],
             "follow_up_questions": [],
         },
     )

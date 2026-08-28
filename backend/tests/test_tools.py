@@ -26,7 +26,7 @@ from tests.factories import (
 
 
 async def test_syntactic_search_records_and_summarizes() -> None:
-    citation = make_citation("NCT-1", cancer=["Breast Cancer"], city="Montréal")
+    citation = make_citation("CTC-00000001", cancer=["Breast Cancer"], city="Montréal")
     deps = AgentDeps(trial_search=StubTrialSearch(results=[citation]))
     ctx = make_run_context(deps)
 
@@ -35,14 +35,18 @@ async def test_syntactic_search_records_and_summarizes() -> None:
         SyntacticSearchInput(reasoning="r", cancer_types=["Breast Cancer"]),
     )
 
-    assert hits[0].nct_number == "NCT-1"
+    assert hits[0].trial_ref == "CTC-00000001"
     assert "Breast Cancer" in hits[0].cancer_types
     assert "Montréal" in hits[0].cities
-    assert "NCT-1" in deps.fetched_trials
+    assert hits[0].treatment_types == ["Immunotherapy"]
+    assert hits[0].disease_stages == ["Metastatic"]
+    assert "CTC-00000001" in deps.fetched_trials
 
 
 async def test_duplicate_call_is_rejected_and_still_counts() -> None:
-    deps = AgentDeps(trial_search=StubTrialSearch(results=[make_citation("NCT-1")]))
+    deps = AgentDeps(
+        trial_search=StubTrialSearch(results=[make_citation("CTC-00000001")])
+    )
     ctx = make_run_context(deps)
 
     await syntactic_search(
@@ -65,7 +69,7 @@ def test_search_limit_is_hard_capped_at_ten() -> None:
 
 
 async def test_semantic_search_records_and_summarizes() -> None:
-    citation = make_citation("NCT-1", cancer=["Lung Cancer"])
+    citation = make_citation("CTC-00000001", cancer=["Lung Cancer"])
     search = StubTrialSearch(results=[citation])
     deps = AgentDeps(trial_search=search)
     ctx = make_run_context(deps)
@@ -79,13 +83,15 @@ async def test_semantic_search_records_and_summarizes() -> None:
         ),
     )
 
-    assert hits[0].nct_number == "NCT-1"
-    assert "NCT-1" in deps.fetched_trials
+    assert hits[0].trial_ref == "CTC-00000001"
+    assert "CTC-00000001" in deps.fetched_trials
     assert ("semantic_search", "metastatic lung cancer") in search.calls
 
 
 async def test_semantic_search_duplicate_call_is_rejected() -> None:
-    deps = AgentDeps(trial_search=StubTrialSearch(results=[make_citation("NCT-1")]))
+    deps = AgentDeps(
+        trial_search=StubTrialSearch(results=[make_citation("CTC-00000001")])
+    )
     ctx = make_run_context(deps)
 
     await semantic_search(ctx, SemanticSearchInput(reasoning="a", query="lung"))
@@ -96,7 +102,9 @@ async def test_semantic_search_duplicate_call_is_rejected() -> None:
 
 
 async def test_same_filters_allowed_across_search_tools() -> None:
-    deps = AgentDeps(trial_search=StubTrialSearch(results=[make_citation("NCT-1")]))
+    deps = AgentDeps(
+        trial_search=StubTrialSearch(results=[make_citation("CTC-00000001")])
+    )
     ctx = make_run_context(deps)
 
     await syntactic_search(
@@ -112,7 +120,9 @@ async def test_same_filters_allowed_across_search_tools() -> None:
 
 
 async def test_query_makes_search_distinct_from_filters_only() -> None:
-    deps = AgentDeps(trial_search=StubTrialSearch(results=[make_citation("NCT-1")]))
+    deps = AgentDeps(
+        trial_search=StubTrialSearch(results=[make_citation("CTC-00000001")])
+    )
     ctx = make_run_context(deps)
 
     await syntactic_search(
@@ -148,67 +158,80 @@ async def test_define_term_returns_glossary_definitions() -> None:
 
 
 async def test_get_trial_details_returns_found_only() -> None:
-    citation = make_citation("NCT-3")
-    deps = AgentDeps(trial_search=StubTrialSearch(by_nct={"NCT-3": citation}))
+    citation = make_citation("CTC-00000003")
+    deps = AgentDeps(trial_search=StubTrialSearch(by_ref={"CTC-00000003": citation}))
     ctx = make_run_context(deps)
 
     result = await get_trial_details(
-        ctx, GetTrialDetailsInput(reasoning="r", nct_numbers=["NCT-3", "NCT-x"])
+        ctx,
+        GetTrialDetailsInput(
+            reasoning="r", trial_refs=["CTC-00000003", "CTC-0000000X"]
+        ),
     )
 
-    assert [c.nct_number for c in result] == ["NCT-3"]
-    assert "NCT-3" in deps.fetched_trials
+    assert [c.trial_ref for c in result] == ["CTC-00000003"]
+    assert "CTC-00000003" in deps.fetched_trials
 
 
 def _two_site_trial() -> TrialCitation:
     """The trial as get_by_ncts returns it: every site, unfiltered."""
-    full = make_citation("NCT-4", city="Thunder Bay")
-    full.sites = [*full.sites, *make_citation("NCT-4", city="Toronto").sites]
+    full = make_citation("CTC-00000004", city="Thunder Bay")
+    full.sites = [*full.sites, *make_citation("CTC-00000004", city="Toronto").sites]
     return full
 
 
 async def test_details_keep_the_sites_the_search_narrowed_to() -> None:
     """Details must not re-add cities the patient filtered out: sites are map pins."""
-    searched = make_citation("NCT-4", city="Thunder Bay")
-    deps = AgentDeps(trial_search=StubTrialSearch(by_nct={"NCT-4": _two_site_trial()}))
-    deps.fetched_trials["NCT-4"] = searched
+    searched = make_citation("CTC-00000004", city="Thunder Bay")
+    deps = AgentDeps(
+        trial_search=StubTrialSearch(by_ref={"CTC-00000004": _two_site_trial()})
+    )
+    deps.fetched_trials["CTC-00000004"] = searched
     ctx = make_run_context(deps)
 
     result = await get_trial_details(
-        ctx, GetTrialDetailsInput(reasoning="r", nct_numbers=["NCT-4"])
+        ctx, GetTrialDetailsInput(reasoning="r", trial_refs=["CTC-00000004"])
     )
 
     assert [s.city for s in result[0].sites] == ["Thunder Bay"]
-    assert [s.city for s in deps.fetched_trials["NCT-4"].sites] == ["Thunder Bay"]
+    assert [s.city for s in deps.fetched_trials["CTC-00000004"].sites] == [
+        "Thunder Bay"
+    ]
 
 
 async def test_all_sites_widens_on_request() -> None:
-    searched = make_citation("NCT-4", city="Thunder Bay")
-    deps = AgentDeps(trial_search=StubTrialSearch(by_nct={"NCT-4": _two_site_trial()}))
-    deps.fetched_trials["NCT-4"] = searched
+    searched = make_citation("CTC-00000004", city="Thunder Bay")
+    deps = AgentDeps(
+        trial_search=StubTrialSearch(by_ref={"CTC-00000004": _two_site_trial()})
+    )
+    deps.fetched_trials["CTC-00000004"] = searched
     ctx = make_run_context(deps)
 
     result = await get_trial_details(
         ctx,
-        GetTrialDetailsInput(reasoning="r", nct_numbers=["NCT-4"], all_sites=True),
+        GetTrialDetailsInput(
+            reasoning="r", trial_refs=["CTC-00000004"], all_sites=True
+        ),
     )
 
     assert [s.city for s in result[0].sites] == ["Thunder Bay", "Toronto"]
 
 
 async def test_details_are_unfiltered_for_a_trial_not_seen_before() -> None:
-    deps = AgentDeps(trial_search=StubTrialSearch(by_nct={"NCT-4": _two_site_trial()}))
+    deps = AgentDeps(
+        trial_search=StubTrialSearch(by_ref={"CTC-00000004": _two_site_trial()})
+    )
     ctx = make_run_context(deps)
 
     result = await get_trial_details(
-        ctx, GetTrialDetailsInput(reasoning="r", nct_numbers=["NCT-4"])
+        ctx, GetTrialDetailsInput(reasoning="r", trial_refs=["CTC-00000004"])
     )
 
     assert [s.city for s in result[0].sites] == ["Thunder Bay", "Toronto"]
 
 
 async def test_new_filters_reach_the_trial_filter() -> None:
-    search = StubTrialSearch(results=[make_citation("NCT-1")])
+    search = StubTrialSearch(results=[make_citation("CTC-00000001")])
     ctx = make_run_context(AgentDeps(trial_search=search))
 
     await syntactic_search(
