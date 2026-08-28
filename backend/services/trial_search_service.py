@@ -12,7 +12,12 @@ from models.trial import Trial
 from models.trial_site import TrialSite
 from repository.trial_repository import TrialRepository
 from schemas.provinces import split_locations
-from schemas.trial import TrialCitation, TrialFilter, TrialSiteInfo
+from schemas.trial import (
+    TrialCitation,
+    TrialFilter,
+    TrialSearchPage,
+    TrialSiteInfo,
+)
 from utils.text import fold
 
 
@@ -150,14 +155,18 @@ class TrialSearchService:
         query: str | None = None,
         limit: int | None = None,
         offset: int = 0,
-    ) -> list[TrialCitation]:
+    ) -> TrialSearchPage:
         """Lexical search over the filters, optionally narrowed by a free-text query;
-        returns only sites matching the filters."""
+        returns only sites matching the filters, plus the corpus-wide match count."""
         async with self._session_factory() as session:
-            trials = await self._repository(session).syntactic_search(
+            repository = self._repository(session)
+            trials = await repository.syntactic_search(
                 flt, query=query, limit=limit or self._default_limit, offset=offset
             )
-            return self._filtered_citations(trials, flt)
+            total = await repository.count_matches(flt, query=query)
+            return TrialSearchPage(
+                total=total, trials=self._filtered_citations(trials, flt)
+            )
 
     async def semantic_search(
         self,
@@ -167,9 +176,10 @@ class TrialSearchService:
         provider: EmbeddingProvider | None = None,
         limit: int | None = None,
         offset: int = 0,
-    ) -> list[TrialCitation]:
+    ) -> TrialSearchPage:
         """Meaning-based search: hard filters narrow candidates, the query
-        embedding ranks them by clinical fit; returns only matching sites."""
+        embedding ranks them by clinical fit; returns only matching sites, plus the
+        corpus-wide match count."""
         prov = provider or self._default_provider
         if prov == self._default_provider and self._embedder is not None:
             embedder = self._embedder
@@ -182,14 +192,18 @@ class TrialSearchService:
             embedder = self._embedder_for(prov)
         vector = await embedder.embed_query(query)
         async with self._session_factory() as session:
-            trials = await self._repository(session).semantic_search(
+            repository = self._repository(session)
+            trials = await repository.semantic_search(
                 flt,
                 query_embedding=vector,
                 provider=prov,
                 limit=limit or self._default_limit,
                 offset=offset,
             )
-            return self._filtered_citations(trials, flt)
+            total = await repository.count_matches(flt, provider=prov)
+            return TrialSearchPage(
+                total=total, trials=self._filtered_citations(trials, flt)
+            )
 
     async def get_by_refs(self, trial_refs: list[str]) -> list[TrialCitation]:
         """Fetch full details for trials by ref."""

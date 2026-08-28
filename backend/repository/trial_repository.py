@@ -166,6 +166,23 @@ class TrialRepository:
         )
         return await self._run(stmt)
 
+    async def count_matches(
+        self,
+        flt: TrialFilter,
+        *,
+        query: str | None = None,
+        provider: EmbeddingProvider | None = None,
+    ) -> int:
+        """How many trials match"""
+        conditions = _filter_conditions(flt, self._restrict_to_province)
+        if query:
+            conditions.append(_keyword_condition(query))
+        if provider is not None:
+            conditions.append(EMBEDDING_COLUMNS[provider].is_not(None))
+        stmt = select(func.count()).select_from(Trial).where(*conditions)
+        result = await self._session.execute(stmt)
+        return int(result.scalar_one())
+
     async def semantic_search(
         self,
         flt: TrialFilter,

@@ -15,10 +15,11 @@ from agents.clinical_trials.tool_schemas import (
     SemanticSearchInput,
     SyntacticSearchInput,
     TrialSearchHit,
+    TrialSearchResult,
 )
 from core.config import get_settings
 from schemas.glossary import GlossaryDefinition
-from schemas.trial import TrialCitation, TrialFilter
+from schemas.trial import TrialCitation, TrialFilter, TrialSearchPage
 
 observed = observe(
     capture_input=get_settings().capture_patient_text,
@@ -26,9 +27,8 @@ observed = observe(
 )
 
 
-def _record(
-    ctx: RunContext[AgentDeps], citations: list[TrialCitation]
-) -> list[TrialSearchHit]:
+def _record(ctx: RunContext[AgentDeps], page: TrialSearchPage) -> TrialSearchResult:
+    citations = page.trials
     hits: list[TrialSearchHit] = []
     for c in citations:
         ctx.deps.fetched_trials[c.trial_ref] = c
@@ -49,14 +49,14 @@ def _record(
                 recruiting_statuses=sorted({s.state for s in c.sites if s.state}),
             )
         )
-    return hits
+    return TrialSearchResult(total_matching=page.total, trials=hits)
 
 
 @observed
 @guarded
 async def syntactic_search(
     ctx: RunContext[AgentDeps], args: SyntacticSearchInput
-) -> list[TrialSearchHit]:
+) -> TrialSearchResult:
     """Search clinical trials by structured filters, optionally narrowed by free text.
 
     Values within one field are OR'd and fields are AND'd, so you may pass several
@@ -72,17 +72,17 @@ async def syntactic_search(
         treatment_types=args.treatment_types,
         disease_stages=args.disease_stages,
     )
-    citations = await ctx.deps.trial_search.syntactic_search(
+    page = await ctx.deps.trial_search.syntactic_search(
         flt, query=args.query, limit=args.limit, offset=args.offset
     )
-    return _record(ctx, citations)
+    return _record(ctx, page)
 
 
 @observed
 @guarded
 async def semantic_search(
     ctx: RunContext[AgentDeps], args: SemanticSearchInput
-) -> list[TrialSearchHit]:
+) -> TrialSearchResult:
     """Search clinical trials by meaning, ranked by fit to the patient's situation.
 
     Use when the match depends on soft clinical fit the structured filters cannot
@@ -101,10 +101,10 @@ async def semantic_search(
         treatment_types=args.treatment_types,
         disease_stages=args.disease_stages,
     )
-    citations = await ctx.deps.trial_search.semantic_search(
+    page = await ctx.deps.trial_search.semantic_search(
         flt, query=args.query, limit=args.limit
     )
-    return _record(ctx, citations)
+    return _record(ctx, page)
 
 
 def _keep_narrowed_sites(

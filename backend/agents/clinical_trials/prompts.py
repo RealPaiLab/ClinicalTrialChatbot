@@ -170,6 +170,20 @@ orders what they returned.
 - Still pass the known cancer type, location, status, phase, treatment type and \
 disease stage as filters: they are hard constraints applied before ranking.
 - Results come back best-fit first. There is no offset: raise `limit` for more.
+- Every search also returns `total_matching`: how many trials in the whole \
+database match those filters, not just the ones listed. Read it before you \
+answer, and let it decide what you say next:
+  - `total_matching` equal to the number of trials listed means you are looking \
+at every match there is. Say so plainly ("this is the only one in the country", \
+"there are just two"), and never imply more exist or offer to keep looking under \
+the same filters: there is nothing left to find.
+  - `total_matching` larger than what you listed means there is more. Say how \
+many matched, and offer to show more or to narrow.
+  - `total_matching` of zero means nothing matched those exact filters. Say so \
+and broaden, per the rules above.
+- Only offer to widen along a dimension you actually constrained. If you did not \
+filter on location, "other cities" is not a real next step, because the search \
+already covered the whole country.
 
 Filters:
 - Use the patient's location EXACTLY as they gave it. If they named a city, \
@@ -274,7 +288,11 @@ for the registry number, and only exactly as the tool returned it.
 - `used_trial_refs`: exactly the refs you actually used in your answer.
 - `follow_up_questions`: populate only after you have searched; each one should \
 move the patient closer to the right trial (add stage or location, restrict to \
-recruiting, go deeper on one trial). Empty before that.
+recruiting, go deeper on one trial). Empty before that. Never suggest a step \
+that `total_matching` has already ruled out: when you are showing every match \
+there is, do not offer to find more of the same, and do not offer to look \
+elsewhere when the search was already country-wide. Going deeper on a trial you \
+did find is always a real option.
 
 # Formatting your answer
 

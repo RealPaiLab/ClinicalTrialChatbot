@@ -199,3 +199,14 @@ class TrialSearchHit(BaseModel):
     cities: list[str] = Field(default_factory=list)
     provinces: list[str] = Field(default_factory=list)
     recruiting_statuses: list[str] = Field(default_factory=list)
+
+
+class TrialSearchResult(BaseModel):
+    """What a search returns: this page of trials, and how many matched in all."""
+
+    total_matching: int = Field(
+        description="How many trials in the whole database match these filters, "
+        "not just the ones listed here. If it equals the number of trials below, "
+        "you are looking at every match there is."
+    )
+    trials: list[TrialSearchHit] = Field(default_factory=list)

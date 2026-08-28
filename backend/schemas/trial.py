@@ -37,6 +37,13 @@ class TrialCitation(BaseModel):
     sites: list[TrialSiteInfo] = Field(default_factory=list)
 
 
+class TrialSearchPage(BaseModel):
+    """One page of results plus how many trials matched in total."""
+
+    total: int
+    trials: list[TrialCitation] = Field(default_factory=list)
+
+
 class TrialFilter(BaseModel):
     """Structured-search filters"""
 

@@ -7,7 +7,7 @@ from typing import Protocol
 
 from schemas.glossary import GlossaryDefinition, GlossarySource
 from schemas.memory import ConversationMemory
-from schemas.trial import TrialCitation, TrialFilter
+from schemas.trial import TrialCitation, TrialFilter, TrialSearchPage
 
 
 class TrialSearch(Protocol):
@@ -20,7 +20,7 @@ class TrialSearch(Protocol):
         query: str | None = None,
         limit: int | None = None,
         offset: int = 0,
-    ) -> list[TrialCitation]: ...
+    ) -> TrialSearchPage: ...
 
     async def semantic_search(
         self,
@@ -28,7 +28,7 @@ class TrialSearch(Protocol):
         *,
         query: str,
         limit: int | None = None,
-    ) -> list[TrialCitation]: ...
+    ) -> TrialSearchPage: ...
 
     async def get_by_refs(self, trial_refs: list[str]) -> list[TrialCitation]: ...
 
