@@ -19,10 +19,10 @@ const LANGUAGE_GATE_EXIT_MS = 160;
 
 function HomePage() {
   const trials = useAppStore((state) => state.trials);
-  const selectedNctNumber = useAppStore((state) => state.selectedNctNumber);
+  const selectedTrialRef = useAppStore((state) => state.selectedTrialRef);
   const selectedSiteKey = useAppStore((state) => state.selectedSiteKey);
-  const contextNctNumbers = useAppStore((state) => state.contextNctNumbers);
-  const bookmarkedNctNumbers = useAppStore((state) => state.bookmarkedNctNumbers);
+  const contextTrialRefs = useAppStore((state) => state.contextTrialRefs);
+  const bookmarkedTrialRefs = useAppStore((state) => state.bookmarkedTrialRefs);
   const theme = useAppStore((state) => state.theme);
   const hasChosenLanguage = useAppStore((state) => state.hasChosenLanguage);
   const setTrials = useAppStore((state) => state.setTrials);
@@ -41,7 +41,7 @@ function HomePage() {
   const { exportTrials, isExporting } = useTrialPdfExport();
 
   const dark = theme === 'dark';
-  const hasSelection = Boolean(selectedNctNumber);
+  const hasSelection = Boolean(selectedTrialRef);
   const summaryPanelRef = usePanelRef();
   const splitGroupRef = useRef<HTMLDivElement | null>(null);
 
@@ -80,32 +80,30 @@ function HomePage() {
   // A bookmark can outlive the conversation that surfaced it, so opening one
   // puts the trial back on the map before selecting it.
   const handleOpenBookmark = (trial: Trial) => {
-    const nctNumber = trial.nctNumber;
-    if (!nctNumber) return;
+    const trialRef = trial.trialRef;
+    if (!trialRef) return;
     addBookmarkTrial(trial);
-    selectTrial(nctNumber);
-    addToContext(nctNumber);
+    selectTrial(trialRef);
+    addToContext(trialRef);
   };
 
   // Dropping a bookmark-opened trial from the chat context takes its pin with
   // it: nothing in the conversation put it there, so nothing should keep it.
-  const handleRemoveContext = (nctNumber: string) => {
-    removeFromContext(nctNumber);
-    dropBookmarkTrial(nctNumber);
+  const handleRemoveContext = (trialRef: string) => {
+    removeFromContext(trialRef);
+    dropBookmarkTrial(trialRef);
   };
 
   // Pins and context chips read a translation only if one already exists; the
   // summary panel is the single surface that commissions one.
   const labelledTrials = useCachedTrialTranslations(trials);
-  const selectedTrial = trials.find((trial) => trial.nctNumber === selectedNctNumber) ?? null;
-  const contextTrials = contextNctNumbers
-    .map((nct) => labelledTrials.find((trial) => trial.nctNumber === nct))
+  const selectedTrial = trials.find((trial) => trial.trialRef === selectedTrialRef) ?? null;
+  const contextTrials = contextTrialRefs
+    .map((nct) => labelledTrials.find((trial) => trial.trialRef === nct))
     .filter((trial): trial is Trial => Boolean(trial));
-  const selectedInContext = selectedNctNumber
-    ? contextNctNumbers.includes(selectedNctNumber)
-    : false;
-  const selectedIsBookmarked = selectedNctNumber
-    ? bookmarkedNctNumbers.includes(selectedNctNumber)
+  const selectedInContext = selectedTrialRef ? contextTrialRefs.includes(selectedTrialRef) : false;
+  const selectedIsBookmarked = selectedTrialRef
+    ? bookmarkedTrialRefs.includes(selectedTrialRef)
     : false;
 
   return (
@@ -115,7 +113,7 @@ function HomePage() {
     >
       <AppHeader
         dark={dark}
-        bookmarkCount={bookmarkedNctNumbers.length}
+        bookmarkCount={bookmarkedTrialRefs.length}
         onOpenBookmarks={() => setBookmarksOpen(true)}
         onStartTour={() => startTour()}
         onToggleTheme={toggleTheme}
@@ -124,7 +122,7 @@ function HomePage() {
       <BookmarksSheet
         open={bookmarksOpen}
         onOpenChange={setBookmarksOpen}
-        bookmarkedNctNumbers={bookmarkedNctNumbers}
+        bookmarkedTrialRefs={bookmarkedTrialRefs}
         onRemove={removeBookmark}
         onSelect={handleOpenBookmark}
         onExport={exportTrials}
@@ -155,7 +153,7 @@ function HomePage() {
                 >
                   <MapPanel
                     trials={labelledTrials}
-                    selectedNctNumber={selectedNctNumber}
+                    selectedTrialRef={selectedTrialRef}
                     selectedSiteKey={selectedSiteKey}
                     onSelectTrial={selectTrial}
                     dark={dark}

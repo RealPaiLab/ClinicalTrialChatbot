@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import type { TrialStatus } from '@/types/trial';
 
 export interface ClusterItem {
-  nctNumber: string | null;
+  trialRef: string | null;
   title: string;
   status: TrialStatus;
 }
@@ -18,11 +18,11 @@ interface TrialClusterProps {
   latitude: number;
   locationName: string;
   items: ClusterItem[];
-  selectedNctNumber?: string | null;
+  selectedTrialRef?: string | null;
   open: boolean;
   onToggle: () => void;
   onClose: () => void;
-  onSelectTrial: (nctNumber: string) => void;
+  onSelectTrial: (trialRef: string) => void;
 }
 
 function TrialCluster({
@@ -30,14 +30,14 @@ function TrialCluster({
   latitude,
   locationName,
   items,
-  selectedNctNumber,
+  selectedTrialRef,
   open,
   onToggle,
   onClose,
   onSelectTrial,
 }: TrialClusterProps) {
-  const selected = items.some((item) => item.nctNumber === selectedNctNumber);
-  const selectedStatus = items.find((item) => item.nctNumber === selectedNctNumber)?.status ?? null;
+  const selected = items.some((item) => item.trialRef === selectedTrialRef);
+  const selectedStatus = items.find((item) => item.trialRef === selectedTrialRef)?.status ?? null;
   const groups = items.reduce<StatusCount[]>((acc, item) => {
     const group = acc.find((entry) => entry.status === item.status);
     return group
@@ -88,13 +88,13 @@ function TrialCluster({
                 <CommandGroup>
                   {items.map((item, index) => (
                     <CommandItem
-                      key={item.nctNumber ?? `no-nct-${index}`}
-                      value={item.nctNumber ?? `no-nct-${index}`}
-                      disabled={!item.nctNumber}
-                      data-checked={item.nctNumber === selectedNctNumber}
+                      key={item.trialRef ?? `no-ref-${index}`}
+                      value={item.trialRef ?? `no-ref-${index}`}
+                      disabled={!item.trialRef}
+                      data-checked={item.trialRef === selectedTrialRef}
                       onSelect={() => {
-                        if (item.nctNumber) {
-                          onSelectTrial(item.nctNumber);
+                        if (item.trialRef) {
+                          onSelectTrial(item.trialRef);
                           onClose();
                         }
                       }}

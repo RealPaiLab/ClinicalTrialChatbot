@@ -4,7 +4,7 @@ import type en from '@/i18n/locales/en';
 import { useAppStore } from '@/store/appStore';
 import { DEMO_TRIALS } from './demoTrials';
 
-const DEMO_NCT = DEMO_TRIALS[0].nctNumber as string;
+const DEMO_NCT = DEMO_TRIALS[0].trialRef as string;
 
 const ASK_AI_WORD = 'chemotherapy';
 

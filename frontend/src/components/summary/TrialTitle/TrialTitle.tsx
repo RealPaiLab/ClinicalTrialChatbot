@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-
-const SHOW_MORE_LABEL = 'Show full title';
-const SHOW_LESS_LABEL = 'Show less';
 
 interface TrialTitleProps {
   title: string;
@@ -10,6 +8,7 @@ interface TrialTitleProps {
 }
 
 function TrialTitle({ title, lang }: TrialTitleProps) {
+  const { t } = useTranslation();
   const titleRef = useRef<HTMLSpanElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [clamped, setClamped] = useState(false);
@@ -42,7 +41,7 @@ function TrialTitle({ title, lang }: TrialTitleProps) {
           onClick={() => setExpanded(!expanded)}
           className="text-caption text-muted-foreground hover:text-primary w-fit cursor-pointer transition-colors"
         >
-          {expanded ? SHOW_LESS_LABEL : SHOW_MORE_LABEL}
+          {expanded ? t('summary.showLess') : t('summary.showFullTitle')}
         </button>
       )}
     </>

@@ -8,6 +8,7 @@ import {
   InlineCitationSource,
 } from '@/components/ai-elements/inline-citation';
 import { useCachedTrialTranslation } from '@/hooks/useCachedTranslation';
+import { publicTrialId } from '@/lib/trial';
 import type { TrialSummary } from '@/types/trial';
 
 const CITATION_TITLE_MAX_LENGTH = 50;
@@ -19,27 +20,28 @@ function truncate(text: string, max: number): string {
 }
 
 interface TrialCitationProps {
-  nctNumber: string;
-  fetchTrial: (nctNumber: string, signal?: AbortSignal) => Promise<TrialSummary>;
-  onSelect?: (nctNumber: string) => void;
+  trialRef: string;
+  fetchTrial: (trialRef: string, signal?: AbortSignal) => Promise<TrialSummary>;
+  onSelect?: (trialRef: string) => void;
   compact?: boolean;
 }
 
-function TrialCitation({ nctNumber, fetchTrial, onSelect, compact }: TrialCitationProps) {
+function TrialCitation({ trialRef, fetchTrial, onSelect, compact }: TrialCitationProps) {
   const { data: trial } = useQuery({
-    queryKey: ['trial', nctNumber],
-    queryFn: ({ signal }) => fetchTrial(nctNumber, signal),
-    enabled: Boolean(nctNumber),
+    queryKey: ['trial', trialRef],
+    queryFn: ({ signal }) => fetchTrial(trialRef, signal),
+    enabled: Boolean(trialRef),
   });
 
   // Shows a translation the app already has; a citation never orders one.
-  const translation = useCachedTrialTranslation(nctNumber);
+  const translation = useCachedTrialTranslation(trialRef);
   const fullTitle =
     translation?.shortTitle ??
     translation?.officialTitle ??
     trial?.shortTitleEn ??
     trial?.officialTitleEn ??
-    nctNumber;
+    publicTrialId(trial) ??
+    'Trial';
   const title = truncate(fullTitle, compact ? COMPACT_TITLE_MAX_LENGTH : CITATION_TITLE_MAX_LENGTH);
   const summary = translation?.description ?? trial?.descriptionEn;
   const description = summary ? truncate(summary, CITATION_DESCRIPTION_MAX_LENGTH) : undefined;
@@ -52,8 +54,8 @@ function TrialCitation({ nctNumber, fetchTrial, onSelect, compact }: TrialCitati
             type="button"
             variant={compact ? 'outline' : 'secondary'}
             size="sm"
-            aria-label={`Show trial ${nctNumber} on the map`}
-            onClick={() => onSelect?.(nctNumber)}
+            aria-label={`Show ${title} on the map`}
+            onClick={() => onSelect?.(trialRef)}
             className="mx-0.5 inline-flex h-5 max-w-full rounded-full px-2 align-baseline text-[0.7rem] font-medium"
           >
             <span className="truncate">{title}</span>

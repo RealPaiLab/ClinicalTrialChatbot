@@ -16,6 +16,7 @@ export interface TrialSite {
 }
 
 export interface Trial {
+  trialRef: string;
   nctNumber: string | null;
   acronymOrProtocolId: string | null;
   shortTitleEn: string | null;
@@ -25,6 +26,7 @@ export interface Trial {
   exclusionCriteriaEn: string | null;
   phases: string[];
   treatmentTypeNames: string[];
+  diseaseStages: string[];
   interventionNames: string[];
   treatmentLines: string[];
   sites: TrialSite[];
@@ -32,11 +34,16 @@ export interface Trial {
 
 export type TrialSummary = Pick<
   Trial,
-  'nctNumber' | 'shortTitleEn' | 'officialTitleEn' | 'descriptionEn'
+  | 'trialRef'
+  | 'nctNumber'
+  | 'acronymOrProtocolId'
+  | 'shortTitleEn'
+  | 'officialTitleEn'
+  | 'descriptionEn'
 >;
 
 export interface TrialTranslation {
-  nctNumber: string;
+  trialRef: string;
   language: LanguageCode;
   source: TranslationSource;
   shortTitle: string | null;
@@ -59,7 +66,7 @@ export interface ChatResult {
 
 export interface AgentResponse {
   message: string;
-  usedNctNumbers: string[];
+  usedTrialRefs: string[];
   followUpQuestions: string[];
 }
 
@@ -78,7 +85,7 @@ export interface ChatMessage {
   role: ChatRole;
   content: string;
   trials?: Trial[];
-  contextNctNumbers?: string[];
+  contextTrialRefs?: string[];
   followUpQuestions?: string[];
   observationId?: string;
   error?: ChatError;

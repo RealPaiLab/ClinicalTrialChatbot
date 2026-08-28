@@ -7,14 +7,14 @@ import type { TrialTranslation } from '@/types/trial';
 const API_BASE = config.apiBaseUrl;
 
 async function getTrialTranslation(
-  nctNumber: string,
+  trialRef: string,
   language: LanguageCode,
   cachedOnly: boolean,
   signal?: AbortSignal
 ): Promise<TrialTranslation> {
   const query = new URLSearchParams({ language });
   if (cachedOnly) query.set('cached_only', 'true');
-  const response = await fetch(`${API_BASE}/trials/${nctNumber}/translation?${query}`, {
+  const response = await fetch(`${API_BASE}/trials/${trialRef}/translation?${query}`, {
     signal,
   });
   if (!response.ok) {
@@ -27,15 +27,15 @@ async function getTrialTranslation(
 }
 
 export function trialTranslationQuery(
-  nctNumber: string | null,
+  trialRef: string | null,
   language: LanguageCode | null,
   { cachedOnly = false }: { cachedOnly?: boolean } = {}
 ) {
   return queryOptions({
-    queryKey: ['trial-translation', nctNumber, language, cachedOnly],
+    queryKey: ['trial-translation', trialRef, language, cachedOnly],
     queryFn: ({ signal }) =>
-      getTrialTranslation(nctNumber as string, language as LanguageCode, cachedOnly, signal),
-    enabled: Boolean(nctNumber && language),
+      getTrialTranslation(trialRef as string, language as LanguageCode, cachedOnly, signal),
+    enabled: Boolean(trialRef && language),
     staleTime: Infinity,
   });
 }

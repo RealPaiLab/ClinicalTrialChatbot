@@ -4,23 +4,23 @@ import TrialCitation from '@/components/chat/TrialCitation/TrialCitation';
 import type { TrialSummary } from '@/types/trial';
 
 interface MessageContextTrialsProps {
-  nctNumbers: string[];
-  fetchTrial: (nctNumber: string, signal?: AbortSignal) => Promise<TrialSummary>;
-  onSelect?: (nctNumber: string) => void;
+  trialRefs: string[];
+  fetchTrial: (trialRef: string, signal?: AbortSignal) => Promise<TrialSummary>;
+  onSelect?: (trialRef: string) => void;
 }
 
-function MessageContextTrials({ nctNumbers, fetchTrial, onSelect }: MessageContextTrialsProps) {
-  if (nctNumbers.length === 0) {
+function MessageContextTrials({ trialRefs, fetchTrial, onSelect }: MessageContextTrialsProps) {
+  if (trialRefs.length === 0) {
     return null;
   }
 
   return (
     <MessageAttachments className="items-center gap-1">
       <Sparkles className="text-primary size-3 shrink-0" />
-      {nctNumbers.map((nctNumber) => (
+      {trialRefs.map((trialRef) => (
         <TrialCitation
-          key={nctNumber}
-          nctNumber={nctNumber}
+          key={trialRef}
+          trialRef={trialRef}
           fetchTrial={fetchTrial}
           onSelect={onSelect}
           compact

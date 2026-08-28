@@ -3,7 +3,13 @@ import { STATUS_COLOR, styles } from '@/components/export/pdf/theme';
 import { PRINT_DOC } from '@/constants/bookmarks';
 import { TRIAL_DATA } from '@/constants/chat';
 import { parseTextBlocks } from '@/lib/textBlocks';
-import { formatPhases, primarySite, trialStatuses, uniqueCancerTypes } from '@/lib/trial';
+import {
+  formatPhases,
+  primarySite,
+  publicTrialId,
+  trialStatuses,
+  uniqueCancerTypes,
+} from '@/lib/trial';
 import { normalizeStatus, TRIAL_STATUS } from '@/lib/trialStatus';
 import type { Trial } from '@/types/trial';
 
@@ -81,7 +87,7 @@ function RichText({ text }: { text: string | null }) {
 }
 
 function TrialPages({ trial, generatedOn }: { trial: Trial; generatedOn: string }) {
-  const title = trial.officialTitleEn ?? trial.shortTitleEn ?? trial.nctNumber ?? 'Trial';
+  const title = trial.officialTitleEn ?? trial.shortTitleEn ?? publicTrialId(trial) ?? 'Trial';
   const site = primarySite(trial);
   const place = [site?.city, site?.province].filter(Boolean).join(', ');
   const cancerTypes = uniqueCancerTypes(trial).join(', ');
@@ -113,7 +119,7 @@ function TrialPages({ trial, generatedOn }: { trial: Trial; generatedOn: string 
       </View>
 
       <View>
-        {trial.nctNumber && <Text style={styles.nct}>{trial.nctNumber}</Text>}
+        {publicTrialId(trial) && <Text style={styles.nct}>{publicTrialId(trial)}</Text>}
         <Text style={styles.title}>{title}</Text>
       </View>
 
@@ -188,7 +194,7 @@ function TrialPdfDocument({ trials }: { trials: Trial[] }) {
     <Document title={PRINT_DOC.brand} author={PRINT_DOC.brand}>
       {trials.map((trial, index) => (
         <TrialPages
-          key={trial.nctNumber ?? trial.acronymOrProtocolId ?? index}
+          key={trial.trialRef ?? trial.acronymOrProtocolId ?? index}
           trial={trial}
           generatedOn={generatedOn}
         />

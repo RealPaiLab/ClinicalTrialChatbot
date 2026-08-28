@@ -15,10 +15,10 @@ interface UseTrialTranslation {
 export function useTrialTranslation(trial: Trial | null): UseTrialTranslation {
   const { language } = useAppLanguage();
   const isTourRunning = useAppStore((state) => state.tourMessages.length > 0);
-  const nctNumber = trial?.nctNumber ?? null;
+  const trialRef = trial?.trialRef ?? null;
   const target = language === LanguageCode.En || isTourRunning ? null : language;
 
-  const { data, isFetching } = useQuery(trialTranslationQuery(nctNumber, target));
+  const { data, isFetching } = useQuery(trialTranslationQuery(trialRef, target));
   const isPending = Boolean(target) && isFetching;
   const usable = usableTranslation(data, target);
 
