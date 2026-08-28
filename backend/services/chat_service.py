@@ -9,6 +9,7 @@ from agents.clinical_trials.agent import get_clinical_trials_agent
 from agents.clinical_trials.dependencies import AgentDeps, TrialSearch
 from agents.clinical_trials.guards import (
     conversation_nct_numbers,
+    conversation_trial_refs,
     prefetch_referenced_trials,
     refusal_directive,
 )
@@ -69,9 +70,9 @@ class ChatService:
 
     def _to_chat_result(self, output: AgentResponse, deps: AgentDeps) -> ChatResult:
         trials = [
-            deps.fetched_trials[nct]
-            for nct in output.used_nct_numbers
-            if nct in deps.fetched_trials
+            deps.fetched_trials[ref]
+            for ref in output.used_trial_refs
+            if ref in deps.fetched_trials
         ]
         return ChatResult(
             message=output.message,
@@ -80,16 +81,16 @@ class ChatService:
         )
 
     def _report_hallucination(
-        self, span: LangfuseSpan, session_id: str, nct_numbers: list[str]
+        self, span: LangfuseSpan, session_id: str, identifiers: list[str]
     ) -> None:
-        """Flag a turn whose reply invented an NCT number, in logs and on the trace."""
+        """Flag a turn whose reply invented a trial, in logs and on the trace."""
         logger.warning(
-            "Hallucinated NCT numbers (session=%s): %s", session_id, nct_numbers
+            "Hallucinated trial identifiers (session=%s): %s", session_id, identifiers
         )
         span.update(
             level="WARNING",
-            status_message=f"hallucinated NCT: {', '.join(nct_numbers)}",
-            metadata={"hallucinated_ncts": nct_numbers},
+            status_message=f"hallucinated trial: {', '.join(identifiers)}",
+            metadata={"hallucinated_trials": identifiers},
         )
 
     async def stream_chat(
@@ -113,6 +114,7 @@ class ChatService:
                 if self._vocabulary is not None:
                     await self._vocabulary.refresh()
                 history = await self._conversation_service.get_history(session_id)
+                deps.known_refs = conversation_trial_refs(history)
                 deps.known_ncts = conversation_nct_numbers(history)
                 deps.memory = await self._conversation_service.get_memory(session_id)
                 deps.turn_index = turn_count(history) + 1
@@ -142,8 +144,8 @@ class ChatService:
                 chat_result.observation_id = observation_id
                 if self._capture_content:
                     span.update(output=chat_result.message)
-                if deps.hallucinated_ncts:
-                    self._report_hallucination(span, session_id, deps.hallucinated_ncts)
+                if deps.hallucinated_refs:
+                    self._report_hallucination(span, session_id, deps.hallucinated_refs)
                 yield chat_result
             except Exception as exc:
                 logger.exception(

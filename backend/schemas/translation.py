@@ -20,7 +20,7 @@ class TranslationSource(StrEnum):
 class TrialTranslation(BaseModel):
     """A trial's free-text fields rendered in one language."""
 
-    nct_number: str
+    trial_ref: str
     language: Language
     source: TranslationSource
     short_title: str | None = None

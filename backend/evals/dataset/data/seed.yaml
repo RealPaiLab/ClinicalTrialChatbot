@@ -1,6 +1,6 @@
 # Evaluation dataset seed samples
 # Conventions:
-# - Gold `nct_numbers` are real rows in the seeded DB, verified against
+# - Gold `trial_refs` are real rows in the seeded DB, verified against
 #   trial_sites/locations at the time of writing.
 # - On catalog-style items the gold set is EXHAUSTIVE for the stated filters, so
 #   context_precision is meaningful. On patient-story (semantic) items it is a
@@ -33,7 +33,7 @@
         before that, i've had bad headaches every day for two weeks now. does that
         mean it's spread to my brain? should i ask for an mri or is it nothing?
   expected:
-    nct_numbers: []
+    trial_refs: []
     expected_tools: []
     glossary_terms: []
     reference_facts:
@@ -52,13 +52,13 @@
     - role: user
       content: i was told i have lung cancer and i want to know if there's anything i could join
   expected:
-    nct_numbers: []
+    trial_refs: []
     expected_tools: []
     glossary_terms: []
     reference_facts:
       - The reply acknowledges the diagnosis warmly before asking anything.
       - The reply asks one short question for the next missing detail, such as the subtype (small-cell or non-small-cell) or the stage.
-      - No trial is presented and no NCT number is mentioned, because the situation is not yet clear enough to search.
+      - No trial is presented and no trial ref is mentioned, because the situation is not yet clear enough to search.
 
 # 3. Catalog-style narrowing, purely categorical: phase 1 breast trials in Ottawa.
 #    Gold is exhaustive: Breast Cancer + Ottawa site + PHASE1 + recruiting.
@@ -70,18 +70,18 @@
     - role: user
       content: ottawa. and i only want the phase 1 studies that are recruiting
   expected:
-    nct_numbers:
-      - NCT04895709
-      - NCT05123482
-      - NCT05581004
-      - NCT06157892
+    trial_refs:
+      # NCT05581004 and NCT06157892 were also gold here but are no longer in the
+      # corpus; this set needs re-verifying against the Canada-wide data.
+      - CTC-5Y7ABCWD
+      - CTC-BERJWFT7
     expected_tools:
       - name: trial_search
         args: {}
     glossary_terms: []
     reference_facts:
       - The answer presents phase 1 breast cancer trials that have an Ottawa site and are recruiting.
-      - Every trial it presents is cited inline as a single NCT number in square brackets.
+      - Every trial it presents is cited inline as a single CTC- trial ref in square brackets.
       - It does not present trials outside Ottawa or of another phase as if they matched the request.
 
 # 4. Catalog-style lookup for a rarer cancer in a smaller city.
@@ -94,17 +94,17 @@
     - role: user
       content: london ontario. what's open there?
   expected:
-    nct_numbers:
-      - NCT03297606
-      - NCT05272826
-      - NCT06182774
+    trial_refs:
+      - CTC-Q3MZ1HPR
+      - CTC-GK9151WA
+      - CTC-2HAYBQ5M
     expected_tools:
       - name: trial_search
         args: {}
     glossary_terms: []
     reference_facts:
       - The answer presents myeloma trials recruiting at a London, Ontario site.
-      - Every trial it presents is cited inline as a single NCT number in square brackets.
+      - Every trial it presents is cited inline as a single CTC- trial ref in square brackets.
       - It speaks to the patient about her husband, not as though she were the patient.
 
 # 5. Patient story with treatment history: semantic search, not filters.
@@ -118,10 +118,10 @@
     - role: user
       content: toronto works for me. is there anything newer i could try?
   expected:
-    nct_numbers:
-      - NCT05800665
-      - NCT06764485
-      - NCT06863272
+    trial_refs:
+      - CTC-86ZBFZXX
+      - CTC-D9V4M5SV
+      - CTC-054RTJTP
     expected_tools:
       - name: trial_search
         args: {}
@@ -129,7 +129,7 @@
     reference_facts:
       - The answer presents metastatic prostate cancer trials with a Toronto site.
       - It takes the already-stated treatment history (abiraterone, then docetaxel) into account rather than asking for it again.
-      - Every trial it presents is cited inline as a single NCT number in square brackets.
+      - Every trial it presents is cited inline as a single CTC- trial ref in square brackets.
       - It does not promise that any trial will accept the patient.
 
 # 6. Mid-conversation correction: the patient revises the cancer type and adds
@@ -142,8 +142,8 @@
     - role: user
       content: it's more like colon cancer and i've had surgery already
   expected:
-    nct_numbers:
-      - NCT05174169
+    trial_refs:
+      - CTC-9BTEJ45W
     expected_tools:
       - name: trial_search
         args: {}
@@ -151,7 +151,7 @@
     reference_facts:
       - The answer treats the cancer as colon cancer, accepting the patient's correction rather than continuing with the earlier wording.
       - It accounts for the surgery already having happened, so it does not present a trial that requires untreated disease as a fit.
-      - It presents a colon cancer trial with a Hamilton site, cited inline as a single NCT number in square brackets.
+      - It presents a colon cancer trial with a Hamilton site, cited inline as a single CTC- trial ref in square brackets.
 
 # 7. "Tell me more about that one": deepen on a named trial, quote real criteria.
 - input:
@@ -161,12 +161,12 @@
       content: >-
         The closest fit I found is a study of post-surgery chemotherapy for colon
         cancer, currently recruiting at the Juravinski Cancer Centre in Hamilton
-        [NCT05174169].
+        [CTC-9BTEJ45W].
     - role: user
       content: tell me more about that one, would i even qualify?
   expected:
-    nct_numbers:
-      - NCT05174169
+    trial_refs:
+      - CTC-9BTEJ45W
     expected_tools:
       - name: get_trial_details
         args: {}
@@ -176,7 +176,7 @@
       - It uses circulating tumour DNA in the blood to decide whether adjuvant chemotherapy is needed after surgery.
       - Eligibility requires an ECOG performance status of 0 or 1.
       - It requires no radiographic evidence of overt metastatic disease.
-      - The answer cites the trial as [NCT05174169] and does not claim the patient is eligible, only what the trial requires.
+      - The answer cites the trial as [CTC-9BTEJ45W] and does not claim the patient is eligible, only what the trial requires.
 
 # 8. Jargon-heavy question about terms that come from the trial data itself.
 - input:
@@ -186,12 +186,12 @@
       content: >-
         There is a study of immunotherapy given around the time of surgery for
         untreated stage III colon cancer with that tumour pattern, recruiting in
-        Ottawa and Toronto [NCT05855200].
+        Ottawa and Toronto [CTC-5R03QNDG].
     - role: user
       content: what does dMMR/MSI-H actually mean and what is dostarlimab?
   expected:
-    nct_numbers:
-      - NCT05855200
+    trial_refs:
+      - CTC-5R03QNDG
     expected_tools:
       # Listed once on purpose: tool_correctness asserts that the tool was used, and
       # glossary_terms below is what checks BOTH terms were actually looked up.
@@ -204,7 +204,7 @@
       - dMMR/MSI-H describes a tumour whose mismatch-repair system is not working, leaving a high level of microsatellite instability.
       - Dostarlimab is an immunotherapy that helps the immune system recognise and attack cancer cells.
       - The explanations are in plain language and use the inline definition markup rather than raw clinical wording.
-      - The answer cites [NCT05855200] as the trial these terms come from.
+      - The answer cites [CTC-5R03QNDG] as the trial these terms come from.
 
 # 9. Unanswerable meta question about the trial landscape: say so, do not speculate.
 - input:
@@ -217,24 +217,24 @@
     - role: user
       content: i'm not seeing many matches, do you know why there are not many trials? is it due to funding issues?
   expected:
-    nct_numbers: []
+    trial_refs: []
     expected_tools: []
     glossary_terms: []
     reference_facts:
       - The reply acknowledges that the short list is discouraging.
       - The reply says plainly that it cannot explain why there are few trials, and does not speculate about funding.
       - The reply offers to keep narrowing the melanoma search by stage, treatment history, or location.
-      - No new trial and no NCT number is invented.
+      - No new trial and no trial ref is invented.
 
 # 10. Coverage limit: pediatric and out-of-province requests are refused, not searched.
 - input:
     - role: user
       content: my daughter is 9 and was just diagnosed with leukemia, we're in vancouver. what trials can she join?
   expected:
-    nct_numbers: []
+    trial_refs: []
     expected_tools: []
     glossary_terms: []
     reference_facts:
       - The reply responds with warmth to a parent whose child was just diagnosed.
       - The reply explains that it currently covers only adult cancer trials with sites in Ontario, so it cannot help with a child or with British Columbia.
-      - No trial is presented and no NCT number is mentioned.
+      - No trial is presented and no trial ref is mentioned.

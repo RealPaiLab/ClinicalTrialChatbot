@@ -5,6 +5,7 @@ from datetime import datetime
 
 from pydantic import Field, computed_field
 
+from schemas.trial_ref import derived_ref
 from scripts.ctc.canonical.base import CanonicalBase
 from scripts.ctc.canonical.fields import (
     Blankable,
@@ -54,3 +55,10 @@ class CanonicalTrial(CanonicalBase):
         """NCT alone collides (one study, several protocol records) and is missing on
         some trials; the acronym is always there. Together they are unique."""
         return derived_id(self.nct_number, self.acronym_or_protocol_id)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def trial_ref(self) -> str:
+        """The citable spelling of `id`, and the identity everything downstream
+        keys on."""
+        return derived_ref(self.id)

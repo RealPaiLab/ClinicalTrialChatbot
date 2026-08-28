@@ -84,8 +84,8 @@ async def run_turns(
     return AgentEvalOutput(
         answer=output.message,
         contexts=[_render_trial(c) for c in deps.fetched_trials.values()],
-        retrieved_ncts=list(deps.fetched_trials),
-        used_ncts=output.used_nct_numbers,
+        retrieved_refs=list(deps.fetched_trials),
+        used_refs=output.used_trial_refs,
         tool_calls=_tool_calls(result.all_messages()),
     )
 

@@ -155,8 +155,8 @@ class SemanticSearchInput(ToolInput):
 
 
 class GetTrialDetailsInput(ToolInput):
-    nct_numbers: list[str] = Field(
-        description='NCT numbers to fetch full details for, e.g. ["NCT01234567"].'
+    trial_refs: list[str] = Field(
+        description='Trial refs to fetch full details for, e.g. ["CTC-7K2M4QX9"].'
     )
     all_sites: bool = Field(
         default=False,
@@ -188,9 +188,12 @@ class DefineTermInput(ToolInput):
 class TrialSearchHit(BaseModel):
     """Compact trial summary for the model; full details stay on deps."""
 
+    trial_ref: str
     nct_number: str | None = None
     title: str | None = None
     cancer_types: list[str] = Field(default_factory=list)
+    treatment_types: list[str] = Field(default_factory=list)
+    disease_stages: list[str] = Field(default_factory=list)
     phases: list[str] = Field(default_factory=list)
     cities: list[str] = Field(default_factory=list)
     provinces: list[str] = Field(default_factory=list)

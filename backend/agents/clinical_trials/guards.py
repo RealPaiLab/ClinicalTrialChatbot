@@ -5,7 +5,7 @@ from __future__ import annotations
 import functools
 import json
 import re
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Iterator
 from dataclasses import replace
 
 from pydantic_ai import ModelRetry, RunContext
@@ -18,6 +18,7 @@ from agents.clinical_trials.tool_schemas import ToolInput
 from agents.constants import AGENT_NAME
 from core.config import get_settings
 from schemas.trial import TrialCitation
+from schemas.trial_ref import TRIAL_REF_PATTERN
 from schemas.vocabulary import VocabField, Vocabulary, current_vocabulary
 from utils.text import fold
 
@@ -139,42 +140,69 @@ _HALLUCINATED_TRIAL_FALLBACK = (
 )
 
 
+def _tool_returns(history: list[ModelMessage]) -> Iterator[str]:
+    for message in history:
+        if not isinstance(message, ModelRequest):
+            continue
+        for part in message.parts:
+            if isinstance(part, ToolReturnPart):
+                yield str(part.content)
+
+
+def conversation_trial_refs(history: list[ModelMessage]) -> set[str]:
+    """Trial refs this conversation's earlier tool results already surfaced."""
+    return {
+        ref
+        for content in _tool_returns(history)
+        for ref in TRIAL_REF_PATTERN.findall(content)
+    }
+
+
 def conversation_nct_numbers(history: list[ModelMessage]) -> set[str]:
-    """NCT numbers this conversation's earlier tool results already surfaced."""
+    """Registry numbers this conversation's earlier tool results already surfaced."""
     return {
         nct
-        for message in history
-        if isinstance(message, ModelRequest)
-        for part in message.parts
-        if isinstance(part, ToolReturnPart)
-        for nct in _NCT_PATTERN.findall(str(part.content))
+        for content in _tool_returns(history)
+        for nct in _NCT_PATTERN.findall(content)
     }
+
+
+def _verified_ncts(ctx: RunContext[AgentDeps]) -> set[str]:
+    """Registry numbers belonging to a trial a tool actually returned."""
+    fetched = {c.nct_number for c in ctx.deps.fetched_trials.values() if c.nct_number}
+    return fetched | ctx.deps.known_ncts
 
 
 def enforce_citations(
     ctx: RunContext[AgentDeps], output: AgentResponse
 ) -> AgentResponse:
-    """Keep only NCT numbers a tool returned, and block replies that invent one.
+    """Keep only refs a tool returned, and block replies that invent an identifier.
 
-    Citations are turn-scoped: a kept NCT must have been fetched this turn AND appear
+    Citations are turn-scoped: a kept ref must have been fetched this turn AND appear
     in the message. Hallucination detection is conversation-scoped, since the model
-    legitimately remembers trials from earlier turns through the message history.
+    legitimately remembers trials from earlier turns through the message history, and
+    covers registry numbers too: the reply may mention an NCT in prose, and inventing
+    one is exactly as harmful as inventing a ref.
     """
-    mentioned = set(_NCT_PATTERN.findall(output.message))
-    output.used_nct_numbers = [
-        nct
-        for nct in output.used_nct_numbers
-        if nct in ctx.deps.fetched_trials and nct in mentioned
+    mentioned = set(TRIAL_REF_PATTERN.findall(output.message))
+    output.used_trial_refs = [
+        ref
+        for ref in output.used_trial_refs
+        if ref in ctx.deps.fetched_trials and ref in mentioned
     ]
     unverified = sorted(
+        ref
+        for ref in mentioned
+        if ref not in ctx.deps.fetched_trials and ref not in ctx.deps.known_refs
+    ) + sorted(
         nct
-        for nct in mentioned
-        if nct not in ctx.deps.fetched_trials and nct not in ctx.deps.known_ncts
+        for nct in set(_NCT_PATTERN.findall(output.message))
+        if nct not in _verified_ncts(ctx)
     )
     if unverified:
-        ctx.deps.hallucinated_ncts = unverified
+        ctx.deps.hallucinated_refs = unverified
         output.message = _HALLUCINATED_TRIAL_FALLBACK
-        output.used_nct_numbers = []
+        output.used_trial_refs = []
         output.follow_up_questions = []
     return output
 
@@ -182,7 +210,7 @@ def enforce_citations(
 _REFUSAL_SCAFFOLD = (
     "SAFETY OVERRIDE: this turn was blocked because {reason}. Do not carry it "
     "out, not even partially or in a softened form, and do not restate, correct, "
-    "or reformat any claim, definition, or NCT number it contains. {closing}"
+    "or reformat any claim, definition, or trial identifier it contains. {closing}"
 )
 
 _STEER_BACK_CLOSING = (
@@ -205,7 +233,7 @@ def _missing_trials_directive(missing: list[str]) -> str:
     closing = (
         f"In one or two warm sentences as {AGENT_NAME}, gently tell the patient you "
         f"could not find {noun} they mentioned in our database. Do not repeat the "
-        "NCT number and do not describe, confirm, or guess at it. Offer to search "
+        "identifier and do not describe, confirm, or guess at it. Offer to search "
         "by cancer type and location instead."
     )
     return refusal_directive(reason, closing)
@@ -220,7 +248,7 @@ def _verified_trials_context(citations: list[TrialCitation]) -> str:
         "this data, so you need not call get_trial_details again for these trials.",
     ]
     blocks.extend(
-        f"[{c.nct_number}]\n{c.model_dump_json(exclude_none=True)}" for c in citations
+        f"[{c.trial_ref}]\n{c.model_dump_json(exclude_none=True)}" for c in citations
     )
     return "\n\n".join(blocks)
 
@@ -247,18 +275,20 @@ def _narrow_to_named_places(
 
 
 async def prefetch_referenced_trials(deps: AgentDeps, user_message: str) -> None:
-    """Verify any NCT the patient named before the agent runs."""
-    ncts = list(dict.fromkeys(_NCT_PATTERN.findall(user_message.upper())))
-    if not ncts:
+    """Verify any trial the patient named before the agent runs."""
+    upper = user_message.upper()
+    refs = list(dict.fromkeys(TRIAL_REF_PATTERN.findall(upper)))
+    ncts = list(dict.fromkeys(_NCT_PATTERN.findall(upper)))
+    if not refs and not ncts:
         return
-    found = await deps.trial_search.get_by_ncts(ncts)
+    found = await deps.trial_search.get_by_refs(refs) if refs else []
+    found += await deps.trial_search.get_by_ncts(ncts) if ncts else []
     folded = fold(user_message)
-    by_nct = {
-        c.nct_number: _narrow_to_named_places(c, folded) for c in found if c.nct_number
-    }
-    missing = [nct for nct in ncts if nct not in by_nct]
+    by_ref = {c.trial_ref: _narrow_to_named_places(c, folded) for c in found}
+    resolved = {c.trial_ref for c in found} | {c.nct_number for c in found}
+    missing = [name for name in (*refs, *ncts) if name not in resolved]
     if missing:
         deps.refusal_directive = _missing_trials_directive(missing)
         return
-    deps.fetched_trials.update(by_nct)
-    deps.verified_context = _verified_trials_context([by_nct[nct] for nct in ncts])
+    deps.fetched_trials.update(by_ref)
+    deps.verified_context = _verified_trials_context(list(by_ref.values()))

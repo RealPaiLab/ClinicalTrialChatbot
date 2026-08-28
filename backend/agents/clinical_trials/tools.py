@@ -31,15 +31,17 @@ def _record(
 ) -> list[TrialSearchHit]:
     hits: list[TrialSearchHit] = []
     for c in citations:
-        if c.nct_number:
-            ctx.deps.fetched_trials[c.nct_number] = c
+        ctx.deps.fetched_trials[c.trial_ref] = c
         hits.append(
             TrialSearchHit(
+                trial_ref=c.trial_ref,
                 nct_number=c.nct_number,
                 title=c.short_title_en or c.official_title_en,
                 cancer_types=sorted(
                     {ct for s in c.sites for ct in s.cancer_type_names}
                 ),
+                treatment_types=c.treatment_type_names,
+                disease_stages=c.disease_stages,
                 phases=c.phases,
                 cities=sorted({s.city for s in c.sites if s.city}),
                 provinces=sorted({s.province for s in c.sites if s.province}),
@@ -108,7 +110,7 @@ def _keep_narrowed_sites(
     ctx: RunContext[AgentDeps], citation: TrialCitation
 ) -> TrialCitation:
     """Re-apply the site list a search already narrowed for this trial."""
-    known = ctx.deps.fetched_trials.get(citation.nct_number or "")
+    known = ctx.deps.fetched_trials.get(citation.trial_ref)
     if known is None or not known.sites:
         return citation
     return citation.model_copy(update={"sites": known.sites})
@@ -119,19 +121,18 @@ def _keep_narrowed_sites(
 async def get_trial_details(
     ctx: RunContext[AgentDeps], args: GetTrialDetailsInput
 ) -> list[TrialCitation]:
-    """Fetch full details for one or more trials by NCT number.
+    """Fetch full details for one or more trials by ref.
 
-    Use when the patient wants to go deeper on specific trials; pass every NCT
-    number you need in one call. Returns only the trials that were found. Keeps
+    Use when the patient wants to go deeper on specific trials; pass every ref
+    you need in one call. Returns only the trials that were found. Keeps
     whatever locations the search was narrowed to; set `all_sites` only when the
     patient asks where else a trial runs.
     """
-    citations = await ctx.deps.trial_search.get_by_ncts(args.nct_numbers)
+    citations = await ctx.deps.trial_search.get_by_refs(args.trial_refs)
     if not args.all_sites:
         citations = [_keep_narrowed_sites(ctx, c) for c in citations]
     for citation in citations:
-        if citation.nct_number:
-            ctx.deps.fetched_trials[citation.nct_number] = citation
+        ctx.deps.fetched_trials[citation.trial_ref] = citation
     return citations
 
 

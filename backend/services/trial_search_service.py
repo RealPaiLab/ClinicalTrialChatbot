@@ -86,6 +86,7 @@ def _to_citation(
         and _site_in_province(s, restrict_province)
     ]
     return TrialCitation(
+        trial_ref=trial.trial_ref,
         nct_number=trial.nct_number,
         acronym_or_protocol_id=trial.acronym_or_protocol_id,
         short_title_en=trial.short_title_en,
@@ -190,11 +191,20 @@ class TrialSearchService:
             )
             return self._filtered_citations(trials, flt)
 
+    async def get_by_refs(self, trial_refs: list[str]) -> list[TrialCitation]:
+        """Fetch full details for trials by ref."""
+        async with self._session_factory() as session:
+            trials = await self._repository(session).get_by_refs(trial_refs)
+            return self._details(trials)
+
     async def get_by_ncts(self, nct_numbers: list[str]) -> list[TrialCitation]:
-        """Fetch full details for trials by NCT number."""
+        """Fetch full details for the trials carrying these registry numbers."""
         async with self._session_factory() as session:
             trials = await self._repository(session).get_by_ncts(nct_numbers)
-            return [
-                _to_citation(t, [], [], restrict_province=self._restrict_province)
-                for t in trials
-            ]
+            return self._details(trials)
+
+    def _details(self, trials: list[Trial]) -> list[TrialCitation]:
+        return [
+            _to_citation(t, [], [], restrict_province=self._restrict_province)
+            for t in trials
+        ]

@@ -15,6 +15,7 @@ class RowBase(BaseModel):
 
 class TrialRow(RowBase):
     id: uuid.UUID
+    trial_ref: str
     nct_number: str | None
     acronym_or_protocol_id: str | None
     short_title_en: str | None

@@ -191,6 +191,15 @@ class TrialRepository:
         )
         return await self._run(stmt)
 
+    async def get_by_refs(self, trial_refs: list[str]) -> list[Trial]:
+        """Fetch trials by their refs."""
+        if not trial_refs:
+            return []
+        conditions: list[ColumnElement[bool]] = [Trial.trial_ref.in_(trial_refs)]
+        if self._restrict_to_province:
+            conditions.append(_province_restriction(self._restrict_to_province))
+        return await self._run(self._base_select().where(*conditions))
+
     async def get_by_ncts(self, nct_numbers: list[str]) -> list[Trial]:
         """Fetch trials by their NCT numbers."""
         if not nct_numbers:

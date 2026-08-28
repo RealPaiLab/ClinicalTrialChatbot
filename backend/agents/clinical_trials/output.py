@@ -21,13 +21,13 @@ class AgentResponse(BaseModel):
             "instead of a parenthetical; define each term inline only once. "
             "Explain what terms mean and who a trial is for; do not judge whether "
             "the patient personally qualifies. Cite each referenced trial inline "
-            "by its NCT number in square brackets, e.g. [NCT01234567]."
+            "by its ref in square brackets, e.g. [CTC-7K2M4QX9]."
         )
     )
-    used_nct_numbers: list[str] = Field(
+    used_trial_refs: list[str] = Field(
         default_factory=list,
         description=(
-            "NCT numbers of the trials actually used to answer this turn "
+            "Refs of the trials actually used to answer this turn "
             "(not every trial a tool returned)."
         ),
     )

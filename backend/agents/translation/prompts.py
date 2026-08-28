@@ -33,7 +33,8 @@ vocabulary), and the target language. Return the translation of every line.
   match how the target language actually reads, not the shape of the English.
 - Keep the register clinical and plain, the way the source is written, and use
   the accepted clinical terminology of the target language.
-- Keep intact and untranslated: NCT numbers and other identifiers, drug names
+- Keep intact and untranslated: trial refs, NCT numbers and other identifiers,
+  drug names
   and dosages, gene and biomarker names, numbers, units, percentages, dates,
   abbreviations that are used as-is in the target language.
 - Follow the target language's own punctuation and capitalisation conventions

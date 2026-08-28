@@ -26,9 +26,9 @@ _TEXT_FIELDS = (
 
 
 class TrialLookup(Protocol):
-    """Reads trials by NCT number (the trial-search service satisfies this)."""
+    """Reads trials by ref (the trial-search service satisfies this)."""
 
-    async def get_by_ncts(self, nct_numbers: list[str]) -> list[TrialCitation]: ...
+    async def get_by_refs(self, trial_refs: list[str]) -> list[TrialCitation]: ...
 
 
 def _clean(value: str | None) -> str | None:
@@ -71,8 +71,8 @@ class TranslationService:
         self._provider_factory = provider_factory
         self._cache = cache
 
-    async def _get_trial(self, nct_number: str) -> TrialCitation | None:
-        found = await self._trials.get_by_ncts([nct_number])
+    async def _get_trial(self, trial_ref: str) -> TrialCitation | None:
+        found = await self._trials.get_by_refs([trial_ref])
         return found[0] if found else None
 
     async def _translate(
@@ -97,10 +97,10 @@ class TranslationService:
         return {**cached, **fresh}
 
     async def translate_trial(
-        self, nct_number: str, target: Language, *, cached_only: bool = False
+        self, trial_ref: str, target: Language, *, cached_only: bool = False
     ) -> TrialTranslation | None:
         """Return the trial rendered in ``target``, or None if the trial is unknown."""
-        trial = await self._get_trial(nct_number)
+        trial = await self._get_trial(trial_ref)
         if trial is None:
             return None
 
@@ -109,7 +109,7 @@ class TranslationService:
 
         if target is Language.EN:
             return TrialTranslation(
-                nct_number=nct_number,
+                trial_ref=trial_ref,
                 language=target,
                 source=TranslationSource.OFFICIAL,
                 cancer_type_names={name: name for name in cancer_types},
@@ -128,10 +128,10 @@ class TranslationService:
             narrative = await self._translate(lines, target, cached_only=cached_only)
         except Exception as exc:
             logger.warning(
-                "Translation provider failed for %s -> %s: %s", nct_number, target, exc
+                "Translation provider failed for %s -> %s: %s", trial_ref, target, exc
             )
             return TrialTranslation(
-                nct_number=nct_number,
+                trial_ref=trial_ref,
                 language=target,
                 source=TranslationSource.UNAVAILABLE,
                 cancer_type_names={name: name for name in cancer_types},
@@ -157,7 +157,7 @@ class TranslationService:
         resolved = {name: machine.get(name) or text for name, text in english.items()}
 
         return TrialTranslation(
-            nct_number=nct_number,
+            trial_ref=trial_ref,
             language=target,
             source=(
                 TranslationSource.UNAVAILABLE

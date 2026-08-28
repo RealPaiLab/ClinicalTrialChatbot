@@ -12,9 +12,9 @@ from services.translation_service import TranslationService
 router = APIRouter(prefix="/trials", tags=["translation"])
 
 
-@router.get("/{nct_number}/translation")
+@router.get("/{trial_ref}/translation")
 async def get_trial_translation(
-    nct_number: str,
+    trial_ref: str,
     language: Annotated[Language, Query()],
     translation: Annotated[TranslationService, Depends(get_translation_service)],
     cached_only: Annotated[
@@ -23,8 +23,8 @@ async def get_trial_translation(
     ] = False,
 ) -> TrialTranslation:
     result = await translation.translate_trial(
-        nct_number, language, cached_only=cached_only
+        trial_ref, language, cached_only=cached_only
     )
     if result is None:
-        raise HTTPException(status_code=404, detail=f"Trial {nct_number} not found")
+        raise HTTPException(status_code=404, detail=f"Trial {trial_ref} not found")
     return result

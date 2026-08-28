@@ -19,8 +19,9 @@ class TrialSiteInfo(BaseModel):
 
 
 class TrialCitation(BaseModel):
-    """A trial in a shape safe to cite and render, keyed by NCT number."""
+    """A trial in a shape safe to cite and render, keyed by its ref."""
 
+    trial_ref: str
     nct_number: str | None = None
     acronym_or_protocol_id: str | None = None
     short_title_en: str | None = None
