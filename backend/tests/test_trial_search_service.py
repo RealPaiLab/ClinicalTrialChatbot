@@ -135,7 +135,7 @@ async def test_syntactic_search_drops_trials_with_no_matching_site() -> None:
     result = await service.syntactic_search(
         TrialFilter(locations=["quebec"], cancer_types=["breast"])
     )
-    assert [c.trial_ref for c in result] == ["CTC-0000MTCH"]
+    assert [c.trial_ref for c in result.trials] == ["CTC-0000MTCH"]
 
 
 async def test_syntactic_search_with_query_keeps_unfiltered_sites() -> None:
@@ -144,8 +144,8 @@ async def test_syntactic_search_with_query_keeps_unfiltered_sites() -> None:
     )
     service = TrialSearchService(cast(Any, FakeSessionFactory([trial])))
     result = await service.syntactic_search(TrialFilter(), query="lung")
-    assert len(result) == 1
-    assert len(result[0].sites) == 1
+    assert len(result.trials) == 1
+    assert len(result.trials[0].sites) == 1
 
 
 async def test_semantic_search_embeds_query_and_maps_citations() -> None:
@@ -156,7 +156,7 @@ async def test_semantic_search_embeds_query_and_maps_citations() -> None:
     )
     result = await service.semantic_search(TrialFilter(), query="metastatic lung")
     assert embedder.queries == ["metastatic lung"]
-    assert [c.trial_ref for c in result] == ["CTC-00000001"]
+    assert [c.trial_ref for c in result.trials] == ["CTC-00000001"]
 
 
 async def test_semantic_search_drops_trials_with_no_matching_site() -> None:
@@ -174,7 +174,7 @@ async def test_semantic_search_drops_trials_with_no_matching_site() -> None:
     result = await service.semantic_search(
         TrialFilter(locations=["quebec"], cancer_types=["breast"]), query="breast"
     )
-    assert [c.trial_ref for c in result] == ["CTC-0000MTCH"]
+    assert [c.trial_ref for c in result.trials] == ["CTC-0000MTCH"]
 
 
 async def test_semantic_search_without_embedder_raises() -> None:

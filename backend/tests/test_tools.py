@@ -30,17 +30,31 @@ async def test_syntactic_search_records_and_summarizes() -> None:
     deps = AgentDeps(trial_search=StubTrialSearch(results=[citation]))
     ctx = make_run_context(deps)
 
-    hits = await syntactic_search(
+    result = await syntactic_search(
         ctx,
         SyntacticSearchInput(reasoning="r", cancer_types=["Breast Cancer"]),
     )
 
-    assert hits[0].trial_ref == "CTC-00000001"
-    assert "Breast Cancer" in hits[0].cancer_types
-    assert "Montréal" in hits[0].cities
-    assert hits[0].treatment_types == ["Immunotherapy"]
-    assert hits[0].disease_stages == ["Metastatic"]
+    assert result.trials[0].trial_ref == "CTC-00000001"
+    assert "Breast Cancer" in result.trials[0].cancer_types
+    assert "Montréal" in result.trials[0].cities
+    assert result.trials[0].treatment_types == ["Immunotherapy"]
+    assert result.trials[0].disease_stages == ["Metastatic"]
+    # the description grounds the summary; criteria stay behind get_trial_details
+    assert result.trials[0].description == "A study of something."
+    assert not hasattr(result.trials[0], "inclusion_criteria_en")
     assert "CTC-00000001" in deps.fetched_trials
+
+
+async def test_search_reports_how_many_matched_beyond_this_page() -> None:
+    """The count is corpus-wide: it lets the agent say "3 of 40", not just "3"."""
+    search = StubTrialSearch(results=[make_citation("CTC-00000001")], total=40)
+    ctx = make_run_context(AgentDeps(trial_search=search))
+
+    result = await syntactic_search(ctx, SyntacticSearchInput(reasoning="r"))
+
+    assert result.total_matching == 40
+    assert len(result.trials) == 1
 
 
 async def test_duplicate_call_is_rejected_and_still_counts() -> None:
@@ -74,7 +88,7 @@ async def test_semantic_search_records_and_summarizes() -> None:
     deps = AgentDeps(trial_search=search)
     ctx = make_run_context(deps)
 
-    hits = await semantic_search(
+    result = await semantic_search(
         ctx,
         SemanticSearchInput(
             reasoning="r",
@@ -83,7 +97,7 @@ async def test_semantic_search_records_and_summarizes() -> None:
         ),
     )
 
-    assert hits[0].trial_ref == "CTC-00000001"
+    assert result.trials[0].trial_ref == "CTC-00000001"
     assert "CTC-00000001" in deps.fetched_trials
     assert ("semantic_search", "metastatic lung cancer") in search.calls
 

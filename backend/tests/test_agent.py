@@ -204,7 +204,6 @@ async def test_agent_registers_expected_tools() -> None:
         "get_trial_details",
         "remember",
         "semantic_search",
-        "syntactic_search",
     ]
 
 

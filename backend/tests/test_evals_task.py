@@ -18,7 +18,7 @@ async def test_run_agent_on_item_populates_output() -> None:
     assert isinstance(output.answer, str)
     assert "CTC-12345678" in output.retrieved_refs
     assert output.tool_calls
-    assert "syntactic_search" in output.trajectory
+    assert "semantic_search" in output.trajectory
 
 
 async def test_run_agent_on_item_replays_multi_turn() -> None:

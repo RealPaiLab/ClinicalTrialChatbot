@@ -33,7 +33,7 @@ def _user_turn(text: str, *, with_tool: bool = False) -> list[object]:
             ModelRequest(
                 parts=[
                     ToolReturnPart(
-                        tool_name="syntactic_search", content=[], tool_call_id="c"
+                        tool_name="semantic_search", content=[], tool_call_id="c"
                     )
                 ]
             )
@@ -105,7 +105,7 @@ async def test_stream_yields_partials_then_result() -> None:
     citation = make_citation("CTC-11111111")
     chat = _chat(StubTrialSearch(results=[citation], by_ref={"CTC-11111111": citation}))
     model = make_test_model(
-        call_tools=["syntactic_search"],
+        call_tools=["semantic_search"],
         output={
             "message": "see [CTC-11111111]",
             "used_trial_refs": ["CTC-11111111"],
@@ -289,7 +289,7 @@ async def test_triage_failure_allows_turn() -> None:
     chat._triage_agent = AsyncMock()
     chat._triage_agent.run.side_effect = RuntimeError("triage down")
     model = make_test_model(
-        call_tools=["syntactic_search"],
+        call_tools=["semantic_search"],
         output={
             "message": "found some",
             "used_trial_refs": [],
@@ -300,4 +300,4 @@ async def test_triage_failure_allows_turn() -> None:
         async for _ in chat.stream_chat("s1", "breast cancer trials"):
             pass
 
-    assert any(name == "syntactic_search" for name, _ in search.calls)
+    assert any(name == "semantic_search" for name, _ in search.calls)

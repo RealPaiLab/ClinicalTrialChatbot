@@ -26,7 +26,7 @@ from models.location import Location
 from models.trial import Trial
 from models.trial_site import TrialSite
 from schemas.glossary import GlossaryDefinition, GlossarySource
-from schemas.trial import TrialCitation, TrialSiteInfo
+from schemas.trial import TrialCitation, TrialSearchPage, TrialSiteInfo
 
 
 def make_citation(
@@ -47,6 +47,7 @@ def make_citation(
         trial_ref=ref,
         nct_number=nct,
         short_title_en=title,
+        description_en="A study of something.",
         inclusion_criteria_en="Adults with the condition.",
         exclusion_criteria_en="Prior treatment in the last year.",
         phases=list(phases),
@@ -103,9 +104,13 @@ class StubTrialSearch:
         self,
         results: Sequence[TrialCitation] = (),
         by_ref: dict[str, TrialCitation] | None = None,
+        total: int | None = None,
     ) -> None:
         self.results = list(results)
         self.by_ref = dict(by_ref or {})
+        # `total` defaults to "this page is everything"; override to simulate a
+        # search whose filters matched more trials than one page shows.
+        self.total = len(self.results) if total is None else total
         self.calls: list[tuple[str, object]] = []
 
     async def syntactic_search(
@@ -115,9 +120,9 @@ class StubTrialSearch:
         query: str | None = None,
         limit: int | None = None,
         offset: int = 0,
-    ) -> list[TrialCitation]:
+    ) -> TrialSearchPage:
         self.calls.append(("syntactic_search", flt))
-        return list(self.results)
+        return TrialSearchPage(total=self.total, trials=list(self.results))
 
     async def semantic_search(
         self,
@@ -125,9 +130,9 @@ class StubTrialSearch:
         *,
         query: str,
         limit: int | None = None,
-    ) -> list[TrialCitation]:
+    ) -> TrialSearchPage:
         self.calls.append(("semantic_search", query))
-        return list(self.results)
+        return TrialSearchPage(total=self.total, trials=list(self.results))
 
     async def get_by_refs(self, trial_refs: list[str]) -> list[TrialCitation]:
         self.calls.append(("get_by_refs", trial_refs))
@@ -260,6 +265,9 @@ class FakeSessionFactory:
         scalars.all.return_value = rows
         scalars.one_or_none.return_value = rows[0] if rows else None
         self.result.scalars.return_value.all.return_value = rows
+        # count_matches() reads scalar_one(); with one canned result per session,
+        # "everything we handed back" is the only sensible total.
+        self.result.scalar_one.return_value = len(rows)
         self.session = MagicMock()
         self.session.execute = AsyncMock(return_value=self.result)
 
