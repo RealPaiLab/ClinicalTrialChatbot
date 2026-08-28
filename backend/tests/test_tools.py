@@ -15,9 +15,8 @@ from agents.clinical_trials.tools import (
     semantic_search,
     syntactic_search,
 )
-from schemas.cancer_types import CancerType
 from schemas.glossary import GlossaryDefinition, GlossarySource
-from schemas.trial import TrialCitation
+from schemas.trial import TrialCitation, TrialFilter
 from tests.factories import (
     StubGlossary,
     StubTrialSearch,
@@ -33,7 +32,7 @@ async def test_syntactic_search_records_and_summarizes() -> None:
 
     hits = await syntactic_search(
         ctx,
-        SyntacticSearchInput(reasoning="r", cancer_types=[CancerType("Breast Cancer")]),
+        SyntacticSearchInput(reasoning="r", cancer_types=["Breast Cancer"]),
     )
 
     assert hits[0].nct_number == "NCT-1"
@@ -48,14 +47,12 @@ async def test_duplicate_call_is_rejected_and_still_counts() -> None:
 
     await syntactic_search(
         ctx,
-        SyntacticSearchInput(reasoning="a", cancer_types=[CancerType("Breast Cancer")]),
+        SyntacticSearchInput(reasoning="a", cancer_types=["Breast Cancer"]),
     )
     with pytest.raises(ModelRetry):
         await syntactic_search(
             ctx,
-            SyntacticSearchInput(
-                reasoning="b", cancer_types=[CancerType("Breast Cancer")]
-            ),
+            SyntacticSearchInput(reasoning="b", cancer_types=["Breast Cancer"]),
         )
 
     assert deps.tool_calls == 2
@@ -78,7 +75,7 @@ async def test_semantic_search_records_and_summarizes() -> None:
         SemanticSearchInput(
             reasoning="r",
             query="metastatic lung cancer",
-            cancer_types=[CancerType("Lung Cancer")],
+            cancer_types=["Lung Cancer"],
         ),
     )
 
@@ -104,13 +101,11 @@ async def test_same_filters_allowed_across_search_tools() -> None:
 
     await syntactic_search(
         ctx,
-        SyntacticSearchInput(reasoning="a", cancer_types=[CancerType("Lung Cancer")]),
+        SyntacticSearchInput(reasoning="a", cancer_types=["Lung Cancer"]),
     )
     await semantic_search(
         ctx,
-        SemanticSearchInput(
-            reasoning="b", query="lung", cancer_types=[CancerType("Lung Cancer")]
-        ),
+        SemanticSearchInput(reasoning="b", query="lung", cancer_types=["Lung Cancer"]),
     )
 
     assert deps.tool_calls == 2
@@ -122,12 +117,12 @@ async def test_query_makes_search_distinct_from_filters_only() -> None:
 
     await syntactic_search(
         ctx,
-        SyntacticSearchInput(reasoning="a", cancer_types=[CancerType("Breast Cancer")]),
+        SyntacticSearchInput(reasoning="a", cancer_types=["Breast Cancer"]),
     )
     await syntactic_search(
         ctx,
         SyntacticSearchInput(
-            reasoning="a", cancer_types=[CancerType("Breast Cancer")], query="immuno"
+            reasoning="a", cancer_types=["Breast Cancer"], query="immuno"
         ),
     )
 
@@ -210,3 +205,22 @@ async def test_details_are_unfiltered_for_a_trial_not_seen_before() -> None:
     )
 
     assert [s.city for s in result[0].sites] == ["Thunder Bay", "Toronto"]
+
+
+async def test_new_filters_reach_the_trial_filter() -> None:
+    search = StubTrialSearch(results=[make_citation("NCT-1")])
+    ctx = make_run_context(AgentDeps(trial_search=search))
+
+    await syntactic_search(
+        ctx,
+        SyntacticSearchInput(
+            reasoning="r",
+            treatment_types=["Immunotherapy"],
+            disease_stages=["Metastatic"],
+        ),
+    )
+
+    _, flt = search.calls[0]
+    assert isinstance(flt, TrialFilter)
+    assert flt.treatment_types == ["Immunotherapy"]
+    assert flt.disease_stages == ["Metastatic"]

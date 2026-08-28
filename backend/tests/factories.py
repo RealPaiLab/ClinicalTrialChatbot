@@ -245,6 +245,7 @@ class FakeSessionFactory:
         scalars = self.result.scalars.return_value.unique.return_value
         scalars.all.return_value = rows
         scalars.one_or_none.return_value = rows[0] if rows else None
+        self.result.scalars.return_value.all.return_value = rows
         self.session = MagicMock()
         self.session.execute = AsyncMock(return_value=self.result)
 
