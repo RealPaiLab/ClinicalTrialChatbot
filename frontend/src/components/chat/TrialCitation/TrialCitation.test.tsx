@@ -10,16 +10,16 @@ describe('TrialCitation', () => {
     const onSelect = vi.fn();
     const fetchTrial = vi.fn().mockResolvedValue(mockTrials[0]);
     renderWithClient(
-      <TrialCitation nctNumber="NCT04267848" fetchTrial={fetchTrial} onSelect={onSelect} />
+      <TrialCitation trialRef="CTC-4267848A" fetchTrial={fetchTrial} onSelect={onSelect} />
     );
 
     const trigger = await screen.findByRole('button', {
-      name: /show trial nct04267848 on the map/i,
+      name: /show .+ on the map/i,
     });
     expect(await screen.findByText(/Immunotherapy for Advanced/i)).toBeInTheDocument();
-    expect(fetchTrial).toHaveBeenCalledWith('NCT04267848', expect.anything());
+    expect(fetchTrial).toHaveBeenCalledWith('CTC-4267848A', expect.anything());
 
     await userEvent.click(trigger);
-    expect(onSelect).toHaveBeenCalledWith('NCT04267848');
+    expect(onSelect).toHaveBeenCalledWith('CTC-4267848A');
   });
 });

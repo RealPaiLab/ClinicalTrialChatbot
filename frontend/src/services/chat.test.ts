@@ -30,13 +30,13 @@ describe('parseEventStream', () => {
 
     const second = events[1];
     if (second.type !== StreamEventType.AgentResponse) throw new Error('expected AgentResponse');
-    expect(second.data.usedNctNumbers).toEqual(['NCT04267848']);
+    expect(second.data.usedTrialRefs).toEqual(['CTC-4267848A']);
     expect(second.data.followUpQuestions).toEqual(['What are the eligibility requirements?']);
 
     const final = events[2];
     if (final.type !== StreamEventType.ChatResult) throw new Error('expected ChatResult');
     const trial = final.data.trials[0];
-    expect(trial.nctNumber).toBe('NCT04267848');
+    expect(trial.trialRef).toBe('CTC-4267848A');
     expect(trial.shortTitleEn).toContain('Triple-Negative');
     expect(trial.treatmentTypeNames).toEqual(['immunotherapy', 'chemotherapy']);
     expect(trial.sites[0].cancerTypeNames).toEqual(['breast cancer']);
