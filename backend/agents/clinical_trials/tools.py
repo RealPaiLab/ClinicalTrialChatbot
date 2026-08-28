@@ -37,6 +37,7 @@ def _record(
                 trial_ref=c.trial_ref,
                 nct_number=c.nct_number,
                 title=c.short_title_en or c.official_title_en,
+                description=c.description_en,
                 cancer_types=sorted(
                     {ct for s in c.sites for ct in s.cancer_type_names}
                 ),

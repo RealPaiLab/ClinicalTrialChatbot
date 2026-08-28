@@ -21,7 +21,6 @@ from agents.clinical_trials.tools import (
     get_trial_details,
     remember,
     semantic_search,
-    syntactic_search,
 )
 from core.config import get_settings
 from core.llm import get_llm
@@ -30,10 +29,10 @@ from core.llm import get_llm
 @lru_cache
 def get_clinical_trials_agent() -> Agent[AgentDeps, AgentResponse]:
     """Build the cached clinical-trials agent."""
+    # `syntactic_search` is deliberately not registere
     toolset = (
         FunctionToolset[AgentDeps](
             [
-                syntactic_search,
                 semantic_search,
                 get_trial_details,
                 define_term,

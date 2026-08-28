@@ -191,6 +191,7 @@ class TrialSearchHit(BaseModel):
     trial_ref: str
     nct_number: str | None = None
     title: str | None = None
+    description: str | None = None
     cancer_types: list[str] = Field(default_factory=list)
     treatment_types: list[str] = Field(default_factory=list)
     disease_stages: list[str] = Field(default_factory=list)
