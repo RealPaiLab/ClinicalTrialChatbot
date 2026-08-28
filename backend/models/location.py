@@ -23,7 +23,6 @@ class Location(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     name_en: Mapped[str] = mapped_column(Text, nullable=False)
-    name_fr: Mapped[str | None] = mapped_column(Text, nullable=True)
     address: Mapped[str | None] = mapped_column(Text, nullable=True)
     city: Mapped[str | None] = mapped_column(Text, nullable=True)
     province: Mapped[str | None] = mapped_column(Text, nullable=True)

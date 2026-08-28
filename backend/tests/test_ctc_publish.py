@@ -1,0 +1,40 @@
+from __future__ import annotations
+
+from scripts.ctc.db.swap import GENERATION_PREFIX, _generation_name, _move_order
+from scripts.ctc.stages.validate import Check, ValidationReport, _coverage, _drop_pct
+
+
+def test_dependents_move_before_what_they_reference() -> None:
+    """trial_sites points at both other tables, so it has to move first."""
+    assert _move_order()[0] == "trial_sites"
+
+
+def test_generation_names_sort_newest_last_so_listing_can_order_them() -> None:
+    name = _generation_name()
+
+    assert name.startswith(GENERATION_PREFIX)
+    assert sorted([f"{GENERATION_PREFIX}20260101T000000Z", name])[-1] == name
+
+
+def test_a_shrinking_corpus_is_measured_against_what_is_live() -> None:
+    assert _drop_pct(1000, 950) == 5.0
+    assert _drop_pct(1000, 1200) == 0.0
+    assert _drop_pct(0, 0) == 0.0
+
+
+def test_coverage_of_an_empty_table_is_not_a_failure() -> None:
+    """A first run has nothing live to compare against."""
+    assert _coverage(0, 0) == 1.0
+    assert _coverage(146, 148) < 1.0
+
+
+def test_one_failed_check_fails_the_gate() -> None:
+    report = ValidationReport(
+        checks=[
+            Check("volume", True, ""),
+            Check("embedding coverage", False, "regressed"),
+        ]
+    )
+
+    assert not report.passed
+    assert [check.name for check in report.failures] == ["embedding coverage"]
