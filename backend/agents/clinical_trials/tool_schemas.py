@@ -2,15 +2,47 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from typing import Annotated
 
-from schemas.cancer_types import CancerType
+from pydantic import AfterValidator, BaseModel, Field
+
 from schemas.glossary import GlossarySource
+from schemas.vocabulary import VocabField, current_vocabulary
+
+
+def _vocab(field: VocabField) -> object:
+    """A string drawn from a corpus-derived vocabulary."""
+
+    def check(value: str) -> str:
+        allowed = current_vocabulary().allowed(field)
+        if allowed and value not in allowed:
+            raise ValueError(
+                f"{value!r} is not in the {field.value} vocabulary. "
+                f"Choose one of: {', '.join(allowed)}"
+            )
+        return value
+
+    return Annotated[str, AfterValidator(check)]
+
+
+CancerTypeValue = _vocab(VocabField.CANCER_TYPE)
+TreatmentTypeValue = _vocab(VocabField.TREATMENT_TYPE)
+DiseaseStageValue = _vocab(VocabField.DISEASE_STAGE)
 
 _CANCER_TYPES_DESC = (
     "Cancer-type buckets to match, from the controlled vocabulary, e.g. "
     '["Breast Cancer", "Lung Cancer"]. Pick the closest bucket(s); put clinical '
-    "subtype, stage, or treatment detail in the semantic query instead."
+    "subtype or other eligibility detail in the semantic query instead."
+)
+_TREATMENT_TYPES_DESC = (
+    "Kinds of treatment the trial studies, from the controlled vocabulary, e.g. "
+    '["Immunotherapy", "Targeted Therapy"]. Pass one only when the patient said '
+    "they are looking for that kind of treatment."
+)
+_DISEASE_STAGES_DESC = (
+    "How advanced the disease is, from the controlled vocabulary, e.g. "
+    '["Metastatic", "Advanced"]. Pass one only when the patient told you where '
+    "they are in their disease."
 )
 
 
@@ -36,9 +68,17 @@ class RememberInput(ToolInput):
 
 
 class SyntacticSearchInput(ToolInput):
-    cancer_types: list[CancerType] = Field(
+    cancer_types: list[CancerTypeValue] = Field(  # type: ignore[valid-type]
         default_factory=list,
         description=_CANCER_TYPES_DESC,
+    )
+    treatment_types: list[TreatmentTypeValue] = Field(  # type: ignore[valid-type]
+        default_factory=list,
+        description=_TREATMENT_TYPES_DESC,
+    )
+    disease_stages: list[DiseaseStageValue] = Field(  # type: ignore[valid-type]
+        default_factory=list,
+        description=_DISEASE_STAGES_DESC,
     )
     locations: list[str] = Field(
         default_factory=list,
@@ -81,9 +121,17 @@ class SemanticSearchInput(ToolInput):
         "non-small-cell lung cancer, progressed after chemotherapy, seeking "
         'immunotherapy".'
     )
-    cancer_types: list[CancerType] = Field(
+    cancer_types: list[CancerTypeValue] = Field(  # type: ignore[valid-type]
         default_factory=list,
         description=_CANCER_TYPES_DESC,
+    )
+    treatment_types: list[TreatmentTypeValue] = Field(  # type: ignore[valid-type]
+        default_factory=list,
+        description=_TREATMENT_TYPES_DESC,
+    )
+    disease_stages: list[DiseaseStageValue] = Field(  # type: ignore[valid-type]
+        default_factory=list,
+        description=_DISEASE_STAGES_DESC,
     )
     locations: list[str] = Field(
         default_factory=list,

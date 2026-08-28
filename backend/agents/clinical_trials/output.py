@@ -41,7 +41,7 @@ class AgentResponse(BaseModel):
             "trials. When populated, each is a quick prompt in the patient's own "
             "voice that helps them refine toward the right trial: add a missing "
             "detail, go deeper on a trial, or clarify their diagnosis (e.g. 'Only "
-            "recruiting trials', 'Trials in Ontario', 'Tell me about the first "
+            "recruiting trials', 'Trials closer to me', 'Tell me about the first "
             "one'). These are options for the patient to send next, NOT questions "
             "you ask them."
         ),

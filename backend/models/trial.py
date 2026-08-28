@@ -57,6 +57,9 @@ class Trial(Base):
     treatment_lines: Mapped[list[str]] = mapped_column(
         ARRAY(Text), nullable=False, server_default="{}"
     )
+    disease_stages: Mapped[list[str]] = mapped_column(
+        ARRAY(Text), nullable=False, server_default="{}"
+    )
 
     study_type: Mapped[str | None] = mapped_column(Text, nullable=True)
     purpose: Mapped[str | None] = mapped_column(Text, nullable=True)

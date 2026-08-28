@@ -76,6 +76,7 @@ class Settings(BaseSettings):
 
     search_default_limit: int = 5
     restrict_to_province: str | None = None
+    vocabulary_ttl_seconds: float = 3600.0
 
     turnstile_secret_key: str = ""
     turnstile_verify_ttl_seconds: int = 3600

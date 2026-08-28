@@ -62,10 +62,12 @@ async def syntactic_search(
     surgery"); it searches only within trials that already match the filters.
     """
     flt = TrialFilter(
-        cancer_types=[c.value for c in args.cancer_types],
+        cancer_types=args.cancer_types,
         locations=args.locations,
         statuses=args.statuses,
         phases=args.phases,
+        treatment_types=args.treatment_types,
+        disease_stages=args.disease_stages,
     )
     citations = await ctx.deps.trial_search.syntactic_search(
         flt, query=args.query, limit=args.limit, offset=args.offset
@@ -89,10 +91,12 @@ async def semantic_search(
     rather than rephrasing the same query.
     """
     flt = TrialFilter(
-        cancer_types=[c.value for c in args.cancer_types],
+        cancer_types=args.cancer_types,
         locations=args.locations,
         statuses=args.statuses,
         phases=args.phases,
+        treatment_types=args.treatment_types,
+        disease_stages=args.disease_stages,
     )
     citations = await ctx.deps.trial_search.semantic_search(
         flt, query=args.query, limit=args.limit

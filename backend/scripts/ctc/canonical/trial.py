@@ -33,6 +33,7 @@ class CanonicalTrial(CanonicalBase):
     treatment_type_names: Names = Field(default_factory=list, alias="treatmentTypes")
     intervention_names: NamesEn = Field(default_factory=list, alias="interventions")
     treatment_lines: Names = Field(default_factory=list)
+    disease_stages: Names = Field(default_factory=list, alias="diseaseStages")
 
     study_type: NameEn = Field(default=None, alias="type")
     purpose: Name = None
@@ -43,7 +44,6 @@ class CanonicalTrial(CanonicalBase):
     # Captured, not loaded: no column exists for these yet.
     state: Strings = Field(default_factory=list)
     biomarkers: NamesEn = Field(default_factory=list)
-    disease_stages: Names = Field(default_factory=list, alias="diseaseStages")
     cancer_type_names: NamesEn = Field(default_factory=list, alias="cancerTypes")
 
     sites: list[CanonicalSite] = Field(default_factory=list)

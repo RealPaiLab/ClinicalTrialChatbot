@@ -26,6 +26,7 @@ class TrialRow(RowBase):
     treatment_type_names: list[str]
     intervention_names: list[str]
     treatment_lines: list[str]
+    disease_stages: list[str]
     study_type: str | None
     purpose: str | None
     sponsor_name: str | None

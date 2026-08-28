@@ -32,6 +32,7 @@ class TrialCitation(BaseModel):
     treatment_type_names: list[str] = Field(default_factory=list)
     intervention_names: list[str] = Field(default_factory=list)
     treatment_lines: list[str] = Field(default_factory=list)
+    disease_stages: list[str] = Field(default_factory=list)
     sites: list[TrialSiteInfo] = Field(default_factory=list)
 
 
@@ -42,3 +43,5 @@ class TrialFilter(BaseModel):
     locations: list[str] = Field(default_factory=list)
     statuses: list[str] = Field(default_factory=list)
     phases: list[str] = Field(default_factory=list)
+    treatment_types: list[str] = Field(default_factory=list)
+    disease_stages: list[str] = Field(default_factory=list)

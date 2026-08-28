@@ -26,6 +26,7 @@ from services.conversation_service import (
     turn_count,
     user_facing_turns,
 )
+from services.vocabulary_service import VocabularyService
 
 logger = get_logger(__name__)
 
@@ -36,10 +37,14 @@ class ChatService:
     """Runs the clinical-trials agent for a session and streams the turn."""
 
     def __init__(
-        self, conversation_service: ConversationService, trial_search: TrialSearch
+        self,
+        conversation_service: ConversationService,
+        trial_search: TrialSearch,
+        vocabulary: VocabularyService | None = None,
     ) -> None:
         self._conversation_service = conversation_service
         self._trial_search = trial_search
+        self._vocabulary = vocabulary
         self._clinical_agent = get_clinical_trials_agent()
         self._triage_agent = get_input_triage_agent()
         self._langfuse = get_langfuse_client()
@@ -105,6 +110,8 @@ class ChatService:
             ) as span,
         ):
             try:
+                if self._vocabulary is not None:
+                    await self._vocabulary.refresh()
                 history = await self._conversation_service.get_history(session_id)
                 deps.known_ncts = conversation_nct_numbers(history)
                 deps.memory = await self._conversation_service.get_memory(session_id)

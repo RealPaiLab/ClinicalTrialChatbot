@@ -6,6 +6,7 @@ import functools
 import json
 import re
 from collections.abc import Awaitable, Callable
+from dataclasses import replace
 
 from pydantic_ai import ModelRetry, RunContext
 from pydantic_ai.messages import ModelMessage, ModelRequest, ToolReturnPart
@@ -17,6 +18,7 @@ from agents.clinical_trials.tool_schemas import ToolInput
 from agents.constants import AGENT_NAME
 from core.config import get_settings
 from schemas.trial import TrialCitation
+from schemas.vocabulary import VocabField, Vocabulary, current_vocabulary
 from utils.text import fold
 
 MEMORY_TOOL_NAME = "remember"
@@ -87,6 +89,46 @@ def tools_available(ctx: RunContext[AgentDeps], tool: ToolDefinition) -> bool:
     if tool.name == MEMORY_TOOL_NAME:
         return ctx.deps.memory_calls < MEMORY_CALLS_LIMIT
     return ctx.deps.tool_calls < get_settings().agent_tool_calls_limit
+
+
+VOCAB_ARGUMENTS: dict[str, VocabField] = {
+    "cancer_types": VocabField.CANCER_TYPE,
+    "treatment_types": VocabField.TREATMENT_TYPE,
+    "disease_stages": VocabField.DISEASE_STAGE,
+}
+
+
+def _with_enums(tool: ToolDefinition, vocabulary: Vocabulary) -> ToolDefinition:
+    schema = tool.parameters_json_schema
+    properties = schema.get("properties")
+    if not isinstance(properties, dict):
+        return tool
+    patched: dict[str, object] = {}
+    for name, field in VOCAB_ARGUMENTS.items():
+        allowed = vocabulary.allowed(field)
+        prop = properties.get(name)
+        if not allowed or not isinstance(prop, dict):
+            continue
+        items = prop.get("items")
+        if isinstance(items, dict):
+            patched[name] = {**prop, "items": {**items, "enum": list(allowed)}}
+    if not patched:
+        return tool
+    return replace(
+        tool,
+        parameters_json_schema={
+            **schema,
+            "properties": {**properties, **patched},
+        },
+    )
+
+
+async def inject_vocabulary(
+    ctx: RunContext[AgentDeps], tools: list[ToolDefinition]
+) -> list[ToolDefinition]:
+    """Constrain the vocabulary-backed arguments to the values the corpus holds."""
+    vocabulary = current_vocabulary()
+    return [_with_enums(tool, vocabulary) for tool in tools]
 
 
 _NCT_PATTERN = re.compile(r"NCT\d{8}")

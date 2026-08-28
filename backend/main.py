@@ -10,7 +10,7 @@ from agents.input_triage.prompts import ensure_triage_prompt_seeded
 from agents.translation.prompts import ensure_translation_prompt_seeded
 from core.config import get_settings
 from core.database import engine, read_engine
-from core.dependencies import aclose_translation_provider
+from core.dependencies import aclose_translation_provider, get_vocabulary_service
 from core.embeddings import get_embedder
 from core.exception_handlers import register_exception_handlers
 from core.http_retry import aclose_retrying_client
@@ -25,6 +25,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Startup: verify DB connectivity
     async with engine.connect() as conn:
         await conn.execute(text("SELECT 1"))
+    # Warm the tool vocabulary
+    await get_vocabulary_service().refresh()
     setup_langfuse()
     ensure_clinical_trials_prompt_seeded()
     ensure_triage_prompt_seeded()

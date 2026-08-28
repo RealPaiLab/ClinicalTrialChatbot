@@ -97,6 +97,7 @@ def _to_citation(
         treatment_type_names=list(trial.treatment_type_names or []),
         intervention_names=list(trial.intervention_names or []),
         treatment_lines=list(trial.treatment_lines or []),
+        disease_stages=list(trial.disease_stages or []),
         sites=[_to_site_info(s) for s in sites],
     )
 
