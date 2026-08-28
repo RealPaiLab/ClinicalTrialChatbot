@@ -24,7 +24,7 @@ const de = {
     placeholder: 'Beschreiben Sie Ihre Situation oder fragen Sie nach einer Studie...',
     sendHint: 'Eingabetaste zum Senden',
     starter:
-      'Hallo, ich bin {{agent}}. Ich helfe Menschen, klinische Krebsstudien in Ontario zu finden. Wie kann ich Ihnen heute helfen?',
+      'Hallo, ich bin {{agent}}. Ich helfe Menschen, klinische Krebsstudien in ganz Kanada zu finden. Wie kann ich Ihnen heute helfen?',
     disclaimer:
       '{{agent}} ist eine KI und kann sich irren. Bestätigen Sie Angaben immer mit Ihrem Behandlungsteam und teilen Sie keine persönlichen Daten.',
     askAiHint: 'So lassen Sie sich einen Begriff erklären',
@@ -32,7 +32,7 @@ const de = {
       'Ein Wort unklar? <mark>Markieren</mark> Sie es in der Unterhaltung und klicken Sie auf die Schaltfläche <ask>KI fragen</ask>, die erscheint. {{agent}} erklärt es Ihnen.',
     askAi: 'KI fragen',
     addedTrials: 'Ihre hinzugefügten Studien',
-    removeFromContext: '{{nctNumber}} aus dem Kontext entfernen',
+    removeFromContext: '{{trialRef}} aus dem Kontext entfernen',
     stop: 'Stoppen',
     send: 'Senden',
   },
@@ -76,7 +76,7 @@ const de = {
   },
   map: {
     coverageArea: 'Abgedecktes Gebiet',
-    coverageNotice: 'Die Abdeckung ist derzeit auf Ontario beschränkt.',
+    coverageNotice: 'Die Abdeckung umfasst Studienzentren in ganz Kanada.',
     seeTrials: 'Studien auf der Karte ansehen',
     emptyHint: 'Studien erscheinen hier im Verlauf des Gesprächs.',
   },
@@ -91,6 +91,7 @@ const de = {
     trialDetails: 'Studiendetails',
     showFullTitle: 'Vollständigen Titel anzeigen',
     showLess: 'Weniger anzeigen',
+    showMore: '{{n}} weitere anzeigen',
     status: 'Status',
     cancerType: 'Krebsart',
     phase: 'Phase',
@@ -177,7 +178,7 @@ const de = {
       map: {
         title: 'Studien auf der Karte ansehen',
         description:
-          'Passende Studienzentren erscheinen als Markierungen, sobald das Gespräch die Auswahl eingrenzt. Die Abdeckung ist derzeit auf Ontario beschränkt.',
+          'Passende Studienzentren erscheinen als Markierungen, sobald das Gespräch die Auswahl eingrenzt. Die Abdeckung erstreckt sich auf Studienzentren in ganz Kanada.',
       },
       details: {
         title: 'Studiendetails',

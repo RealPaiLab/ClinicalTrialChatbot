@@ -22,7 +22,7 @@ const yue = {
     newConversation: '新對話',
     placeholder: '講下你嘅情況，或者問下某個試驗……',
     sendHint: '撳 Enter 就send',
-    starter: '你好，我係 {{agent}}。我幫人搵安大略省嘅癌症臨床試驗。今日有咩可以幫到你？',
+    starter: '你好，我係 {{agent}}。我幫人搵加拿大各地嘅癌症臨床試驗。今日有咩可以幫到你？',
     disclaimer:
       '{{agent}} 係人工智能，可能會出錯。任何細節都請同你嘅醫療團隊確認，亦唔好分享個人資料。',
     askAiHint: '點樣攞一個詞語嘅解釋',
@@ -30,7 +30,7 @@ const yue = {
       '有字唔明？喺對話入面<mark>螢光標示</mark>佢，然後撳出現嘅<ask>問下 AI</ask>掣，{{agent}} 就會解釋畀你聽。',
     askAi: '問下 AI',
     addedTrials: '你加咗嘅試驗',
-    removeFromContext: '將 {{nctNumber}} 由上下文移走',
+    removeFromContext: '將 {{trialRef}} 由上下文移走',
     stop: '停',
     send: 'send出',
   },
@@ -66,7 +66,7 @@ const yue = {
   },
   map: {
     coverageArea: '覆蓋範圍',
-    coverageNotice: '而家只係覆蓋安大略省。',
+    coverageNotice: '覆蓋範圍包括加拿大各地嘅試驗中心。',
     seeTrials: '喺地圖睇試驗',
     emptyHint: '傾落去，試驗就會喺呢度出現。',
   },
@@ -80,6 +80,7 @@ const yue = {
     trialDetails: '試驗詳情',
     showFullTitle: '睇晒成個標題',
     showLess: '收埋',
+    showMore: '再睇多 {{n}} 項',
     status: '狀態',
     cancerType: '癌症類型',
     phase: '階段',
@@ -160,7 +161,8 @@ const yue = {
       },
       map: {
         title: '喺地圖睇試驗',
-        description: '傾落去範圍收窄，啱你嘅試驗中心就會以圖釘形式出現。而家只係覆蓋安大略省。',
+        description:
+          '傾落去範圍收窄，啱你嘅試驗中心就會以圖釘形式出現。覆蓋範圍遍及加拿大各地嘅試驗中心。',
       },
       details: {
         title: '試驗詳情',

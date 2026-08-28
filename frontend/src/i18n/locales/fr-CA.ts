@@ -24,7 +24,7 @@ const frCa = {
     placeholder: 'Décrivez votre situation ou posez une question sur un essai...',
     sendHint: 'Entrée pour envoyer',
     starter:
-      'Bonjour, je suis {{agent}}. J’aide les gens à trouver des essais cliniques en oncologie en Ontario. Comment puis-je vous aider aujourd’hui?',
+      'Bonjour, je suis {{agent}}. J’aide les gens à trouver des essais cliniques en oncologie partout au Canada. Comment puis-je vous aider aujourd’hui?',
     disclaimer:
       '{{agent}} est une IA et peut se tromper. Confirmez toujours les détails avec votre équipe de soins et ne partagez pas de renseignements personnels.',
     askAiHint: 'Comment obtenir l’explication d’un terme',
@@ -32,7 +32,7 @@ const frCa = {
       'Vous ne comprenez pas un mot? <mark>Surlignez</mark>-le dans la conversation et cliquez sur le bouton <ask>Demander à l’IA</ask> qui apparaît, et {{agent}} vous l’expliquera.',
     askAi: 'Demander à l’IA',
     addedTrials: 'Vos essais ajoutés',
-    removeFromContext: 'Retirer {{nctNumber}} du contexte',
+    removeFromContext: 'Retirer {{trialRef}} du contexte',
     stop: 'Arrêter',
     send: 'Envoyer',
   },
@@ -72,7 +72,7 @@ const frCa = {
   },
   map: {
     coverageArea: 'Zone couverte',
-    coverageNotice: 'La couverture est actuellement limitée à l’Ontario.',
+    coverageNotice: 'La couverture comprend des sites d’essais cliniques partout au Canada.',
     seeTrials: 'Voir les essais sur la carte',
     emptyHint: 'Les essais apparaîtront ici au fil de la conversation.',
   },
@@ -87,6 +87,7 @@ const frCa = {
     trialDetails: 'Détails de l’essai',
     showFullTitle: 'Afficher le titre complet',
     showLess: 'Afficher moins',
+    showMore: 'Afficher {{n}} de plus',
     status: 'Statut',
     cancerType: 'Type de cancer',
     phase: 'Phase',
@@ -172,7 +173,7 @@ const frCa = {
       map: {
         title: 'Voir les essais sur la carte',
         description:
-          'Les sites des essais correspondants apparaissent sous forme de repères à mesure que la conversation précise vos besoins. La couverture est actuellement limitée à l’Ontario.',
+          'Les sites des essais correspondants apparaissent sous forme de repères à mesure que la conversation précise vos besoins. La couverture s’étend aux sites d’essais partout au Canada.',
       },
       details: {
         title: 'Détails de l’essai',

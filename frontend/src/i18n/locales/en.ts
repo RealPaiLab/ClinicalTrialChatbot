@@ -22,7 +22,7 @@ const en = {
     placeholder: 'Describe your situation or ask about a trial...',
     sendHint: 'Enter to send',
     starter:
-      "Hello, I'm {{agent}}. I help people find cancer clinical trials in Ontario. How can I help you today?",
+      "Hello, I'm {{agent}}. I help people find cancer clinical trials across Canada. How can I help you today?",
     disclaimer:
       "{{agent}} is AI and can make mistakes, always confirm details with your care team, and don't share personal information.",
     askAiHint: 'How to get a term explained',
@@ -30,7 +30,7 @@ const en = {
       "Don't understand a word? <mark>Highlight</mark> it in the conversation and click the <ask>Ask AI</ask> button that appears, and {{agent}} will explain it.",
     askAi: 'Ask AI',
     addedTrials: 'Your added trials',
-    removeFromContext: 'Remove {{nctNumber}} from context',
+    removeFromContext: 'Remove {{trialRef}} from context',
     stop: 'Stop',
     send: 'Send',
   },
@@ -68,7 +68,7 @@ const en = {
   },
   map: {
     coverageArea: 'Coverage area',
-    coverageNotice: 'Coverage is currently limited to Ontario.',
+    coverageNotice: 'Coverage includes cancer trial sites across Canada.',
     seeTrials: 'See trials on the map',
     emptyHint: 'Trials will appear here as you chat.',
   },
@@ -82,6 +82,7 @@ const en = {
     trialDetails: 'Trial details',
     showFullTitle: 'Show full title',
     showLess: 'Show less',
+    showMore: 'Show {{n}} more',
     status: 'Status',
     cancerType: 'Cancer type',
     phase: 'Phase',
@@ -165,7 +166,7 @@ const en = {
       map: {
         title: 'See trials on the map',
         description:
-          'Matching trial sites appear as pins as the conversation narrows things down. Coverage is currently limited to Ontario.',
+          'Matching trial sites appear as pins as the conversation narrows things down. Coverage spans trial sites across Canada.',
       },
       details: {
         title: 'Trial details',

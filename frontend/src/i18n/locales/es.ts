@@ -24,7 +24,7 @@ const es = {
     placeholder: 'Describa su situación o pregunte por un ensayo...',
     sendHint: 'Entrar para enviar',
     starter:
-      'Hola, soy {{agent}}. Ayudo a las personas a encontrar ensayos clínicos oncológicos en Ontario. ¿En qué puedo ayudarle hoy?',
+      'Hola, soy {{agent}}. Ayudo a las personas a encontrar ensayos clínicos oncológicos en todo Canadá. ¿En qué puedo ayudarle hoy?',
     disclaimer:
       '{{agent}} es una IA y puede equivocarse. Confirme siempre los detalles con su equipo médico y no comparta información personal.',
     askAiHint: 'Cómo obtener la explicación de un término',
@@ -32,7 +32,7 @@ const es = {
       '¿No entiende una palabra? <mark>Resáltela</mark> en la conversación y haga clic en el botón <ask>Preguntar a la IA</ask> que aparece; {{agent}} se la explicará.',
     askAi: 'Preguntar a la IA',
     addedTrials: 'Sus ensayos añadidos',
-    removeFromContext: 'Quitar {{nctNumber}} del contexto',
+    removeFromContext: 'Quitar {{trialRef}} del contexto',
     stop: 'Detener',
     send: 'Enviar',
   },
@@ -72,7 +72,7 @@ const es = {
   },
   map: {
     coverageArea: 'Área de cobertura',
-    coverageNotice: 'La cobertura se limita actualmente a Ontario.',
+    coverageNotice: 'La cobertura incluye centros de ensayos clínicos en todo Canadá.',
     seeTrials: 'Ver los ensayos en el mapa',
     emptyHint: 'Los ensayos aparecerán aquí a medida que converse.',
   },
@@ -87,6 +87,7 @@ const es = {
     trialDetails: 'Detalles del ensayo',
     showFullTitle: 'Mostrar el título completo',
     showLess: 'Mostrar menos',
+    showMore: 'Mostrar {{n}} más',
     status: 'Estado',
     cancerType: 'Tipo de cáncer',
     phase: 'Fase',
@@ -171,7 +172,7 @@ const es = {
       map: {
         title: 'Ver los ensayos en el mapa',
         description:
-          'Los centros de los ensayos que coinciden aparecen como marcadores a medida que la conversación afina la búsqueda. La cobertura se limita actualmente a Ontario.',
+          'Los centros de los ensayos que coinciden aparecen como marcadores a medida que la conversación afina la búsqueda. La cobertura abarca centros de ensayos en todo Canadá.',
       },
       details: {
         title: 'Detalles del ensayo',
