@@ -22,7 +22,7 @@ const zhCn = {
     newConversation: '新对话',
     placeholder: '描述您的情况，或询问某项试验……',
     sendHint: '按 Enter 发送',
-    starter: '您好，我是 {{agent}}。我帮助人们查找安大略省的癌症临床试验。今天有什么可以帮您？',
+    starter: '您好，我是 {{agent}}。我帮助人们查找加拿大各地的癌症临床试验。今天有什么可以帮您？',
     disclaimer:
       '{{agent}} 是人工智能，可能出错。请务必与您的医疗团队核实细节，并且不要分享个人信息。',
     askAiHint: '如何获取术语解释',
@@ -30,7 +30,7 @@ const zhCn = {
       '有不明白的词？在对话中<mark>高亮</mark>它，然后点击出现的<ask>询问 AI</ask>按钮，{{agent}} 会为您解释。',
     askAi: '询问 AI',
     addedTrials: '您添加的试验',
-    removeFromContext: '将 {{nctNumber}} 移出上下文',
+    removeFromContext: '将 {{trialRef}} 移出上下文',
     stop: '停止',
     send: '发送',
   },
@@ -66,7 +66,7 @@ const zhCn = {
   },
   map: {
     coverageArea: '覆盖范围',
-    coverageNotice: '目前覆盖范围仅限安大略省。',
+    coverageNotice: '覆盖范围包括加拿大各地的试验中心。',
     seeTrials: '在地图上查看试验',
     emptyHint: '试验将随着对话在此显示。',
   },
@@ -80,6 +80,7 @@ const zhCn = {
     trialDetails: '试验详情',
     showFullTitle: '显示完整标题',
     showLess: '收起',
+    showMore: '再显示 {{n}} 项',
     status: '状态',
     cancerType: '癌症类型',
     phase: '阶段',
@@ -161,7 +162,7 @@ const zhCn = {
       map: {
         title: '在地图上查看试验',
         description:
-          '随着对话逐步缩小范围，匹配的试验中心会以图钉形式出现。目前覆盖范围仅限安大略省。',
+          '随着对话逐步缩小范围，匹配的试验中心会以图钉形式出现。覆盖范围遍及加拿大各地的试验中心。',
       },
       details: {
         title: '试验详情',

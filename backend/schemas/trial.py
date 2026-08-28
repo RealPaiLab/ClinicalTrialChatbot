@@ -19,8 +19,9 @@ class TrialSiteInfo(BaseModel):
 
 
 class TrialCitation(BaseModel):
-    """A trial in a shape safe to cite and render, keyed by NCT number."""
+    """A trial in a shape safe to cite and render, keyed by its ref."""
 
+    trial_ref: str
     nct_number: str | None = None
     acronym_or_protocol_id: str | None = None
     short_title_en: str | None = None
@@ -32,7 +33,15 @@ class TrialCitation(BaseModel):
     treatment_type_names: list[str] = Field(default_factory=list)
     intervention_names: list[str] = Field(default_factory=list)
     treatment_lines: list[str] = Field(default_factory=list)
+    disease_stages: list[str] = Field(default_factory=list)
     sites: list[TrialSiteInfo] = Field(default_factory=list)
+
+
+class TrialSearchPage(BaseModel):
+    """One page of results plus how many trials matched in total."""
+
+    total: int
+    trials: list[TrialCitation] = Field(default_factory=list)
 
 
 class TrialFilter(BaseModel):
@@ -42,3 +51,5 @@ class TrialFilter(BaseModel):
     locations: list[str] = Field(default_factory=list)
     statuses: list[str] = Field(default_factory=list)
     phases: list[str] = Field(default_factory=list)
+    treatment_types: list[str] = Field(default_factory=list)
+    disease_stages: list[str] = Field(default_factory=list)

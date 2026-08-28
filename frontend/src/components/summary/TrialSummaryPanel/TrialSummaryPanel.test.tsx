@@ -26,6 +26,22 @@ describe('TrialSummaryPanel', () => {
     expect(screen.getByRole('button', { name: /who can join/i })).toBeInTheDocument();
   });
 
+  it('holds back fact values past the second until asked', async () => {
+    const trial = {
+      ...mockTrials[0],
+      treatmentTypeNames: ['immunotherapy', 'chemotherapy', 'radiation', 'surgery'],
+    };
+    renderWithClient(<TrialSummaryPanel trial={trial} />);
+
+    expect(screen.getByText('immunotherapy, chemotherapy')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: /show 2 more/i }));
+    expect(screen.getByText('immunotherapy, chemotherapy, radiation, surgery')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: /show less/i }));
+    expect(screen.getByText('immunotherapy, chemotherapy')).toBeInTheDocument();
+  });
+
   it('calls onClose when the close button is clicked', async () => {
     const onClose = vi.fn();
     renderWithClient(<TrialSummaryPanel trial={mockTrials[0]} onClose={onClose} />);
@@ -39,7 +55,7 @@ describe('TrialSummaryPanel', () => {
     await userEvent.click(
       screen.getByRole('button', { name: new RegExp(`ask ${AGENT_NAME} about this trial`, 'i') })
     );
-    expect(onAddToContext).toHaveBeenCalledWith('NCT04267848');
+    expect(onAddToContext).toHaveBeenCalledWith('CTC-4267848A');
   });
 
   it('disables the AI button once the trial is in context', () => {
@@ -56,7 +72,7 @@ describe('TrialSummaryPanel', () => {
     );
 
     await userEvent.click(screen.getByRole('button', { name: /save this trial/i }));
-    expect(onToggleBookmark).toHaveBeenCalledWith('NCT04267848');
+    expect(onToggleBookmark).toHaveBeenCalledWith('CTC-4267848A');
 
     unmount();
     renderWithClient(

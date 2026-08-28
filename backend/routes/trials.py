@@ -11,12 +11,12 @@ from services.trial_search_service import TrialSearchService
 router = APIRouter(prefix="/trials", tags=["trials"])
 
 
-@router.get("/{nct_number}")
+@router.get("/{trial_ref}")
 async def get_trial(
-    nct_number: str,
+    trial_ref: str,
     trial_search: Annotated[TrialSearchService, Depends(get_trial_search)],
 ) -> TrialCitation:
-    trials = await trial_search.get_by_ncts([nct_number])
+    trials = await trial_search.get_by_refs([trial_ref.strip().upper()])
     if not trials:
-        raise HTTPException(status_code=404, detail=f"Trial {nct_number} not found")
+        raise HTTPException(status_code=404, detail=f"Trial {trial_ref} not found")
     return trials[0]

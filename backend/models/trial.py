@@ -36,8 +36,11 @@ class Trial(Base):
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    trial_ref: Mapped[str] = mapped_column(
+        Text, nullable=False, unique=True, index=True
+    )
     acronym_or_protocol_id: Mapped[str | None] = mapped_column(Text, nullable=True)
-    nct_number: Mapped[str | None] = mapped_column(Text, nullable=True)
+    nct_number: Mapped[str | None] = mapped_column(Text, nullable=True, index=True)
 
     short_title_en: Mapped[str | None] = mapped_column(Text, nullable=True)
     official_title_en: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -55,6 +58,9 @@ class Trial(Base):
         ARRAY(Text), nullable=False, server_default="{}"
     )
     treatment_lines: Mapped[list[str]] = mapped_column(
+        ARRAY(Text), nullable=False, server_default="{}"
+    )
+    disease_stages: Mapped[list[str]] = mapped_column(
         ARRAY(Text), nullable=False, server_default="{}"
     )
 

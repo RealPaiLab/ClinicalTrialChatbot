@@ -2,11 +2,12 @@ import { MapPin, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { publicTrialId } from '@/lib/trial';
 import type { Trial } from '@/types/trial';
 
 interface SelectedTrialsProps {
   trials: Trial[];
-  onRemove?: (nctNumber: string) => void;
+  onRemove?: (trialRef: string) => void;
 }
 
 function SelectedTrials({ trials, onRemove }: SelectedTrialsProps) {
@@ -19,18 +20,19 @@ function SelectedTrials({ trials, onRemove }: SelectedTrialsProps) {
   return (
     <div className="flex flex-wrap gap-2">
       {trials.map((trial) => {
-        const nctNumber = trial.nctNumber ?? '';
-        const label = trial.shortTitleEn ?? trial.officialTitleEn ?? nctNumber;
+        const trialRef = trial.trialRef ?? '';
+        const label =
+          trial.shortTitleEn ?? trial.officialTitleEn ?? publicTrialId(trial) ?? 'Trial';
         return (
-          <Badge key={nctNumber} variant="secondary" className="gap-1.5 py-1 pr-1 pl-2">
+          <Badge key={trialRef} variant="secondary" className="gap-1.5 py-1 pr-1 pl-2">
             <MapPin className="size-3 shrink-0" />
             <span className="max-w-[12rem] truncate">{label}</span>
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              aria-label={t('chat.removeFromContext', { nctNumber })}
-              onClick={() => onRemove?.(nctNumber)}
+              aria-label={t('chat.removeFromContext', { trialRef: label })}
+              onClick={() => onRemove?.(trialRef)}
               className="size-4 rounded-full hover:bg-transparent"
             >
               <X className="size-3" />

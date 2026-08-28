@@ -4,8 +4,8 @@ import type { Trial } from '@/types/trial';
 
 const API_BASE = config.apiBaseUrl;
 
-export async function getTrial(nctNumber: string, signal?: AbortSignal): Promise<Trial> {
-  const response = await fetch(`${API_BASE}/trials/${nctNumber}`, { signal });
+export async function getTrial(trialRef: string, signal?: AbortSignal): Promise<Trial> {
+  const response = await fetch(`${API_BASE}/trials/${trialRef}`, { signal });
   if (!response.ok) {
     throw new Error(`Trial request failed with status ${response.status}`);
   }

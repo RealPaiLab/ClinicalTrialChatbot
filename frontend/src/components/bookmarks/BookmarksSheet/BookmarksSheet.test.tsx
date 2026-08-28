@@ -5,8 +5,8 @@ import BookmarksSheet from './BookmarksSheet';
 import { renderWithClient } from '@/test/render';
 import { mockTrials } from '@/test/fixtures/trials';
 
-const fetchTrial = async (nctNumber: string) => {
-  const trial = mockTrials.find((candidate) => candidate.nctNumber === nctNumber);
+const fetchTrial = async (trialRef: string) => {
+  const trial = mockTrials.find((candidate) => candidate.trialRef === trialRef);
   if (!trial) throw new Error('not found');
   return trial;
 };
@@ -17,7 +17,7 @@ describe('BookmarksSheet', () => {
       <BookmarksSheet
         open
         onOpenChange={vi.fn()}
-        bookmarkedNctNumbers={[]}
+        bookmarkedTrialRefs={[]}
         onRemove={vi.fn()}
         onExport={vi.fn()}
         fetchTrial={fetchTrial}
@@ -33,7 +33,7 @@ describe('BookmarksSheet', () => {
       <BookmarksSheet
         open
         onOpenChange={vi.fn()}
-        bookmarkedNctNumbers={['NCT04267848']}
+        bookmarkedTrialRefs={['CTC-4267848A']}
         onRemove={onRemove}
         onExport={vi.fn()}
         fetchTrial={fetchTrial}
@@ -42,7 +42,7 @@ describe('BookmarksSheet', () => {
 
     expect(await screen.findByText(/Immunotherapy for Advanced/i)).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: /remove from saved trials/i }));
-    expect(onRemove).toHaveBeenCalledWith('NCT04267848');
+    expect(onRemove).toHaveBeenCalledWith('CTC-4267848A');
   });
 
   it('exports the loaded trials', async () => {
@@ -51,7 +51,7 @@ describe('BookmarksSheet', () => {
       <BookmarksSheet
         open
         onOpenChange={vi.fn()}
-        bookmarkedNctNumbers={['NCT04267848']}
+        bookmarkedTrialRefs={['CTC-4267848A']}
         onRemove={vi.fn()}
         onExport={onExport}
         fetchTrial={fetchTrial}

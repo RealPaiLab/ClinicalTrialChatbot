@@ -22,7 +22,7 @@ def test_fold_strips_accents() -> None:
 
 
 def test_site_matches_location_is_accent_insensitive() -> None:
-    site = make_orm_trial("NCT-1").sites[0]
+    site = make_orm_trial("CTC-00000001").sites[0]
     assert _site_matches_location(site, ["montreal"]) is True
     assert _site_matches_location(site, ["toronto"]) is False
     assert _site_matches_location(site, []) is True
@@ -37,16 +37,20 @@ def test_split_locations_separates_a_city_province_pair() -> None:
 
 
 def test_site_matches_location_accepts_a_city_province_pair() -> None:
-    london = make_orm_trial("NCT-1", sites=[("London", "Ontario", ())]).sites[0]
-    toronto = make_orm_trial("NCT-1", sites=[("Toronto", "Ontario", ())]).sites[0]
+    london = make_orm_trial("CTC-00000001", sites=[("London", "Ontario", ())]).sites[0]
+    toronto = make_orm_trial("CTC-00000001", sites=[("Toronto", "Ontario", ())]).sites[
+        0
+    ]
 
     assert _site_matches_location(london, ["London, Ontario"]) is True
     assert _site_matches_location(toronto, ["London, Ontario"]) is False
 
 
 def test_site_matches_location_city_and_province_narrow_not_widen() -> None:
-    ottawa = make_orm_trial("NCT-1", sites=[("Ottawa", "Ontario", ())]).sites[0]
-    toronto = make_orm_trial("NCT-1", sites=[("Toronto", "Ontario", ())]).sites[0]
+    ottawa = make_orm_trial("CTC-00000001", sites=[("Ottawa", "Ontario", ())]).sites[0]
+    toronto = make_orm_trial("CTC-00000001", sites=[("Toronto", "Ontario", ())]).sites[
+        0
+    ]
     # naming the parent province alongside the city must not keep the other city
     assert _site_matches_location(ottawa, ["Ottawa", "Ontario"]) is True
     assert _site_matches_location(toronto, ["Ottawa", "Ontario"]) is False
@@ -54,7 +58,7 @@ def test_site_matches_location_city_and_province_narrow_not_widen() -> None:
 
 def test_to_citation_city_and_province_keeps_only_that_city() -> None:
     trial = make_orm_trial(
-        "NCT-1",
+        "CTC-00000001",
         sites=[
             ("Ottawa", "Ontario", ("Breast Cancer",)),
             ("Toronto", "Ontario", ("Breast Cancer",)),
@@ -66,14 +70,14 @@ def test_to_citation_city_and_province_keeps_only_that_city() -> None:
 
 
 def test_site_matches_cancer() -> None:
-    site = make_orm_trial("NCT-1").sites[0]
+    site = make_orm_trial("CTC-00000001").sites[0]
     assert _site_matches_cancer(site, ["breast"]) is True
     assert _site_matches_cancer(site, ["lung"]) is False
     assert _site_matches_cancer(site, []) is True
 
 
 def test_site_matches_status() -> None:
-    site = make_orm_trial("NCT-1").sites[0]
+    site = make_orm_trial("CTC-00000001").sites[0]
     site.state = "recruiting"
     assert _site_matches_status(site, ["recruiting"]) is True
     assert _site_matches_status(site, ["opening_soon"]) is False
@@ -82,7 +86,7 @@ def test_site_matches_status() -> None:
 
 def test_to_citation_keeps_only_matching_status_sites() -> None:
     trial = make_orm_trial(
-        "NCT-1",
+        "CTC-00000001",
         sites=[
             ("Montréal", "Quebec", ("Breast Cancer",)),
             ("Toronto", "Ontario", ("Lung Cancer",)),
@@ -97,7 +101,7 @@ def test_to_citation_keeps_only_matching_status_sites() -> None:
 
 def test_to_citation_keeps_only_matching_sites() -> None:
     trial = make_orm_trial(
-        "NCT-1",
+        "CTC-00000001",
         sites=[
             ("Montréal", "Quebec", ("Breast Cancer",)),
             ("Toronto", "Ontario", ("Lung Cancer",)),
@@ -109,7 +113,7 @@ def test_to_citation_keeps_only_matching_sites() -> None:
 
 
 def test_to_citation_exposes_eligibility_and_treatment_context() -> None:
-    trial = make_orm_trial("NCT-1")
+    trial = make_orm_trial("CTC-00000001")
     citation = _to_citation(trial, [], [])
     assert citation.inclusion_criteria_en
     assert citation.exclusion_criteria_en
@@ -120,39 +124,49 @@ def test_to_citation_exposes_eligibility_and_treatment_context() -> None:
 
 async def test_syntactic_search_drops_trials_with_no_matching_site() -> None:
     trials = [
-        make_orm_trial("NCT-match", sites=[("Montréal", "Quebec", ("Breast Cancer",))]),
-        make_orm_trial("NCT-other", sites=[("Toronto", "Ontario", ("Lung Cancer",))]),
+        make_orm_trial(
+            "CTC-0000MTCH", sites=[("Montréal", "Quebec", ("Breast Cancer",))]
+        ),
+        make_orm_trial(
+            "CTC-0000THER", sites=[("Toronto", "Ontario", ("Lung Cancer",))]
+        ),
     ]
     service = TrialSearchService(cast(Any, FakeSessionFactory(trials)))
     result = await service.syntactic_search(
         TrialFilter(locations=["quebec"], cancer_types=["breast"])
     )
-    assert [c.nct_number for c in result] == ["NCT-match"]
+    assert [c.trial_ref for c in result.trials] == ["CTC-0000MTCH"]
 
 
 async def test_syntactic_search_with_query_keeps_unfiltered_sites() -> None:
-    trial = make_orm_trial("NCT-1", sites=[("Toronto", "Ontario", ("Lung Cancer",))])
+    trial = make_orm_trial(
+        "CTC-00000001", sites=[("Toronto", "Ontario", ("Lung Cancer",))]
+    )
     service = TrialSearchService(cast(Any, FakeSessionFactory([trial])))
     result = await service.syntactic_search(TrialFilter(), query="lung")
-    assert len(result) == 1
-    assert len(result[0].sites) == 1
+    assert len(result.trials) == 1
+    assert len(result.trials[0].sites) == 1
 
 
 async def test_semantic_search_embeds_query_and_maps_citations() -> None:
-    trial = make_orm_trial("NCT-1")
+    trial = make_orm_trial("CTC-00000001")
     embedder = StubEmbedder()
     service = TrialSearchService(
         cast(Any, FakeSessionFactory([trial])), embedder=embedder
     )
     result = await service.semantic_search(TrialFilter(), query="metastatic lung")
     assert embedder.queries == ["metastatic lung"]
-    assert [c.nct_number for c in result] == ["NCT-1"]
+    assert [c.trial_ref for c in result.trials] == ["CTC-00000001"]
 
 
 async def test_semantic_search_drops_trials_with_no_matching_site() -> None:
     trials = [
-        make_orm_trial("NCT-match", sites=[("Montréal", "Quebec", ("Breast Cancer",))]),
-        make_orm_trial("NCT-other", sites=[("Toronto", "Ontario", ("Lung Cancer",))]),
+        make_orm_trial(
+            "CTC-0000MTCH", sites=[("Montréal", "Quebec", ("Breast Cancer",))]
+        ),
+        make_orm_trial(
+            "CTC-0000THER", sites=[("Toronto", "Ontario", ("Lung Cancer",))]
+        ),
     ]
     service = TrialSearchService(
         cast(Any, FakeSessionFactory(trials)), embedder=StubEmbedder()
@@ -160,7 +174,7 @@ async def test_semantic_search_drops_trials_with_no_matching_site() -> None:
     result = await service.semantic_search(
         TrialFilter(locations=["quebec"], cancer_types=["breast"]), query="breast"
     )
-    assert [c.nct_number for c in result] == ["NCT-match"]
+    assert [c.trial_ref for c in result.trials] == ["CTC-0000MTCH"]
 
 
 async def test_semantic_search_without_embedder_raises() -> None:
@@ -170,7 +184,7 @@ async def test_semantic_search_without_embedder_raises() -> None:
 
 
 async def test_semantic_search_provider_override_uses_embedder_for() -> None:
-    trial = make_orm_trial("NCT-1")
+    trial = make_orm_trial("CTC-00000001")
     default = StubEmbedder()
     other = StubEmbedder()
     service = TrialSearchService(

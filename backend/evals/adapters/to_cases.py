@@ -17,7 +17,7 @@ def question_from(turns: list[Turn]) -> str:
 def to_retrieval_case(
     output: AgentEvalOutput, expected: ExpectedOutput
 ) -> RetrievalCase:
-    return RetrievalCase(retrieved=output.retrieved_ncts, relevant=expected.nct_numbers)
+    return RetrievalCase(retrieved=output.retrieved_refs, relevant=expected.trial_refs)
 
 
 def to_generation_case(

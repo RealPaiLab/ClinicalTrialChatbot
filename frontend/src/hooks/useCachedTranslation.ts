@@ -13,9 +13,9 @@ function useTarget(): LanguageCode | null {
   return language === LanguageCode.En || isTourRunning ? null : language;
 }
 
-export function useCachedTrialTranslation(nctNumber: string | null): TrialTranslation | null {
+export function useCachedTrialTranslation(trialRef: string | null): TrialTranslation | null {
   const target = useTarget();
-  const { data } = useQuery(trialTranslationQuery(nctNumber, target, { cachedOnly: true }));
+  const { data } = useQuery(trialTranslationQuery(trialRef, target, { cachedOnly: true }));
   return usableTranslation(data, target);
 }
 
@@ -23,7 +23,7 @@ export function useCachedTrialTranslations(trials: Trial[]): Trial[] {
   const target = useTarget();
   const results = useQueries({
     queries: trials.map((trial) =>
-      trialTranslationQuery(trial.nctNumber, target, { cachedOnly: true })
+      trialTranslationQuery(trial.trialRef, target, { cachedOnly: true })
     ),
   });
 

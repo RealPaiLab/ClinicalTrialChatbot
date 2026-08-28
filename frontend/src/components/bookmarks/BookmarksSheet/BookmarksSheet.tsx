@@ -21,18 +21,18 @@ import type { Trial } from '@/types/trial';
 interface BookmarksSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  bookmarkedNctNumbers: string[];
-  onRemove: (nctNumber: string) => void;
+  bookmarkedTrialRefs: string[];
+  onRemove: (trialRef: string) => void;
   onSelect?: (trial: Trial) => void;
   onExport: (trials: Trial[]) => void;
   isExporting?: boolean;
-  fetchTrial?: (nctNumber: string, signal?: AbortSignal) => Promise<Trial>;
+  fetchTrial?: (trialRef: string, signal?: AbortSignal) => Promise<Trial>;
 }
 
 function BookmarksSheet({
   open,
   onOpenChange,
-  bookmarkedNctNumbers,
+  bookmarkedTrialRefs,
   onRemove,
   onSelect,
   onExport,
@@ -41,9 +41,9 @@ function BookmarksSheet({
 }: BookmarksSheetProps) {
   const { t } = useTranslation();
   const results = useQueries({
-    queries: bookmarkedNctNumbers.map((nctNumber) => ({
-      queryKey: ['trial', nctNumber],
-      queryFn: ({ signal }: { signal: AbortSignal }) => fetchTrial(nctNumber, signal),
+    queries: bookmarkedTrialRefs.map((trialRef) => ({
+      queryKey: ['trial', trialRef],
+      queryFn: ({ signal }: { signal: AbortSignal }) => fetchTrial(trialRef, signal),
       enabled: open,
     })),
   });
@@ -56,7 +56,7 @@ function BookmarksSheet({
   // Rows hand back the trial they render, which may be the translated copy;
   // opening and exporting must both work from the stored English one.
   const english = (trial: Trial) =>
-    loadedTrials.find((loaded) => loaded.nctNumber === trial.nctNumber) ?? trial;
+    loadedTrials.find((loaded) => loaded.trialRef === trial.trialRef) ?? trial;
 
   const handleSelect = (trial: Trial) => {
     onSelect?.(english(trial));
@@ -76,16 +76,16 @@ function BookmarksSheet({
         <SheetHeader className="border-border border-b">
           <SheetTitle>
             {t('bookmarks.title')}
-            {bookmarkedNctNumbers.length > 0 && (
+            {bookmarkedTrialRefs.length > 0 && (
               <span className="text-muted-foreground ml-1.5 font-mono text-sm">
-                {bookmarkedNctNumbers.length}
+                {bookmarkedTrialRefs.length}
               </span>
             )}
           </SheetTitle>
           <SheetDescription>{t('bookmarks.description')}</SheetDescription>
         </SheetHeader>
 
-        {bookmarkedNctNumbers.length === 0 ? (
+        {bookmarkedTrialRefs.length === 0 ? (
           <div className="text-muted-foreground flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center">
             <Bookmark className="size-6" />
             <p className="text-sm">{t('bookmarks.emptyTitle')}</p>
@@ -94,11 +94,11 @@ function BookmarksSheet({
         ) : (
           <ScrollArea className="min-h-0 flex-1">
             <ItemGroup className="divide-border gap-0 divide-y">
-              {bookmarkedNctNumbers.map((nctNumber, index) => (
+              {bookmarkedTrialRefs.map((trialRef, index) => (
                 <BookmarkRow
-                  key={nctNumber}
-                  nctNumber={nctNumber}
-                  trial={rowTrials.find((trial) => trial.nctNumber === nctNumber) ?? null}
+                  key={trialRef}
+                  trialRef={trialRef}
+                  trial={rowTrials.find((trial) => trial.trialRef === trialRef) ?? null}
                   isLoading={results[index]?.isPending}
                   isExporting={isExporting}
                   onSelect={handleSelect}

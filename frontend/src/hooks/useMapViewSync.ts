@@ -23,7 +23,7 @@ interface MapViewSyncOptions {
   loaded: boolean;
   markers: SiteMarker[];
   units: PinUnit[];
-  selectedNctNumber?: string | null;
+  selectedTrialRef?: string | null;
   selectedSiteKey?: string | null;
   initialView: MapView;
 }
@@ -34,7 +34,7 @@ export function useMapViewSync({
   loaded,
   markers,
   units,
-  selectedNctNumber,
+  selectedTrialRef,
   selectedSiteKey,
   initialView,
 }: MapViewSyncOptions) {
@@ -137,8 +137,8 @@ export function useMapViewSync({
 
   useEffect(() => {
     if (!loaded) return;
-    const unit = selectedNctNumber
-      ? findSelectedUnit(units, selectedNctNumber, selectedSiteKey)
+    const unit = selectedTrialRef
+      ? findSelectedUnit(units, selectedTrialRef, selectedSiteKey)
       : null;
     if (!unit) {
       selectedCenterRef.current = null;
@@ -153,5 +153,5 @@ export function useMapViewSync({
       curve: SELECTED_FLY_CURVE,
       essential: true,
     });
-  }, [loaded, selectedNctNumber, selectedSiteKey, units, mapRef]);
+  }, [loaded, selectedTrialRef, selectedSiteKey, units, mapRef]);
 }

@@ -17,26 +17,26 @@ import { ChatRole, CITATION_HREF_PREFIX, DEFINITION_HREF_PREFIX } from '@/consta
 import { linkifyCitations, linkifyDefinitions } from '@/lib/citations';
 import type { ChatMessage, TrialSummary } from '@/types/trial';
 
-type FetchTrial = (nctNumber: string, signal?: AbortSignal) => Promise<TrialSummary>;
+type FetchTrial = (trialRef: string, signal?: AbortSignal) => Promise<TrialSummary>;
 
 interface ChatMessagesProps {
   messages: ChatMessage[];
   sessionId: string;
   fetchTrial: FetchTrial;
-  onCitationClick?: (nctNumber: string) => void;
+  onCitationClick?: (trialRef: string) => void;
   onAskAi?: (text: string) => void;
 }
 
 function createMarkdownComponents(
   fetchTrial: FetchTrial,
-  onCitationClick?: (nctNumber: string) => void
+  onCitationClick?: (trialRef: string) => void
 ): Components {
   return {
     a: ({ href, children }) => {
       if (href?.startsWith(CITATION_HREF_PREFIX)) {
-        const nctNumber = href.slice(CITATION_HREF_PREFIX.length);
+        const trialRef = href.slice(CITATION_HREF_PREFIX.length);
         return (
-          <TrialCitation nctNumber={nctNumber} fetchTrial={fetchTrial} onSelect={onCitationClick} />
+          <TrialCitation trialRef={trialRef} fetchTrial={fetchTrial} onSelect={onCitationClick} />
         );
       }
       if (href?.startsWith(DEFINITION_HREF_PREFIX)) {
@@ -90,9 +90,9 @@ function ChatMessages({
                     </MessageResponse>
                   )}
                 </MessageContent>
-                {message.role === ChatRole.User && message.contextNctNumbers && (
+                {message.role === ChatRole.User && message.contextTrialRefs && (
                   <MessageContextTrials
-                    nctNumbers={message.contextNctNumbers}
+                    trialRefs={message.contextTrialRefs}
                     fetchTrial={fetchTrial}
                     onSelect={onCitationClick}
                   />

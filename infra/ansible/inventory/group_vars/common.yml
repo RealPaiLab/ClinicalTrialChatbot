@@ -32,7 +32,7 @@ translation_provider: google
 embedding_provider: openai
 embedding_model: text-embedding-3-large
 
-restrict_to_province: "Ontario"
+restrict_to_province: ""
 
 docker_add_deploy_user: true
 

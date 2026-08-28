@@ -15,9 +15,8 @@ from agents.clinical_trials.tools import (
     semantic_search,
     syntactic_search,
 )
-from schemas.cancer_types import CancerType
 from schemas.glossary import GlossaryDefinition, GlossarySource
-from schemas.trial import TrialCitation
+from schemas.trial import TrialCitation, TrialFilter
 from tests.factories import (
     StubGlossary,
     StubTrialSearch,
@@ -27,35 +26,51 @@ from tests.factories import (
 
 
 async def test_syntactic_search_records_and_summarizes() -> None:
-    citation = make_citation("NCT-1", cancer=["Breast Cancer"], city="Montréal")
+    citation = make_citation("CTC-00000001", cancer=["Breast Cancer"], city="Montréal")
     deps = AgentDeps(trial_search=StubTrialSearch(results=[citation]))
     ctx = make_run_context(deps)
 
-    hits = await syntactic_search(
+    result = await syntactic_search(
         ctx,
-        SyntacticSearchInput(reasoning="r", cancer_types=[CancerType("Breast Cancer")]),
+        SyntacticSearchInput(reasoning="r", cancer_types=["Breast Cancer"]),
     )
 
-    assert hits[0].nct_number == "NCT-1"
-    assert "Breast Cancer" in hits[0].cancer_types
-    assert "Montréal" in hits[0].cities
-    assert "NCT-1" in deps.fetched_trials
+    assert result.trials[0].trial_ref == "CTC-00000001"
+    assert "Breast Cancer" in result.trials[0].cancer_types
+    assert "Montréal" in result.trials[0].cities
+    assert result.trials[0].treatment_types == ["Immunotherapy"]
+    assert result.trials[0].disease_stages == ["Metastatic"]
+    # the description grounds the summary; criteria stay behind get_trial_details
+    assert result.trials[0].description == "A study of something."
+    assert not hasattr(result.trials[0], "inclusion_criteria_en")
+    assert "CTC-00000001" in deps.fetched_trials
+
+
+async def test_search_reports_how_many_matched_beyond_this_page() -> None:
+    """The count is corpus-wide: it lets the agent say "3 of 40", not just "3"."""
+    search = StubTrialSearch(results=[make_citation("CTC-00000001")], total=40)
+    ctx = make_run_context(AgentDeps(trial_search=search))
+
+    result = await syntactic_search(ctx, SyntacticSearchInput(reasoning="r"))
+
+    assert result.total_matching == 40
+    assert len(result.trials) == 1
 
 
 async def test_duplicate_call_is_rejected_and_still_counts() -> None:
-    deps = AgentDeps(trial_search=StubTrialSearch(results=[make_citation("NCT-1")]))
+    deps = AgentDeps(
+        trial_search=StubTrialSearch(results=[make_citation("CTC-00000001")])
+    )
     ctx = make_run_context(deps)
 
     await syntactic_search(
         ctx,
-        SyntacticSearchInput(reasoning="a", cancer_types=[CancerType("Breast Cancer")]),
+        SyntacticSearchInput(reasoning="a", cancer_types=["Breast Cancer"]),
     )
     with pytest.raises(ModelRetry):
         await syntactic_search(
             ctx,
-            SyntacticSearchInput(
-                reasoning="b", cancer_types=[CancerType("Breast Cancer")]
-            ),
+            SyntacticSearchInput(reasoning="b", cancer_types=["Breast Cancer"]),
         )
 
     assert deps.tool_calls == 2
@@ -68,27 +83,29 @@ def test_search_limit_is_hard_capped_at_ten() -> None:
 
 
 async def test_semantic_search_records_and_summarizes() -> None:
-    citation = make_citation("NCT-1", cancer=["Lung Cancer"])
+    citation = make_citation("CTC-00000001", cancer=["Lung Cancer"])
     search = StubTrialSearch(results=[citation])
     deps = AgentDeps(trial_search=search)
     ctx = make_run_context(deps)
 
-    hits = await semantic_search(
+    result = await semantic_search(
         ctx,
         SemanticSearchInput(
             reasoning="r",
             query="metastatic lung cancer",
-            cancer_types=[CancerType("Lung Cancer")],
+            cancer_types=["Lung Cancer"],
         ),
     )
 
-    assert hits[0].nct_number == "NCT-1"
-    assert "NCT-1" in deps.fetched_trials
+    assert result.trials[0].trial_ref == "CTC-00000001"
+    assert "CTC-00000001" in deps.fetched_trials
     assert ("semantic_search", "metastatic lung cancer") in search.calls
 
 
 async def test_semantic_search_duplicate_call_is_rejected() -> None:
-    deps = AgentDeps(trial_search=StubTrialSearch(results=[make_citation("NCT-1")]))
+    deps = AgentDeps(
+        trial_search=StubTrialSearch(results=[make_citation("CTC-00000001")])
+    )
     ctx = make_run_context(deps)
 
     await semantic_search(ctx, SemanticSearchInput(reasoning="a", query="lung"))
@@ -99,35 +116,37 @@ async def test_semantic_search_duplicate_call_is_rejected() -> None:
 
 
 async def test_same_filters_allowed_across_search_tools() -> None:
-    deps = AgentDeps(trial_search=StubTrialSearch(results=[make_citation("NCT-1")]))
+    deps = AgentDeps(
+        trial_search=StubTrialSearch(results=[make_citation("CTC-00000001")])
+    )
     ctx = make_run_context(deps)
 
     await syntactic_search(
         ctx,
-        SyntacticSearchInput(reasoning="a", cancer_types=[CancerType("Lung Cancer")]),
+        SyntacticSearchInput(reasoning="a", cancer_types=["Lung Cancer"]),
     )
     await semantic_search(
         ctx,
-        SemanticSearchInput(
-            reasoning="b", query="lung", cancer_types=[CancerType("Lung Cancer")]
-        ),
+        SemanticSearchInput(reasoning="b", query="lung", cancer_types=["Lung Cancer"]),
     )
 
     assert deps.tool_calls == 2
 
 
 async def test_query_makes_search_distinct_from_filters_only() -> None:
-    deps = AgentDeps(trial_search=StubTrialSearch(results=[make_citation("NCT-1")]))
+    deps = AgentDeps(
+        trial_search=StubTrialSearch(results=[make_citation("CTC-00000001")])
+    )
     ctx = make_run_context(deps)
 
     await syntactic_search(
         ctx,
-        SyntacticSearchInput(reasoning="a", cancer_types=[CancerType("Breast Cancer")]),
+        SyntacticSearchInput(reasoning="a", cancer_types=["Breast Cancer"]),
     )
     await syntactic_search(
         ctx,
         SyntacticSearchInput(
-            reasoning="a", cancer_types=[CancerType("Breast Cancer")], query="immuno"
+            reasoning="a", cancer_types=["Breast Cancer"], query="immuno"
         ),
     )
 
@@ -153,60 +172,92 @@ async def test_define_term_returns_glossary_definitions() -> None:
 
 
 async def test_get_trial_details_returns_found_only() -> None:
-    citation = make_citation("NCT-3")
-    deps = AgentDeps(trial_search=StubTrialSearch(by_nct={"NCT-3": citation}))
+    citation = make_citation("CTC-00000003")
+    deps = AgentDeps(trial_search=StubTrialSearch(by_ref={"CTC-00000003": citation}))
     ctx = make_run_context(deps)
 
     result = await get_trial_details(
-        ctx, GetTrialDetailsInput(reasoning="r", nct_numbers=["NCT-3", "NCT-x"])
+        ctx,
+        GetTrialDetailsInput(
+            reasoning="r", trial_refs=["CTC-00000003", "CTC-0000000X"]
+        ),
     )
 
-    assert [c.nct_number for c in result] == ["NCT-3"]
-    assert "NCT-3" in deps.fetched_trials
+    assert [c.trial_ref for c in result] == ["CTC-00000003"]
+    assert "CTC-00000003" in deps.fetched_trials
 
 
 def _two_site_trial() -> TrialCitation:
     """The trial as get_by_ncts returns it: every site, unfiltered."""
-    full = make_citation("NCT-4", city="Thunder Bay")
-    full.sites = [*full.sites, *make_citation("NCT-4", city="Toronto").sites]
+    full = make_citation("CTC-00000004", city="Thunder Bay")
+    full.sites = [*full.sites, *make_citation("CTC-00000004", city="Toronto").sites]
     return full
 
 
 async def test_details_keep_the_sites_the_search_narrowed_to() -> None:
     """Details must not re-add cities the patient filtered out: sites are map pins."""
-    searched = make_citation("NCT-4", city="Thunder Bay")
-    deps = AgentDeps(trial_search=StubTrialSearch(by_nct={"NCT-4": _two_site_trial()}))
-    deps.fetched_trials["NCT-4"] = searched
+    searched = make_citation("CTC-00000004", city="Thunder Bay")
+    deps = AgentDeps(
+        trial_search=StubTrialSearch(by_ref={"CTC-00000004": _two_site_trial()})
+    )
+    deps.fetched_trials["CTC-00000004"] = searched
     ctx = make_run_context(deps)
 
     result = await get_trial_details(
-        ctx, GetTrialDetailsInput(reasoning="r", nct_numbers=["NCT-4"])
+        ctx, GetTrialDetailsInput(reasoning="r", trial_refs=["CTC-00000004"])
     )
 
     assert [s.city for s in result[0].sites] == ["Thunder Bay"]
-    assert [s.city for s in deps.fetched_trials["NCT-4"].sites] == ["Thunder Bay"]
+    assert [s.city for s in deps.fetched_trials["CTC-00000004"].sites] == [
+        "Thunder Bay"
+    ]
 
 
 async def test_all_sites_widens_on_request() -> None:
-    searched = make_citation("NCT-4", city="Thunder Bay")
-    deps = AgentDeps(trial_search=StubTrialSearch(by_nct={"NCT-4": _two_site_trial()}))
-    deps.fetched_trials["NCT-4"] = searched
+    searched = make_citation("CTC-00000004", city="Thunder Bay")
+    deps = AgentDeps(
+        trial_search=StubTrialSearch(by_ref={"CTC-00000004": _two_site_trial()})
+    )
+    deps.fetched_trials["CTC-00000004"] = searched
     ctx = make_run_context(deps)
 
     result = await get_trial_details(
         ctx,
-        GetTrialDetailsInput(reasoning="r", nct_numbers=["NCT-4"], all_sites=True),
+        GetTrialDetailsInput(
+            reasoning="r", trial_refs=["CTC-00000004"], all_sites=True
+        ),
     )
 
     assert [s.city for s in result[0].sites] == ["Thunder Bay", "Toronto"]
 
 
 async def test_details_are_unfiltered_for_a_trial_not_seen_before() -> None:
-    deps = AgentDeps(trial_search=StubTrialSearch(by_nct={"NCT-4": _two_site_trial()}))
+    deps = AgentDeps(
+        trial_search=StubTrialSearch(by_ref={"CTC-00000004": _two_site_trial()})
+    )
     ctx = make_run_context(deps)
 
     result = await get_trial_details(
-        ctx, GetTrialDetailsInput(reasoning="r", nct_numbers=["NCT-4"])
+        ctx, GetTrialDetailsInput(reasoning="r", trial_refs=["CTC-00000004"])
     )
 
     assert [s.city for s in result[0].sites] == ["Thunder Bay", "Toronto"]
+
+
+async def test_new_filters_reach_the_trial_filter() -> None:
+    search = StubTrialSearch(results=[make_citation("CTC-00000001")])
+    ctx = make_run_context(AgentDeps(trial_search=search))
+
+    await syntactic_search(
+        ctx,
+        SyntacticSearchInput(
+            reasoning="r",
+            treatment_types=["Immunotherapy"],
+            disease_stages=["Metastatic"],
+        ),
+    )
+
+    _, flt = search.calls[0]
+    assert isinstance(flt, TrialFilter)
+    assert flt.treatment_types == ["Immunotherapy"]
+    assert flt.disease_stages == ["Metastatic"]

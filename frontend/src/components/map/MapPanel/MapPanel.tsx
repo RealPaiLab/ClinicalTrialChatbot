@@ -10,28 +10,29 @@ import TrialCluster from '@/components/map/TrialCluster/TrialCluster';
 import { useClusterDisclosure } from '@/hooks/useClusterDisclosure';
 import { useMapViewSync } from '@/hooks/useMapViewSync';
 import { useTrialPins } from '@/hooks/useTrialPins';
-import { ONTARIO_BOUNDARY, ONTARIO_CENTER } from '@/assets/ontario.geojson';
+import { CANADA_BOUNDARY, CANADA_CENTER } from '@/assets/canada.geojson';
+import { publicTrialId } from '@/lib/trial';
 import { config } from '@/config';
 import type { Trial } from '@/types/trial';
 
 const MAPBOX_TOKEN = config.mapboxToken;
 const LIGHT_STYLE = config.mapboxStyleLight;
 const DARK_STYLE = config.mapboxStyleDark;
-const INITIAL_VIEW = { longitude: ONTARIO_CENTER[0], latitude: ONTARIO_CENTER[1], zoom: 3.9 };
+const INITIAL_VIEW = { longitude: CANADA_CENTER[0], latitude: CANADA_CENTER[1], zoom: 2.5 };
 const MIN_ZOOM = 2;
 const MAX_ZOOM = 16;
 
 interface MapPanelProps {
   trials: Trial[];
-  selectedNctNumber?: string | null;
+  selectedTrialRef?: string | null;
   selectedSiteKey?: string | null;
-  onSelectTrial?: (nctNumber: string, siteKey?: string | null) => void;
+  onSelectTrial?: (trialRef: string, siteKey?: string | null) => void;
   dark?: boolean;
 }
 
 function MapPanel({
   trials,
-  selectedNctNumber,
+  selectedTrialRef,
   selectedSiteKey,
   onSelectTrial,
   dark,
@@ -42,18 +43,14 @@ function MapPanel({
   const [loaded, setLoaded] = useState(false);
 
   const { markers, units } = useTrialPins(trials);
-  const { openKey, toggle, close } = useClusterDisclosure(
-    units,
-    selectedNctNumber,
-    selectedSiteKey
-  );
+  const { openKey, toggle, close } = useClusterDisclosure(units, selectedTrialRef, selectedSiteKey);
   useMapViewSync({
     mapRef,
     containerRef,
     loaded,
     markers,
     units,
-    selectedNctNumber,
+    selectedTrialRef,
     selectedSiteKey,
     initialView: INITIAL_VIEW,
   });
@@ -86,22 +83,22 @@ function MapPanel({
       >
         <NavigationControl position="top-right" showCompass={false} />
 
-        <Source id="ontario" type="geojson" data={ONTARIO_BOUNDARY}>
+        <Source id="canada" type="geojson" data={CANADA_BOUNDARY}>
           <Layer
-            id="ontario-fill"
+            id="canada-fill"
             type="fill"
             paint={{
               'fill-color': dark ? '#7e9ce6' : '#2f3f7b',
-              'fill-opacity': ['interpolate', ['linear'], ['zoom'], 5, dark ? 0.08 : 0.05, 7, 0],
+              'fill-opacity': ['interpolate', ['linear'], ['zoom'], 4, dark ? 0.08 : 0.05, 6, 0],
             }}
           />
           <Layer
-            id="ontario-line"
+            id="canada-line"
             type="line"
             paint={{
               'line-color': dark ? '#7e9ce6' : '#2f3f7b',
               'line-width': 1.5,
-              'line-opacity': ['interpolate', ['linear'], ['zoom'], 5, 0.6, 7, 0],
+              'line-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.6, 6, 0],
             }}
           />
         </Source>
@@ -116,12 +113,12 @@ function MapPanel({
                 latitude={unit.latitude}
                 status={marker.status}
                 selected={
-                  marker.trial.nctNumber === selectedNctNumber &&
+                  marker.trial.trialRef === selectedTrialRef &&
                   (!selectedSiteKey || selectedSiteKey === unit.key)
                 }
-                label={`${marker.site.nameEn} — ${marker.trial.shortTitleEn ?? marker.trial.nctNumber ?? 'trial'}`}
+                label={`${marker.site.nameEn} — ${marker.trial.shortTitleEn ?? publicTrialId(marker.trial) ?? 'trial'}`}
                 onSelect={() => {
-                  if (marker.trial.nctNumber) onSelectTrial?.(marker.trial.nctNumber, unit.key);
+                  if (marker.trial.trialRef) onSelectTrial?.(marker.trial.trialRef, unit.key);
                 }}
               />
             );
@@ -132,19 +129,19 @@ function MapPanel({
               longitude={unit.longitude}
               latitude={unit.latitude}
               locationName={unit.locationName}
-              selectedNctNumber={
-                selectedSiteKey && selectedSiteKey !== unit.key ? null : selectedNctNumber
+              selectedTrialRef={
+                selectedSiteKey && selectedSiteKey !== unit.key ? null : selectedTrialRef
               }
               open={openKey === unit.key}
               onToggle={() => toggle(unit.key)}
               onClose={close}
               onSelectTrial={(nct) => onSelectTrial?.(nct, unit.key)}
               items={unit.items.map((item) => ({
-                nctNumber: item.trial.nctNumber,
+                trialRef: item.trial.trialRef,
                 title:
                   item.trial.shortTitleEn ??
                   item.trial.officialTitleEn ??
-                  item.trial.nctNumber ??
+                  publicTrialId(item.trial) ??
                   'Trial',
                 status: item.status,
               }))}

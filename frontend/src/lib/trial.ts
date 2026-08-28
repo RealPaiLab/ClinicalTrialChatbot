@@ -27,6 +27,16 @@ export function uniqueCancerTypes(trial: Trial): string[] {
   return [...new Set(trial.sites.flatMap((site) => site.cancerTypeNames))];
 }
 
+export function publicTrialId(
+  trial: Pick<Trial, 'nctNumber' | 'acronymOrProtocolId'> | null | undefined
+): string | null {
+  return trial?.nctNumber ?? trial?.acronymOrProtocolId ?? null;
+}
+
+export function formatPhase(phase: string): string {
+  return phase.replace(/phase\s*/i, 'Phase ');
+}
+
 export function formatPhases(phases: string[]): string {
-  return phases.map((phase) => phase.replace(/phase\s*/i, 'Phase ')).join(' / ');
+  return phases.map(formatPhase).join(' / ');
 }

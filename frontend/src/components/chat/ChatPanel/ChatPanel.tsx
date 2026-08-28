@@ -13,13 +13,13 @@ import type { StreamEvent, Trial, TrialSummary } from '@/types/trial';
 
 interface ChatPanelProps {
   onTrialsChange?: (trials: Trial[]) => void;
-  onCitationClick?: (nctNumber: string) => void;
+  onCitationClick?: (trialRef: string) => void;
   onReset?: () => void;
   contextTrials?: Trial[];
-  onRemoveContext?: (nctNumber: string) => void;
+  onRemoveContext?: (trialRef: string) => void;
   onClearContext?: () => void;
   createStream?: (text: string, signal?: AbortSignal) => AsyncGenerator<StreamEvent>;
-  fetchTrial?: (nctNumber: string, signal?: AbortSignal) => Promise<TrialSummary>;
+  fetchTrial?: (trialRef: string, signal?: AbortSignal) => Promise<TrialSummary>;
 }
 
 function ChatPanel({
@@ -46,10 +46,10 @@ function ChatPanel({
   const displayMessages = tourMessages.length > 0 ? tourMessages : messages;
 
   const handleSend = (text: string) => {
-    const contextNctNumbers = contextTrials
-      .map((trial) => trial.nctNumber)
+    const contextTrialRefs = contextTrials
+      .map((trial) => trial.trialRef)
       .filter((nct): nct is string => Boolean(nct));
-    void sendMessage(text, contextNctNumbers);
+    void sendMessage(text, contextTrialRefs);
     onClearContext?.();
   };
 

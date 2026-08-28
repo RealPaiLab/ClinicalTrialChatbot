@@ -109,7 +109,7 @@ export function useChat({
           });
           if (event.data.trials.length > 0) {
             for (const trial of event.data.trials) {
-              if (trial.nctNumber) queryClient.setQueryData(['trial', trial.nctNumber], trial);
+              queryClient.setQueryData(['trial', trial.trialRef], trial);
             }
             onTrialsChange?.(event.data.trials);
           }

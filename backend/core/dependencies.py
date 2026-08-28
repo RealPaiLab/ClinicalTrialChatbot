@@ -16,6 +16,12 @@ from services.conversation_service import ConversationService
 from services.translation_service import TranslationService
 from services.trial_search_service import TrialSearchService
 from services.turnstile_service import TurnstileService
+from services.vocabulary_service import VocabularyService
+
+
+@lru_cache
+def get_vocabulary_service() -> VocabularyService:
+    return VocabularyService(ReadOnlySessionFactory)
 
 
 @lru_cache
@@ -30,6 +36,7 @@ def get_chat_service() -> ChatService:
     return ChatService(
         ConversationService(get_conversation_repository()),
         trial_search=get_trial_search(),
+        vocabulary=get_vocabulary_service(),
     )
 
 
@@ -73,6 +80,11 @@ def get_isolated_trial_search() -> TrialSearchService:
     return TrialSearchService(
         create_isolated_session_factory(), embedder=get_embedder()
     )
+
+
+def get_isolated_vocabulary_service() -> VocabularyService:
+    """Vocabulary on a private pool, for callers running in their own event loop."""
+    return VocabularyService(create_isolated_session_factory())
 
 
 def get_debug_trial_search() -> TrialSearchService:

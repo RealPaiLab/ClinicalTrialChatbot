@@ -13,9 +13,9 @@ import type { Trial } from '@/types/trial';
 interface TrialSummaryPanelProps {
   trial: Trial | null;
   onClose?: () => void;
-  onAddToContext?: (nctNumber: string) => void;
+  onAddToContext?: (trialRef: string) => void;
   isInContext?: boolean;
-  onToggleBookmark?: (nctNumber: string) => void;
+  onToggleBookmark?: (trialRef: string) => void;
   isBookmarked?: boolean;
 }
 

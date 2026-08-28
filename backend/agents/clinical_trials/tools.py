@@ -15,10 +15,11 @@ from agents.clinical_trials.tool_schemas import (
     SemanticSearchInput,
     SyntacticSearchInput,
     TrialSearchHit,
+    TrialSearchResult,
 )
 from core.config import get_settings
 from schemas.glossary import GlossaryDefinition
-from schemas.trial import TrialCitation, TrialFilter
+from schemas.trial import TrialCitation, TrialFilter, TrialSearchPage
 
 observed = observe(
     capture_input=get_settings().capture_patient_text,
@@ -26,34 +27,36 @@ observed = observe(
 )
 
 
-def _record(
-    ctx: RunContext[AgentDeps], citations: list[TrialCitation]
-) -> list[TrialSearchHit]:
+def _record(ctx: RunContext[AgentDeps], page: TrialSearchPage) -> TrialSearchResult:
+    citations = page.trials
     hits: list[TrialSearchHit] = []
     for c in citations:
-        if c.nct_number:
-            ctx.deps.fetched_trials[c.nct_number] = c
+        ctx.deps.fetched_trials[c.trial_ref] = c
         hits.append(
             TrialSearchHit(
+                trial_ref=c.trial_ref,
                 nct_number=c.nct_number,
                 title=c.short_title_en or c.official_title_en,
+                description=c.description_en,
                 cancer_types=sorted(
                     {ct for s in c.sites for ct in s.cancer_type_names}
                 ),
+                treatment_types=c.treatment_type_names,
+                disease_stages=c.disease_stages,
                 phases=c.phases,
                 cities=sorted({s.city for s in c.sites if s.city}),
                 provinces=sorted({s.province for s in c.sites if s.province}),
                 recruiting_statuses=sorted({s.state for s in c.sites if s.state}),
             )
         )
-    return hits
+    return TrialSearchResult(total_matching=page.total, trials=hits)
 
 
 @observed
 @guarded
 async def syntactic_search(
     ctx: RunContext[AgentDeps], args: SyntacticSearchInput
-) -> list[TrialSearchHit]:
+) -> TrialSearchResult:
     """Search clinical trials by structured filters, optionally narrowed by free text.
 
     Values within one field are OR'd and fields are AND'd, so you may pass several
@@ -62,22 +65,24 @@ async def syntactic_search(
     surgery"); it searches only within trials that already match the filters.
     """
     flt = TrialFilter(
-        cancer_types=[c.value for c in args.cancer_types],
+        cancer_types=args.cancer_types,
         locations=args.locations,
         statuses=args.statuses,
         phases=args.phases,
+        treatment_types=args.treatment_types,
+        disease_stages=args.disease_stages,
     )
-    citations = await ctx.deps.trial_search.syntactic_search(
+    page = await ctx.deps.trial_search.syntactic_search(
         flt, query=args.query, limit=args.limit, offset=args.offset
     )
-    return _record(ctx, citations)
+    return _record(ctx, page)
 
 
 @observed
 @guarded
 async def semantic_search(
     ctx: RunContext[AgentDeps], args: SemanticSearchInput
-) -> list[TrialSearchHit]:
+) -> TrialSearchResult:
     """Search clinical trials by meaning, ranked by fit to the patient's situation.
 
     Use when the match depends on soft clinical fit the structured filters cannot
@@ -89,22 +94,24 @@ async def semantic_search(
     rather than rephrasing the same query.
     """
     flt = TrialFilter(
-        cancer_types=[c.value for c in args.cancer_types],
+        cancer_types=args.cancer_types,
         locations=args.locations,
         statuses=args.statuses,
         phases=args.phases,
+        treatment_types=args.treatment_types,
+        disease_stages=args.disease_stages,
     )
-    citations = await ctx.deps.trial_search.semantic_search(
+    page = await ctx.deps.trial_search.semantic_search(
         flt, query=args.query, limit=args.limit
     )
-    return _record(ctx, citations)
+    return _record(ctx, page)
 
 
 def _keep_narrowed_sites(
     ctx: RunContext[AgentDeps], citation: TrialCitation
 ) -> TrialCitation:
     """Re-apply the site list a search already narrowed for this trial."""
-    known = ctx.deps.fetched_trials.get(citation.nct_number or "")
+    known = ctx.deps.fetched_trials.get(citation.trial_ref)
     if known is None or not known.sites:
         return citation
     return citation.model_copy(update={"sites": known.sites})
@@ -115,19 +122,18 @@ def _keep_narrowed_sites(
 async def get_trial_details(
     ctx: RunContext[AgentDeps], args: GetTrialDetailsInput
 ) -> list[TrialCitation]:
-    """Fetch full details for one or more trials by NCT number.
+    """Fetch full details for one or more trials by ref.
 
-    Use when the patient wants to go deeper on specific trials; pass every NCT
-    number you need in one call. Returns only the trials that were found. Keeps
+    Use when the patient wants to go deeper on specific trials; pass every ref
+    you need in one call. Returns only the trials that were found. Keeps
     whatever locations the search was narrowed to; set `all_sites` only when the
     patient asks where else a trial runs.
     """
-    citations = await ctx.deps.trial_search.get_by_ncts(args.nct_numbers)
+    citations = await ctx.deps.trial_search.get_by_refs(args.trial_refs)
     if not args.all_sites:
         citations = [_keep_narrowed_sites(ctx, c) for c in citations]
     for citation in citations:
-        if citation.nct_number:
-            ctx.deps.fetched_trials[citation.nct_number] = citation
+        ctx.deps.fetched_trials[citation.trial_ref] = citation
     return citations
 
 

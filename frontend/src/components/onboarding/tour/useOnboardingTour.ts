@@ -22,15 +22,15 @@ export function useOnboardingTour() {
 
       const snapshot = {
         trials: store.trials,
-        selectedNctNumber: store.selectedNctNumber,
+        selectedTrialRef: store.selectedTrialRef,
         selectedSiteKey: store.selectedSiteKey,
-        contextNctNumbers: store.contextNctNumbers,
+        contextTrialRefs: store.contextTrialRefs,
         tourMessages: store.tourMessages,
       };
       const isDark = store.theme === 'dark';
 
       DEMO_TRIALS.forEach((trial) => {
-        if (trial.nctNumber) queryClient.setQueryData(['trial', trial.nctNumber], trial);
+        if (trial.trialRef) queryClient.setQueryData(['trial', trial.trialRef], trial);
       });
       store.setTourMessages(DEMO_MESSAGES);
 
@@ -39,11 +39,11 @@ export function useOnboardingTour() {
         const current = useAppStore.getState();
         current.setTourMessages(snapshot.tourMessages);
         current.setTrials(snapshot.trials);
-        current.selectTrial(snapshot.selectedNctNumber, snapshot.selectedSiteKey);
+        current.selectTrial(snapshot.selectedTrialRef, snapshot.selectedSiteKey);
         current.clearContext();
-        snapshot.contextNctNumbers.forEach((nct) => current.addToContext(nct));
+        snapshot.contextTrialRefs.forEach((nct) => current.addToContext(nct));
         DEMO_TRIALS.forEach((trial) => {
-          if (trial.nctNumber) queryClient.removeQueries({ queryKey: ['trial', trial.nctNumber] });
+          if (trial.trialRef) queryClient.removeQueries({ queryKey: ['trial', trial.trialRef] });
         });
       };
 

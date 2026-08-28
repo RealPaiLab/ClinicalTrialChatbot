@@ -28,9 +28,7 @@ def build_service(
 ) -> tuple[TranslationService, StubTranslationProvider, FakeRedis]:
     stub = provider or StubTranslationProvider()
     fake_redis = redis or FakeRedis()
-    trials = StubTrialSearch(
-        by_nct={trial.nct_number: trial} if trial and trial.nct_number else {}
-    )
+    trials = StubTrialSearch(by_ref={trial.trial_ref: trial} if trial else {})
     service = TranslationService(
         trials,
         provider_factory=lambda: cast(Any, stub),
@@ -42,13 +40,13 @@ def build_service(
 @pytest.mark.asyncio
 async def test_unknown_trial_returns_none() -> None:
     service, _, _ = build_service(None)
-    assert await service.translate_trial("NCT-missing", Language.FR_CA) is None
+    assert await service.translate_trial("CTC-M15S1NGX", Language.FR_CA) is None
 
 
 @pytest.mark.asyncio
 async def test_english_returns_stored_text_without_provider() -> None:
-    service, provider, _ = build_service(make_citation("NCT-1"))
-    result = await service.translate_trial("NCT-1", Language.EN)
+    service, provider, _ = build_service(make_citation("CTC-00000001"))
+    result = await service.translate_trial("CTC-00000001", Language.EN)
     assert result is not None
     assert result.short_title == "A trial"
     assert result.source is TranslationSource.OFFICIAL
@@ -57,8 +55,8 @@ async def test_english_returns_stored_text_without_provider() -> None:
 
 @pytest.mark.asyncio
 async def test_other_language_machine_translates_narrative_and_vocabulary() -> None:
-    service, _, _ = build_service(make_citation("NCT-1"))
-    result = await service.translate_trial("NCT-1", Language.DE)
+    service, _, _ = build_service(make_citation("CTC-00000001"))
+    result = await service.translate_trial("CTC-00000001", Language.DE)
 
     assert result is not None
     assert result.source is TranslationSource.MACHINE
@@ -70,12 +68,12 @@ async def test_other_language_machine_translates_narrative_and_vocabulary() -> N
 @pytest.mark.asyncio
 async def test_second_request_is_served_from_cache() -> None:
     redis = FakeRedis()
-    service, provider, _ = build_service(make_citation("NCT-1"), redis=redis)
-    first = await service.translate_trial("NCT-1", Language.ES)
+    service, provider, _ = build_service(make_citation("CTC-00000001"), redis=redis)
+    first = await service.translate_trial("CTC-00000001", Language.ES)
     calls_after_first = len(provider.batches)
 
-    service2, provider2, _ = build_service(make_citation("NCT-1"), redis=redis)
-    second = await service2.translate_trial("NCT-1", Language.ES)
+    service2, provider2, _ = build_service(make_citation("CTC-00000001"), redis=redis)
+    second = await service2.translate_trial("CTC-00000001", Language.ES)
 
     # Cold: narrative and vocabulary are fetched separately, so two calls.
     # Warm is what matters: the repeat costs nothing.
@@ -87,11 +85,11 @@ async def test_second_request_is_served_from_cache() -> None:
 @pytest.mark.asyncio
 async def test_cache_is_keyed_per_language() -> None:
     redis = FakeRedis()
-    service, _, _ = build_service(make_citation("NCT-1"), redis=redis)
-    await service.translate_trial("NCT-1", Language.ES)
+    service, _, _ = build_service(make_citation("CTC-00000001"), redis=redis)
+    await service.translate_trial("CTC-00000001", Language.ES)
 
-    service2, provider2, _ = build_service(make_citation("NCT-1"), redis=redis)
-    result = await service2.translate_trial("NCT-1", Language.HI)
+    service2, provider2, _ = build_service(make_citation("CTC-00000001"), redis=redis)
+    result = await service2.translate_trial("CTC-00000001", Language.HI)
 
     assert result is not None
     assert result.short_title == "[hi] A trial"
@@ -101,9 +99,9 @@ async def test_cache_is_keyed_per_language() -> None:
 @pytest.mark.asyncio
 async def test_redis_failure_still_translates() -> None:
     service, provider, _ = build_service(
-        make_citation("NCT-1"), redis=FakeRedis(fail=True)
+        make_citation("CTC-00000001"), redis=FakeRedis(fail=True)
     )
-    result = await service.translate_trial("NCT-1", Language.ES)
+    result = await service.translate_trial("CTC-00000001", Language.ES)
 
     assert result is not None
     assert result.source is TranslationSource.MACHINE
@@ -119,16 +117,16 @@ async def test_english_works_when_the_provider_cannot_even_be_built() -> None:
         raise ValueError("google_project_id is required for the google provider")
 
     service = TranslationService(
-        StubTrialSearch(by_nct={"NCT-1": make_citation("NCT-1")}),
+        StubTrialSearch(by_ref={"CTC-00000001": make_citation("CTC-00000001")}),
         provider_factory=explode,
         cache=TranslationCache(cast(Any, FakeRedis()), ttl_seconds=60),
     )
 
-    english = await service.translate_trial("NCT-1", Language.EN)
+    english = await service.translate_trial("CTC-00000001", Language.EN)
     assert english is not None
     assert english.short_title == "A trial"
 
-    german = await service.translate_trial("NCT-1", Language.DE)
+    german = await service.translate_trial("CTC-00000001", Language.DE)
     assert german is not None
     assert german.source is TranslationSource.UNAVAILABLE
 
@@ -136,9 +134,9 @@ async def test_english_works_when_the_provider_cannot_even_be_built() -> None:
 @pytest.mark.asyncio
 async def test_provider_failure_degrades_to_english() -> None:
     service, _, _ = build_service(
-        make_citation("NCT-1"), provider=StubTranslationProvider(fail=True)
+        make_citation("CTC-00000001"), provider=StubTranslationProvider(fail=True)
     )
-    result = await service.translate_trial("NCT-1", Language.ES)
+    result = await service.translate_trial("CTC-00000001", Language.ES)
 
     assert result is not None
     assert result.source is TranslationSource.UNAVAILABLE
@@ -149,11 +147,11 @@ async def test_provider_failure_degrades_to_english() -> None:
 @pytest.mark.asyncio
 async def test_identical_text_across_trials_shares_one_cache_entry() -> None:
     redis = FakeRedis()
-    service, provider, _ = build_service(make_citation("NCT-1"), redis=redis)
-    await service.translate_trial("NCT-1", Language.ES)
+    service, provider, _ = build_service(make_citation("CTC-00000001"), redis=redis)
+    await service.translate_trial("CTC-00000001", Language.ES)
 
-    service2, provider2, _ = build_service(make_citation("NCT-2"), redis=redis)
-    await service2.translate_trial("NCT-2", Language.ES)
+    service2, provider2, _ = build_service(make_citation("CTC-00000002"), redis=redis)
+    await service2.translate_trial("CTC-00000002", Language.ES)
 
     assert provider2.batches == []
 
@@ -161,11 +159,13 @@ async def test_identical_text_across_trials_shares_one_cache_entry() -> None:
 @pytest.mark.asyncio
 async def test_cached_only_serves_a_translation_someone_already_paid_for() -> None:
     redis = FakeRedis()
-    service, _, _ = build_service(make_citation("NCT-1"), redis=redis)
-    await service.translate_trial("NCT-1", Language.ES)
+    service, _, _ = build_service(make_citation("CTC-00000001"), redis=redis)
+    await service.translate_trial("CTC-00000001", Language.ES)
 
-    service2, provider2, _ = build_service(make_citation("NCT-1"), redis=redis)
-    result = await service2.translate_trial("NCT-1", Language.ES, cached_only=True)
+    service2, provider2, _ = build_service(make_citation("CTC-00000001"), redis=redis)
+    result = await service2.translate_trial(
+        "CTC-00000001", Language.ES, cached_only=True
+    )
 
     assert result is not None
     assert result.short_title == "[es] A trial"
@@ -174,8 +174,10 @@ async def test_cached_only_serves_a_translation_someone_already_paid_for() -> No
 
 @pytest.mark.asyncio
 async def test_cached_only_keeps_english_instead_of_translating() -> None:
-    service, provider, _ = build_service(make_citation("NCT-1"))
-    result = await service.translate_trial("NCT-1", Language.ES, cached_only=True)
+    service, provider, _ = build_service(make_citation("CTC-00000001"))
+    result = await service.translate_trial(
+        "CTC-00000001", Language.ES, cached_only=True
+    )
 
     assert result is not None
     assert result.source is TranslationSource.UNAVAILABLE
@@ -188,15 +190,17 @@ async def test_cached_only_keeps_english_instead_of_translating() -> None:
 async def test_a_half_cached_field_stays_english_rather_than_mixing() -> None:
     """Filling the gaps from English would switch language mid-paragraph."""
     redis = FakeRedis()
-    trial = make_citation("NCT-1")
+    trial = make_citation("CTC-00000001")
     trial.inclusion_criteria_en = "Adults with the condition.\nSecond requirement."
     service, _, _ = build_service(trial, redis=redis)
-    await service.translate_trial("NCT-1", Language.ES)
+    await service.translate_trial("CTC-00000001", Language.ES)
 
-    partial = make_citation("NCT-1")
+    partial = make_citation("CTC-00000001")
     partial.inclusion_criteria_en = "Adults with the condition.\nA brand new line."
     service2, provider2, _ = build_service(partial, redis=redis)
-    result = await service2.translate_trial("NCT-1", Language.ES, cached_only=True)
+    result = await service2.translate_trial(
+        "CTC-00000001", Language.ES, cached_only=True
+    )
 
     assert result is not None
     assert result.inclusion_criteria == partial.inclusion_criteria_en

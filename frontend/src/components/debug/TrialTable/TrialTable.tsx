@@ -134,7 +134,7 @@ function TrialTable({ trials }: TrialTableProps) {
       </TableHeader>
       <TableBody>
         {trials.map((trial, index) => {
-          const nct = trial.nctNumber ?? `row-${index}`;
+          const nct = trial.trialRef ?? `row-${index}`;
           const isOpen = expanded.has(nct);
           return (
             <Fragment key={nct}>
@@ -151,7 +151,7 @@ function TrialTable({ trials }: TrialTableProps) {
                     )}
                   />
                 </TableCell>
-                <TableCell className="font-mono text-xs">{trial.nctNumber ?? '—'}</TableCell>
+                <TableCell className="font-mono text-xs">{trial.trialRef ?? '—'}</TableCell>
                 <TableCell className="max-w-[22rem] whitespace-normal">
                   {trial.shortTitleEn ?? trial.officialTitleEn ?? '—'}
                 </TableCell>

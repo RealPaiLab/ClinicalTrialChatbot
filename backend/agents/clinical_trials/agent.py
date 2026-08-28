@@ -8,7 +8,11 @@ from pydantic_ai import Agent, RunContext
 from pydantic_ai.toolsets import FunctionToolset
 
 from agents.clinical_trials.dependencies import AgentDeps
-from agents.clinical_trials.guards import enforce_citations, tools_available
+from agents.clinical_trials.guards import (
+    enforce_citations,
+    inject_vocabulary,
+    tools_available,
+)
 from agents.clinical_trials.memory import render_memory
 from agents.clinical_trials.output import AgentResponse
 from agents.clinical_trials.prompts import get_clinical_trials_prompt
@@ -17,7 +21,6 @@ from agents.clinical_trials.tools import (
     get_trial_details,
     remember,
     semantic_search,
-    syntactic_search,
 )
 from core.config import get_settings
 from core.llm import get_llm
@@ -26,9 +29,19 @@ from core.llm import get_llm
 @lru_cache
 def get_clinical_trials_agent() -> Agent[AgentDeps, AgentResponse]:
     """Build the cached clinical-trials agent."""
-    toolset = FunctionToolset[AgentDeps](
-        [syntactic_search, semantic_search, get_trial_details, define_term, remember]
-    ).filtered(tools_available)
+    # `syntactic_search` is deliberately not registere
+    toolset = (
+        FunctionToolset[AgentDeps](
+            [
+                semantic_search,
+                get_trial_details,
+                define_term,
+                remember,
+            ]
+        )
+        .filtered(tools_available)
+        .prepared(inject_vocabulary)
+    )
     agent = Agent(
         get_llm(),
         deps_type=AgentDeps,

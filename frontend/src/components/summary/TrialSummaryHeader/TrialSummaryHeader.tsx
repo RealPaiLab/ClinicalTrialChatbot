@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import TrialTitle from '@/components/summary/TrialTitle/TrialTitle';
 import { useAppLanguage } from '@/hooks/useAppLanguage';
+import { publicTrialId } from '@/lib/trial';
 import type { Trial } from '@/types/trial';
 
 const TRIAL_URL_BASE = 'https://www.cancertrialscanada.ca/trial/';
@@ -11,9 +12,9 @@ const TRIAL_URL_BASE = 'https://www.cancertrialscanada.ca/trial/';
 interface TrialSummaryHeaderProps {
   trial: Trial;
   onClose?: () => void;
-  onAddToContext?: (nctNumber: string) => void;
+  onAddToContext?: (trialRef: string) => void;
   isInContext?: boolean;
-  onToggleBookmark?: (nctNumber: string) => void;
+  onToggleBookmark?: (trialRef: string) => void;
   isBookmarked?: boolean;
 }
 
@@ -27,7 +28,7 @@ function TrialSummaryHeader({
 }: TrialSummaryHeaderProps) {
   const { t } = useTranslation();
   const { language } = useAppLanguage();
-  const title = trial.officialTitleEn ?? trial.shortTitleEn ?? trial.nctNumber ?? 'Trial';
+  const title = trial.officialTitleEn ?? trial.shortTitleEn ?? publicTrialId(trial) ?? 'Trial';
   const trialUrl = trial.acronymOrProtocolId
     ? `${TRIAL_URL_BASE}${encodeURIComponent(trial.acronymOrProtocolId)}`
     : null;
@@ -35,13 +36,13 @@ function TrialSummaryHeader({
   return (
     <div className="border-border flex items-start justify-between gap-3 border-b p-4">
       <div className="flex min-w-0 flex-col gap-1">
-        {trial.nctNumber && (
-          <span className="text-eyebrow text-primary font-mono">{trial.nctNumber}</span>
+        {publicTrialId(trial) && (
+          <span className="text-eyebrow text-primary font-mono">{publicTrialId(trial)}</span>
         )}
         <TrialTitle key={title} title={title} lang={language} />
       </div>
       <div className="flex shrink-0 items-center gap-1">
-        {onAddToContext && trial.nctNumber && (
+        {onAddToContext && trial.trialRef && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -51,7 +52,7 @@ function TrialSummaryHeader({
                   data-tour="add-context"
                   aria-label={isInContext ? t('summary.addedToChat') : t('summary.askAbout')}
                   disabled={isInContext}
-                  onClick={() => onAddToContext(trial.nctNumber as string)}
+                  onClick={() => onAddToContext(trial.trialRef as string)}
                 >
                   {isInContext ? <Check className="text-recruiting" /> : <Sparkles />}
                 </Button>
@@ -62,7 +63,7 @@ function TrialSummaryHeader({
             </Tooltip>
           </TooltipProvider>
         )}
-        {onToggleBookmark && trial.nctNumber && (
+        {onToggleBookmark && trial.trialRef && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -71,7 +72,7 @@ function TrialSummaryHeader({
                   size="icon"
                   data-tour="bookmark"
                   aria-label={isBookmarked ? t('bookmarks.remove') : t('bookmarks.add')}
-                  onClick={() => onToggleBookmark(trial.nctNumber as string)}
+                  onClick={() => onToggleBookmark(trial.trialRef as string)}
                 >
                   {isBookmarked ? <BookmarkCheck className="text-primary" /> : <Bookmark />}
                 </Button>

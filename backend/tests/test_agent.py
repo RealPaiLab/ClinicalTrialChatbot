@@ -11,7 +11,7 @@ from agents.clinical_trials.agent import get_clinical_trials_agent
 from agents.clinical_trials.dependencies import AgentDeps
 from agents.clinical_trials.guards import (
     MEMORY_CALLS_LIMIT,
-    conversation_nct_numbers,
+    conversation_trial_refs,
     prefetch_referenced_trials,
 )
 from agents.clinical_trials.memory import render_memory
@@ -28,11 +28,13 @@ from tests.factories import (
 
 
 async def test_prefetch_injects_verified_data_for_existing_trial() -> None:
-    citation = make_citation("NCT06115499", title="Pancreatic study")
-    deps = AgentDeps(trial_search=StubTrialSearch(by_nct={"NCT06115499": citation}))
+    citation = make_citation(
+        "CTC-PANC0001", nct="NCT06115499", title="Pancreatic study"
+    )
+    deps = AgentDeps(trial_search=StubTrialSearch(by_ref={"CTC-PANC0001": citation}))
     await prefetch_referenced_trials(deps, "tell me about nct06115499")
 
-    assert "NCT06115499" in deps.fetched_trials
+    assert "CTC-PANC0001" in deps.fetched_trials
     assert deps.refusal_directive is None
     context = deps.verified_context or ""
     assert "NCT06115499" in context
@@ -40,22 +42,28 @@ async def test_prefetch_injects_verified_data_for_existing_trial() -> None:
 
 
 async def test_prefetch_keeps_every_site_when_no_place_is_named() -> None:
-    citation = make_citation("NCT06115499", city="Thunder Bay")
-    citation.sites = [*citation.sites, *make_citation("x", city="Toronto").sites]
-    deps = AgentDeps(trial_search=StubTrialSearch(by_nct={"NCT06115499": citation}))
+    citation = make_citation("CTC-PANC0001", nct="NCT06115499", city="Thunder Bay")
+    citation.sites = [
+        *citation.sites,
+        *make_citation("CTC-0000000X", city="Toronto").sites,
+    ]
+    deps = AgentDeps(trial_search=StubTrialSearch(by_ref={"CTC-PANC0001": citation}))
     await prefetch_referenced_trials(deps, "tell me about NCT06115499")
 
-    sites = deps.fetched_trials["NCT06115499"].sites
+    sites = deps.fetched_trials["CTC-PANC0001"].sites
     assert [s.city for s in sites] == ["Thunder Bay", "Toronto"]
 
 
 async def test_prefetch_narrows_to_the_place_the_patient_named() -> None:
-    citation = make_citation("NCT06115499", city="Thunder Bay")
-    citation.sites = [*citation.sites, *make_citation("x", city="Toronto").sites]
-    deps = AgentDeps(trial_search=StubTrialSearch(by_nct={"NCT06115499": citation}))
+    citation = make_citation("CTC-PANC0001", nct="NCT06115499", city="Thunder Bay")
+    citation.sites = [
+        *citation.sites,
+        *make_citation("CTC-0000000X", city="Toronto").sites,
+    ]
+    deps = AgentDeps(trial_search=StubTrialSearch(by_ref={"CTC-PANC0001": citation}))
     await prefetch_referenced_trials(deps, "is NCT06115499 running in thunder bay?")
 
-    sites = deps.fetched_trials["NCT06115499"].sites
+    sites = deps.fetched_trials["CTC-PANC0001"].sites
     assert [s.city for s in sites] == ["Thunder Bay"]
     assert "Toronto" not in (deps.verified_context or "")
 
@@ -74,17 +82,17 @@ async def test_prefetch_refuses_when_named_trial_missing() -> None:
 
 
 async def test_agent_strips_uncited_nct_numbers() -> None:
-    citation = make_citation("NCT01111111")
+    citation = make_citation("CTC-11111111")
     deps = AgentDeps(
         trial_search=StubTrialSearch(
-            results=[citation], by_nct={"NCT01111111": citation}
+            results=[citation], by_ref={"CTC-11111111": citation}
         )
     )
     agent = get_clinical_trials_agent()
     model = make_test_model(
         output={
-            "message": "see [NCT01111111]",
-            "used_nct_numbers": ["NCT01111111", "NCT02222222"],
+            "message": "see [CTC-11111111]",
+            "used_trial_refs": ["CTC-11111111", "CTC-22222222"],
             "follow_up_questions": [],
         }
     )
@@ -92,57 +100,57 @@ async def test_agent_strips_uncited_nct_numbers() -> None:
         result = await agent.run("breast cancer", deps=deps)
 
     assert isinstance(result.output, AgentResponse)
-    assert result.output.used_nct_numbers == ["NCT01111111"]
+    assert result.output.used_trial_refs == ["CTC-11111111"]
 
 
 async def test_agent_drops_fetched_but_unmentioned_nct_numbers() -> None:
     """A fetched trial the reply never names must not reach the map."""
-    citation = make_citation("NCT01111111")
+    citation = make_citation("CTC-11111111")
     deps = AgentDeps(
         trial_search=StubTrialSearch(
-            results=[citation], by_nct={"NCT01111111": citation}
+            results=[citation], by_ref={"CTC-11111111": citation}
         )
     )
-    deps.fetched_trials["NCT01111111"] = citation
+    deps.fetched_trials["CTC-11111111"] = citation
     agent = get_clinical_trials_agent()
     model = make_test_model(
         output={
             "message": "Do you know the subtype or the stage?",
-            "used_nct_numbers": ["NCT01111111"],
+            "used_trial_refs": ["CTC-11111111"],
             "follow_up_questions": [],
         }
     )
     with agent.override(model=model):
         result = await agent.run("i have lung cancer", deps=deps)
 
-    assert result.output.used_nct_numbers == []
+    assert result.output.used_trial_refs == []
 
 
 async def test_agent_keeps_nct_surfaced_in_an_earlier_turn() -> None:
     """A trial an earlier turn's search returned is remembered, not hallucinated."""
-    citation = make_citation("NCT01111111")
+    citation = make_citation("CTC-11111111")
     deps = AgentDeps(
-        trial_search=StubTrialSearch(by_nct={"NCT01111111": citation}),
-        known_ncts={"NCT02222222"},
+        trial_search=StubTrialSearch(by_ref={"CTC-11111111": citation}),
+        known_refs={"CTC-22222222"},
     )
-    deps.fetched_trials["NCT01111111"] = citation
+    deps.fetched_trials["CTC-11111111"] = citation
     agent = get_clinical_trials_agent()
     model = make_test_model(
         output={
-            "message": "Here is [NCT01111111]; I can compare it with [NCT02222222].",
-            "used_nct_numbers": ["NCT01111111", "NCT02222222"],
+            "message": "Here is [CTC-11111111]; I can compare it with [CTC-22222222].",
+            "used_trial_refs": ["CTC-11111111", "CTC-22222222"],
             "follow_up_questions": [],
         }
     )
     with agent.override(model=model):
         result = await agent.run("tell me more", deps=deps)
 
-    assert "NCT02222222" in result.output.message
+    assert "CTC-22222222" in result.output.message
     # remembered, so the reply stands, but only this turn's fetch reaches the map
-    assert result.output.used_nct_numbers == ["NCT01111111"]
+    assert result.output.used_trial_refs == ["CTC-11111111"]
 
 
-def test_conversation_nct_numbers_reads_tool_returns() -> None:
+def test_conversation_trial_refs_reads_tool_returns() -> None:
     history: list[ModelMessage] = [
         ModelRequest(parts=[UserPromptPart(content="breast cancer in Toronto")]),
         ModelResponse(parts=[TextPart(content="Here are two options.")]),
@@ -150,14 +158,14 @@ def test_conversation_nct_numbers_reads_tool_returns() -> None:
             parts=[
                 ToolReturnPart(
                     tool_name="semantic_search",
-                    content=[make_citation("NCT03333333")],
+                    content=[make_citation("CTC-33333333")],
                     tool_call_id="c1",
                 )
             ]
         ),
     ]
 
-    assert conversation_nct_numbers(history) == {"NCT03333333"}
+    assert conversation_trial_refs(history) == {"CTC-33333333"}
 
 
 async def test_agent_scrubs_unverified_nct_from_message() -> None:
@@ -165,25 +173,25 @@ async def test_agent_scrubs_unverified_nct_from_message() -> None:
     agent = get_clinical_trials_agent()
     model = make_test_model(
         output={
-            "message": "After progression, [NCT09999999] likely helps.",
-            "used_nct_numbers": ["NCT09999999"],
+            "message": "After progression, [CTC-99999999] likely helps.",
+            "used_trial_refs": ["CTC-99999999"],
             "follow_up_questions": [],
         }
     )
     with agent.override(model=model):
         result = await agent.run("proofread this", deps=deps)
 
-    assert "NCT09999999" not in result.output.message
+    assert "CTC-99999999" not in result.output.message
     assert "rephrase" in result.output.message
-    assert result.output.used_nct_numbers == []
-    assert deps.hallucinated_ncts == ["NCT09999999"]
+    assert result.output.used_trial_refs == []
+    assert deps.hallucinated_refs == ["CTC-99999999"]
 
 
 async def test_agent_registers_expected_tools() -> None:
     deps = AgentDeps(trial_search=StubTrialSearch())
     agent = get_clinical_trials_agent()
     model = make_test_model(
-        output={"message": "x", "used_nct_numbers": [], "follow_up_questions": []}
+        output={"message": "x", "used_trial_refs": [], "follow_up_questions": []}
     )
     with agent.override(model=model):
         await agent.run("hi", deps=deps)
@@ -196,7 +204,6 @@ async def test_agent_registers_expected_tools() -> None:
         "get_trial_details",
         "remember",
         "semantic_search",
-        "syntactic_search",
     ]
 
 
@@ -207,7 +214,7 @@ async def test_agent_hides_tools_when_budget_exhausted() -> None:
     model = make_test_model(
         output={
             "message": "no matches",
-            "used_nct_numbers": [],
+            "used_trial_refs": [],
             "follow_up_questions": [],
         }
     )
@@ -226,7 +233,7 @@ async def test_agent_hides_remember_past_its_call_cap() -> None:
     )
     agent = get_clinical_trials_agent()
     model = make_test_model(
-        output={"message": "x", "used_nct_numbers": [], "follow_up_questions": []}
+        output={"message": "x", "used_trial_refs": [], "follow_up_questions": []}
     )
     with agent.override(model=model):
         await agent.run("hi", deps=deps)

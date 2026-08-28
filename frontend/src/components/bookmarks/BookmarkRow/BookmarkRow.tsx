@@ -4,20 +4,21 @@ import { Button } from '@/components/ui/button';
 import { Item, ItemActions, ItemContent } from '@/components/ui/item';
 import BookmarkRowSkeleton from '@/components/bookmarks/BookmarkRowSkeleton/BookmarkRowSkeleton';
 import TrialBadges from '@/components/bookmarks/TrialBadges/TrialBadges';
+import { publicTrialId } from '@/lib/trial';
 import type { Trial } from '@/types/trial';
 
 interface BookmarkRowProps {
-  nctNumber: string;
+  trialRef: string;
   trial: Trial | null;
   isLoading?: boolean;
   isExporting?: boolean;
   onSelect?: (trial: Trial) => void;
-  onRemove: (nctNumber: string) => void;
+  onRemove: (trialRef: string) => void;
   onExport?: (trial: Trial) => void;
 }
 
 function BookmarkRow({
-  nctNumber,
+  trialRef,
   trial,
   isLoading,
   isExporting,
@@ -26,7 +27,7 @@ function BookmarkRow({
   onExport,
 }: BookmarkRowProps) {
   const { t } = useTranslation();
-  const title = trial?.shortTitleEn ?? trial?.officialTitleEn ?? nctNumber;
+  const title = trial?.shortTitleEn ?? trial?.officialTitleEn ?? publicTrialId(trial) ?? 'Trial';
   const isPending = Boolean(isLoading) && !trial;
 
   return (
@@ -41,7 +42,7 @@ function BookmarkRow({
           className="flex min-w-0 cursor-pointer flex-col items-start gap-1.5 text-left disabled:cursor-default"
           onClick={() => trial && onSelect?.(trial)}
         >
-          <span className="text-eyebrow text-primary font-mono">{nctNumber}</span>
+          <span className="text-eyebrow text-primary font-mono">{publicTrialId(trial)}</span>
           {isPending ? (
             <BookmarkRowSkeleton />
           ) : (
@@ -61,7 +62,7 @@ function BookmarkRow({
             variant="ghost"
             size="icon"
             disabled={!trial || isExporting}
-            aria-label={`${t('bookmarks.exportOne')} (${nctNumber})`}
+            aria-label={`${t('bookmarks.exportOne')} (${title})`}
             title={t('bookmarks.exportOne')}
             onClick={() => trial && onExport(trial)}
           >
@@ -72,9 +73,9 @@ function BookmarkRow({
           variant="ghost"
           size="icon"
           disabled={isPending}
-          aria-label={`${t('bookmarks.remove')} (${nctNumber})`}
+          aria-label={`${t('bookmarks.remove')} (${title})`}
           title={t('bookmarks.remove')}
-          onClick={() => onRemove(nctNumber)}
+          onClick={() => onRemove(trialRef)}
         >
           <BookmarkX />
         </Button>

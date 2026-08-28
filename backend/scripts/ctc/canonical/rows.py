@@ -15,6 +15,7 @@ class RowBase(BaseModel):
 
 class TrialRow(RowBase):
     id: uuid.UUID
+    trial_ref: str
     nct_number: str | None
     acronym_or_protocol_id: str | None
     short_title_en: str | None
@@ -26,6 +27,7 @@ class TrialRow(RowBase):
     treatment_type_names: list[str]
     intervention_names: list[str]
     treatment_lines: list[str]
+    disease_stages: list[str]
     study_type: str | None
     purpose: str | None
     sponsor_name: str | None

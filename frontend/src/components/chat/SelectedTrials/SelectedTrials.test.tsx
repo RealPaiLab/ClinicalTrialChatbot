@@ -15,7 +15,7 @@ describe('SelectedTrials', () => {
     render(<SelectedTrials trials={[mockTrials[0]]} onRemove={onRemove} />);
 
     expect(screen.getByText(/Immunotherapy for Advanced/i)).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: /remove nct04267848 from context/i }));
-    expect(onRemove).toHaveBeenCalledWith('NCT04267848');
+    await userEvent.click(screen.getByRole('button', { name: /remove .+ from context/i }));
+    expect(onRemove).toHaveBeenCalledWith('CTC-4267848A');
   });
 });

@@ -22,7 +22,7 @@ function mockTranslation() {
   return vi.fn().mockResolvedValue({
     ok: true,
     json: async () => ({
-      nct_number: 'NCT04267848',
+      nct_number: 'CTC-4267848A',
       language: 'fr-CA',
       source: 'official',
       short_title: 'Immunothérapie',

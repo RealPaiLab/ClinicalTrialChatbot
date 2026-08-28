@@ -19,7 +19,7 @@ interface ChatInputProps {
   onStop?: () => void;
   status?: ChatStatus;
   contextTrials?: Trial[];
-  onRemoveContext?: (nctNumber: string) => void;
+  onRemoveContext?: (trialRef: string) => void;
 }
 
 function ChatInput({

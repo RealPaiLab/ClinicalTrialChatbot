@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { TRIAL_STATUS } from '@/lib/trialStatus';
-import { deriveTrialStatus, formatPhases, primarySite, uniqueCancerTypes } from '@/lib/trial';
+import { deriveTrialStatus, formatPhase, primarySite, uniqueCancerTypes } from '@/lib/trial';
 import Fact from '@/components/summary/Fact/Fact';
+import FactValues from '@/components/summary/FactValues/FactValues';
 import type { Trial } from '@/types/trial';
 
 const EMPTY_VALUE = '—';
@@ -12,8 +13,8 @@ function TrialFacts({ trial }: { trial: Trial }) {
   const status = deriveTrialStatus(trial);
   const site = primarySite(trial);
   const cancerTypes = uniqueCancerTypes(trial);
-  const phases = formatPhases(trial.phases);
-  const treatments = trial.treatmentTypeNames.join(', ');
+  const phases = trial.phases.map(formatPhase);
+  const treatments = trial.treatmentTypeNames;
 
   return (
     <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
@@ -28,14 +29,22 @@ function TrialFacts({ trial }: { trial: Trial }) {
         )}
       </Fact>
       <Fact label={t('summary.cancerType')}>
-        <span className="capitalize">
-          {cancerTypes.length ? cancerTypes.join(', ') : EMPTY_VALUE}
-        </span>
+        {cancerTypes.length ? (
+          <FactValues key={cancerTypes.join('|')} values={cancerTypes} className="capitalize" />
+        ) : (
+          EMPTY_VALUE
+        )}
       </Fact>
-      <Fact label={t('summary.phase')}>{phases || EMPTY_VALUE}</Fact>
-      {treatments && (
+      <Fact label={t('summary.phase')}>
+        {phases.length ? (
+          <FactValues key={phases.join('|')} values={phases} separator=" / " />
+        ) : (
+          EMPTY_VALUE
+        )}
+      </Fact>
+      {treatments.length > 0 && (
         <Fact label={t('summary.treatment')}>
-          <span className="capitalize">{treatments}</span>
+          <FactValues key={treatments.join('|')} values={treatments} className="capitalize" />
         </Fact>
       )}
       <Fact label={t('summary.province')}>{site?.province ?? EMPTY_VALUE}</Fact>

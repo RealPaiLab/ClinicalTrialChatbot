@@ -12,7 +12,12 @@ from models.trial import Trial
 from models.trial_site import TrialSite
 from repository.trial_repository import TrialRepository
 from schemas.provinces import split_locations
-from schemas.trial import TrialCitation, TrialFilter, TrialSiteInfo
+from schemas.trial import (
+    TrialCitation,
+    TrialFilter,
+    TrialSearchPage,
+    TrialSiteInfo,
+)
 from utils.text import fold
 
 
@@ -86,6 +91,7 @@ def _to_citation(
         and _site_in_province(s, restrict_province)
     ]
     return TrialCitation(
+        trial_ref=trial.trial_ref,
         nct_number=trial.nct_number,
         acronym_or_protocol_id=trial.acronym_or_protocol_id,
         short_title_en=trial.short_title_en,
@@ -97,6 +103,7 @@ def _to_citation(
         treatment_type_names=list(trial.treatment_type_names or []),
         intervention_names=list(trial.intervention_names or []),
         treatment_lines=list(trial.treatment_lines or []),
+        disease_stages=list(trial.disease_stages or []),
         sites=[_to_site_info(s) for s in sites],
     )
 
@@ -148,14 +155,18 @@ class TrialSearchService:
         query: str | None = None,
         limit: int | None = None,
         offset: int = 0,
-    ) -> list[TrialCitation]:
+    ) -> TrialSearchPage:
         """Lexical search over the filters, optionally narrowed by a free-text query;
-        returns only sites matching the filters."""
+        returns only sites matching the filters, plus the corpus-wide match count."""
         async with self._session_factory() as session:
-            trials = await self._repository(session).syntactic_search(
+            repository = self._repository(session)
+            trials = await repository.syntactic_search(
                 flt, query=query, limit=limit or self._default_limit, offset=offset
             )
-            return self._filtered_citations(trials, flt)
+            total = await repository.count_matches(flt, query=query)
+            return TrialSearchPage(
+                total=total, trials=self._filtered_citations(trials, flt)
+            )
 
     async def semantic_search(
         self,
@@ -165,9 +176,10 @@ class TrialSearchService:
         provider: EmbeddingProvider | None = None,
         limit: int | None = None,
         offset: int = 0,
-    ) -> list[TrialCitation]:
+    ) -> TrialSearchPage:
         """Meaning-based search: hard filters narrow candidates, the query
-        embedding ranks them by clinical fit; returns only matching sites."""
+        embedding ranks them by clinical fit; returns only matching sites, plus the
+        corpus-wide match count."""
         prov = provider or self._default_provider
         if prov == self._default_provider and self._embedder is not None:
             embedder = self._embedder
@@ -180,20 +192,33 @@ class TrialSearchService:
             embedder = self._embedder_for(prov)
         vector = await embedder.embed_query(query)
         async with self._session_factory() as session:
-            trials = await self._repository(session).semantic_search(
+            repository = self._repository(session)
+            trials = await repository.semantic_search(
                 flt,
                 query_embedding=vector,
                 provider=prov,
                 limit=limit or self._default_limit,
                 offset=offset,
             )
-            return self._filtered_citations(trials, flt)
+            total = await repository.count_matches(flt, provider=prov)
+            return TrialSearchPage(
+                total=total, trials=self._filtered_citations(trials, flt)
+            )
+
+    async def get_by_refs(self, trial_refs: list[str]) -> list[TrialCitation]:
+        """Fetch full details for trials by ref."""
+        async with self._session_factory() as session:
+            trials = await self._repository(session).get_by_refs(trial_refs)
+            return self._details(trials)
 
     async def get_by_ncts(self, nct_numbers: list[str]) -> list[TrialCitation]:
-        """Fetch full details for trials by NCT number."""
+        """Fetch full details for the trials carrying these registry numbers."""
         async with self._session_factory() as session:
             trials = await self._repository(session).get_by_ncts(nct_numbers)
-            return [
-                _to_citation(t, [], [], restrict_province=self._restrict_province)
-                for t in trials
-            ]
+            return self._details(trials)
+
+    def _details(self, trials: list[Trial]) -> list[TrialCitation]:
+        return [
+            _to_citation(t, [], [], restrict_province=self._restrict_province)
+            for t in trials
+        ]
