@@ -11,6 +11,7 @@ from core.embeddings import EmbeddingProvider, QueryEmbedder, get_embedder
 from models.trial import Trial
 from models.trial_site import TrialSite
 from repository.trial_repository import TrialRepository
+from schemas.contact import SiteContact, SiteContacts, TrialContacts
 from schemas.provinces import split_locations
 from schemas.trial import (
     TrialCitation,
@@ -216,6 +217,26 @@ class TrialSearchService:
         async with self._session_factory() as session:
             trials = await self._repository(session).get_by_ncts(nct_numbers)
             return self._details(trials)
+
+    async def get_contacts(self, trial_ref: str) -> TrialContacts | None:
+        """Every site of the trial with its coordinators, or None if no such trial."""
+        async with self._session_factory() as session:
+            repository = self._repository(session)
+            sites = await repository.get_site_contacts(trial_ref)
+            if not sites and not await repository.exists_by_ref(trial_ref):
+                return None
+            return TrialContacts(
+                trial_ref=trial_ref,
+                sites=[
+                    SiteContacts(
+                        site=_to_site_info(s),
+                        contacts=[
+                            SiteContact.model_validate(c) for c in s.coordinators
+                        ],
+                    )
+                    for s in sites
+                ],
+            )
 
     def _details(self, trials: list[Trial]) -> list[TrialCitation]:
         return [

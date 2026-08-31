@@ -6,7 +6,7 @@ from typing import cast
 
 from sqlalchemy import ColumnElement, Select, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, undefer
 from sqlalchemy.sql.operators import ColumnOperators
 
 from core.embeddings import EmbeddingProvider
@@ -216,6 +216,26 @@ class TrialRepository:
         if self._restrict_to_province:
             conditions.append(_province_restriction(self._restrict_to_province))
         return await self._run(self._base_select().where(*conditions))
+
+    async def get_site_contacts(self, trial_ref: str) -> list[TrialSite]:
+        conditions: list[ColumnElement[bool]] = [Trial.trial_ref == trial_ref]
+        if self._restrict_to_province:
+            conditions.append(_contains(Location.province, self._restrict_to_province))
+        stmt = (
+            select(TrialSite)
+            .join(Trial, TrialSite.trial_id == Trial.id)
+            .join(Location, TrialSite.location_id == Location.id)
+            .where(*conditions)
+            .options(undefer(TrialSite.coordinators), selectinload(TrialSite.location))
+            .order_by(Location.name_en)
+        )
+        result = await self._session.execute(stmt)
+        return list(result.scalars().unique().all())
+
+    async def exists_by_ref(self, trial_ref: str) -> bool:
+        stmt = select(Trial.id).where(Trial.trial_ref == trial_ref).limit(1)
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none() is not None
 
     async def get_by_ncts(self, nct_numbers: list[str]) -> list[Trial]:
         """Fetch trials by their NCT numbers."""
