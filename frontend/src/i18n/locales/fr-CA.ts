@@ -71,7 +71,6 @@ const frCa = {
     messageTooLong: 'Votre message est trop long. Limitez-le à {{limit}} caractères et réessayez.',
   },
   map: {
-    closeSite: 'Fermer',
     trialCount_one: '{{count}} essai',
     trialCount_other: '{{count}} essais',
     coverageArea: 'Zone couverte',

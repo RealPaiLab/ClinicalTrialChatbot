@@ -67,7 +67,6 @@ const en = {
       'Your message is too long. Please keep it under {{limit}} characters and try again.',
   },
   map: {
-    closeSite: 'Close',
     trialCount_one: '{{count}} trial',
     trialCount_other: '{{count}} trials',
     coverageArea: 'Coverage area',

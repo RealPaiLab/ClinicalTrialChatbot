@@ -65,7 +65,6 @@ const yue = {
     messageTooLong: '你嘅訊息太長喇。請控制喺 {{limit}} 個字以內再試。',
   },
   map: {
-    closeSite: '閂咗佢',
     trialCount_one: '{{count}} 個臨床試驗',
     trialCount_other: '{{count}} 個臨床試驗',
     coverageArea: '覆蓋範圍',

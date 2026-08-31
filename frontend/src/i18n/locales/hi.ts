@@ -69,7 +69,6 @@ const hi = {
     messageTooLong: 'आपका संदेश बहुत लंबा है। कृपया इसे {{limit}} अक्षरों से कम रखें और फिर भेजें।',
   },
   map: {
-    closeSite: 'बंद करें',
     trialCount_one: '{{count}} ट्रायल',
     trialCount_other: '{{count}} ट्रायल',
     coverageArea: 'कवरेज क्षेत्र',

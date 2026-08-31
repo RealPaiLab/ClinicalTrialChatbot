@@ -8,13 +8,6 @@ export interface SiteMarker {
   latitude: number;
 }
 
-/** One trial row inside a pin's popover card. */
-export interface ClusterItem {
-  trialRef: string | null;
-  title: string;
-  status: TrialStatus;
-}
-
 export interface PinUnit {
   key: string;
   longitude: number;

@@ -341,6 +341,15 @@
   }
 }
 
+.trial-cluster-popup .mapboxgl-popup-content {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.trial-cluster-popup .mapboxgl-popup-tip {
+  display: none;
+}
+
 .mapboxgl-ctrl.mapboxgl-ctrl-group {
   background: color-mix(in srgb, var(--canvas) 90%, transparent);
   border: 1px solid var(--border);
