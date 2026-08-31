@@ -7,7 +7,7 @@ export const ChatRole = {
 
 export type ChatRole = (typeof ChatRole)[keyof typeof ChatRole];
 
-const TRIAL_DATA_UPDATED_AT = new Date('2026-05-12T00:00:00Z');
+const TRIAL_DATA_UPDATED_AT = new Date('2026-08-31T00:00:00Z');
 
 const TRIAL_DATA_UPDATED_ON = new Intl.DateTimeFormat('en-GB', {
   timeZone: 'UTC',
