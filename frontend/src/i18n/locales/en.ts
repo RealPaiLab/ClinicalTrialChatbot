@@ -67,6 +67,9 @@ const en = {
       'Your message is too long. Please keep it under {{limit}} characters and try again.',
   },
   map: {
+    closeSite: 'Close',
+    trialCount_one: '{{count}} trial',
+    trialCount_other: '{{count}} trials',
     coverageArea: 'Coverage area',
     coverageNotice: 'Coverage includes cancer trial sites across Canada.',
     seeTrials: 'See trials on the map',
@@ -101,6 +104,24 @@ const en = {
     addedToChatHint: 'Added, ask {{agent}} anything about it',
     viewOnCtc: 'View on Cancer Trials Canada',
     close: 'Close',
+  },
+  contact: {
+    cta: 'Contact research team',
+    title: 'Contact the research team',
+    sitePrompt: 'Which location would you like to contact?',
+    noContactsAtSite: 'No contact listed',
+    contactsAt: 'Contacts at {{site}}',
+    changeSite: 'Choose a different location',
+    adviceTitle: 'Talk to your own care team first',
+    adviceBody:
+      'Your oncologist or nurse knows your history and can tell you whether a trial is worth pursuing. Research coordinators can answer questions about the study itself, but they cannot advise you on your care.',
+    email: 'Send an email',
+    showPhone: 'Show phone number',
+    phoneExtension: 'ext. {{ext}}',
+    unnamed: 'Study contact',
+    emptyBody:
+      'This trial has no coordinator details on record. The Cancer Trials Canada page for the trial may list another way to get in touch.',
+    loadError: 'Contact details could not be loaded. Please try again.',
   },
   bookmarks: {
     title: 'Saved trials',

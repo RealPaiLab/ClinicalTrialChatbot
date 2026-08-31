@@ -6,6 +6,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
+from scripts.ctc.canonical.coordinator import CanonicalCoordinator
 from scripts.ctc.canonical.trial import CanonicalTrial
 
 
@@ -47,6 +48,7 @@ class SiteRow(RowBase):
     location_id: uuid.UUID
     state: str | None
     cancer_type_names: list[str]
+    coordinators: list[dict[str, str | None]]
 
 
 TRIAL_COLUMNS: tuple[str, ...] = tuple(TrialRow.model_fields)
@@ -75,6 +77,25 @@ def to_location_rows(trial: CanonicalTrial) -> list[LocationRow]:
     return rows
 
 
+def to_coordinator_rows(
+    coordinators: Iterable[CanonicalCoordinator],
+) -> list[dict[str, str | None]]:
+    rows: list[dict[str, str | None]] = []
+    for c in coordinators:
+        full_name = " ".join(p for p in (c.first_name, c.last_name) if p) or None
+        if not full_name and not c.email and not c.phone_number:
+            continue
+        rows.append(
+            {
+                "full_name": full_name,
+                "email": c.email,
+                "phone_number": c.phone_number,
+                "phone_extension": c.phone_extension,
+            }
+        )
+    return rows
+
+
 def to_site_rows(trial: CanonicalTrial) -> list[SiteRow]:
     rows: list[SiteRow] = []
     seen: set[uuid.UUID] = set()
@@ -88,6 +109,7 @@ def to_site_rows(trial: CanonicalTrial) -> list[SiteRow]:
                 location_id=site.id,
                 state=site.state,
                 cancer_type_names=site.cancer_type_names,
+                coordinators=to_coordinator_rows(site.coordinators),
             )
         )
     return rows

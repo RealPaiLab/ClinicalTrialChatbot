@@ -5,8 +5,8 @@ import { Info, MapPin } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import MapLegend from '@/components/map/MapLegend/MapLegend';
-import TrialMarker from '@/components/map/TrialMarker/TrialMarker';
 import TrialCluster from '@/components/map/TrialCluster/TrialCluster';
+import SiteTrialsCard from '@/components/map/SiteTrialsCard/SiteTrialsCard';
 import { useClusterDisclosure } from '@/hooks/useClusterDisclosure';
 import { useMapViewSync } from '@/hooks/useMapViewSync';
 import { useTrialPins } from '@/hooks/useTrialPins';
@@ -14,6 +14,7 @@ import { CANADA_BOUNDARY, CANADA_CENTER } from '@/assets/canada.geojson';
 import { publicTrialId } from '@/lib/trial';
 import { config } from '@/config';
 import type { Trial } from '@/types/trial';
+import type { ClusterItem, PinUnit } from '@/types/map';
 
 const MAPBOX_TOKEN = config.mapboxToken;
 const LIGHT_STYLE = config.mapboxStyleLight;
@@ -30,6 +31,15 @@ interface MapPanelProps {
   dark?: boolean;
 }
 
+function toClusterItems(unit: PinUnit): ClusterItem[] {
+  return unit.items.map((item) => ({
+    trialRef: item.trial.trialRef,
+    title:
+      item.trial.shortTitleEn ?? item.trial.officialTitleEn ?? publicTrialId(item.trial) ?? 'Trial',
+    status: item.status,
+  }));
+}
+
 function MapPanel({
   trials,
   selectedTrialRef,
@@ -44,6 +54,7 @@ function MapPanel({
 
   const { markers, units } = useTrialPins(trials);
   const { openKey, toggle, close } = useClusterDisclosure(units, selectedTrialRef, selectedSiteKey);
+  const openUnit = units.find((unit) => unit.key === openKey) ?? null;
   useMapViewSync({
     mapRef,
     containerRef,
@@ -80,6 +91,7 @@ function MapPanel({
         reuseMaps
         style={{ width: '100%', height: '100%' }}
         onLoad={() => setLoaded(true)}
+        onClick={close}
       >
         <NavigationControl position="top-right" showCompass={false} />
 
@@ -102,52 +114,19 @@ function MapPanel({
             }}
           />
         </Source>
-
-        {units.map((unit) => {
-          if (unit.items.length === 1) {
-            const marker = unit.items[0];
-            return (
-              <TrialMarker
-                key={unit.key}
-                longitude={unit.longitude}
-                latitude={unit.latitude}
-                status={marker.status}
-                selected={
-                  marker.trial.trialRef === selectedTrialRef &&
-                  (!selectedSiteKey || selectedSiteKey === unit.key)
-                }
-                label={`${marker.site.nameEn} — ${marker.trial.shortTitleEn ?? publicTrialId(marker.trial) ?? 'trial'}`}
-                onSelect={() => {
-                  if (marker.trial.trialRef) onSelectTrial?.(marker.trial.trialRef, unit.key);
-                }}
-              />
-            );
-          }
-          return (
-            <TrialCluster
-              key={unit.key}
-              longitude={unit.longitude}
-              latitude={unit.latitude}
-              locationName={unit.locationName}
-              selectedTrialRef={
-                selectedSiteKey && selectedSiteKey !== unit.key ? null : selectedTrialRef
-              }
-              open={openKey === unit.key}
-              onToggle={() => toggle(unit.key)}
-              onClose={close}
-              onSelectTrial={(nct) => onSelectTrial?.(nct, unit.key)}
-              items={unit.items.map((item) => ({
-                trialRef: item.trial.trialRef,
-                title:
-                  item.trial.shortTitleEn ??
-                  item.trial.officialTitleEn ??
-                  publicTrialId(item.trial) ??
-                  'Trial',
-                status: item.status,
-              }))}
-            />
-          );
-        })}
+        {units.map((unit) => (
+          <TrialCluster
+            key={unit.key}
+            longitude={unit.longitude}
+            latitude={unit.latitude}
+            locationName={unit.locationName}
+            selectedTrialRef={
+              selectedSiteKey && selectedSiteKey !== unit.key ? null : selectedTrialRef
+            }
+            onToggle={() => toggle(unit.key)}
+            items={toClusterItems(unit)}
+          />
+        ))}
       </MapGL>
 
       <div className="absolute top-3 left-3 z-10">
@@ -166,6 +145,18 @@ function MapPanel({
           </HoverCardContent>
         </HoverCard>
       </div>
+
+      {openUnit && (
+        <SiteTrialsCard
+          locationName={openUnit.locationName}
+          items={toClusterItems(openUnit)}
+          selectedTrialRef={
+            selectedSiteKey && selectedSiteKey !== openUnit.key ? null : selectedTrialRef
+          }
+          onSelectTrial={(ref) => onSelectTrial?.(ref, openUnit.key)}
+          onClose={close}
+        />
+      )}
 
       {markers.length > 0 ? (
         <MapLegend />

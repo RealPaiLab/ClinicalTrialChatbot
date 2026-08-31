@@ -105,6 +105,13 @@ function HomePage() {
   const selectedIsBookmarked = selectedTrialRef
     ? bookmarkedTrialRefs.includes(selectedTrialRef)
     : false;
+  const selectedSiteName =
+    selectedTrial?.sites.find(
+      (site) =>
+        site.lat !== null &&
+        site.lon !== null &&
+        `${site.lat.toFixed(5)},${site.lon.toFixed(5)}` === selectedSiteKey
+    )?.nameEn ?? null;
 
   return (
     <div
@@ -182,6 +189,7 @@ function HomePage() {
                     isInContext={selectedInContext}
                     onToggleBookmark={toggleBookmark}
                     isBookmarked={selectedIsBookmarked}
+                    selectedSiteName={selectedSiteName}
                   />
                 </div>
               </div>

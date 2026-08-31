@@ -1,7 +1,9 @@
-import { Bookmark, BookmarkCheck, Check, ExternalLink, Sparkles, X } from 'lucide-react';
+import { useState } from 'react';
+import { Bookmark, BookmarkCheck, Check, ExternalLink, Mail, Sparkles, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import ContactDialog from '@/components/contact/ContactDialog/ContactDialog';
 import TrialTitle from '@/components/summary/TrialTitle/TrialTitle';
 import { useAppLanguage } from '@/hooks/useAppLanguage';
 import { publicTrialId } from '@/lib/trial';
@@ -16,6 +18,7 @@ interface TrialSummaryHeaderProps {
   isInContext?: boolean;
   onToggleBookmark?: (trialRef: string) => void;
   isBookmarked?: boolean;
+  selectedSiteName?: string | null;
 }
 
 function TrialSummaryHeader({
@@ -25,9 +28,11 @@ function TrialSummaryHeader({
   isInContext,
   onToggleBookmark,
   isBookmarked,
+  selectedSiteName,
 }: TrialSummaryHeaderProps) {
   const { t } = useTranslation();
   const { language } = useAppLanguage();
+  const [contactOpen, setContactOpen] = useState(false);
   const title = trial.officialTitleEn ?? trial.shortTitleEn ?? publicTrialId(trial) ?? 'Trial';
   const trialUrl = trial.acronymOrProtocolId
     ? `${TRIAL_URL_BASE}${encodeURIComponent(trial.acronymOrProtocolId)}`
@@ -83,18 +88,42 @@ function TrialSummaryHeader({
             </Tooltip>
           </TooltipProvider>
         )}
+        {trial.trialRef && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t('contact.cta')}
+                  onClick={() => setContactOpen(true)}
+                >
+                  <Mail />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{t('contact.cta')}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
         {trialUrl && (
-          <Button
-            asChild
-            variant="ghost"
-            size="icon"
-            data-tour="trial-link"
-            aria-label={t('summary.viewOnCtc')}
-          >
-            <a href={trialUrl} target="_blank" rel="noreferrer">
-              <ExternalLink />
-            </a>
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="icon"
+                  data-tour="trial-link"
+                  aria-label={t('summary.viewOnCtc')}
+                >
+                  <a href={trialUrl} target="_blank" rel="noreferrer">
+                    <ExternalLink />
+                  </a>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{t('summary.viewOnCtc')}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
         {onClose && (
           <Button variant="ghost" size="icon" aria-label={t('summary.close')} onClick={onClose}>
@@ -102,6 +131,15 @@ function TrialSummaryHeader({
           </Button>
         )}
       </div>
+      {trial.trialRef && (
+        <ContactDialog
+          trialRef={trial.trialRef}
+          publicTrialId={publicTrialId(trial)}
+          preselectedSiteName={selectedSiteName}
+          open={contactOpen}
+          onOpenChange={setContactOpen}
+        />
+      )}
     </div>
   );
 }

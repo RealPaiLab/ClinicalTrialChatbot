@@ -65,6 +65,9 @@ const yue = {
     messageTooLong: '你嘅訊息太長喇。請控制喺 {{limit}} 個字以內再試。',
   },
   map: {
+    closeSite: '閂咗佢',
+    trialCount_one: '{{count}} 個臨床試驗',
+    trialCount_other: '{{count}} 個臨床試驗',
     coverageArea: '覆蓋範圍',
     coverageNotice: '覆蓋範圍包括加拿大各地嘅試驗中心。',
     seeTrials: '喺地圖睇試驗',
@@ -98,6 +101,24 @@ const yue = {
     addedToChatHint: '加咗喇，可以問 {{agent}} 任何嘢',
     viewOnCtc: '喺 Cancer Trials Canada 上面睇',
     close: '閂咗佢',
+  },
+  contact: {
+    cta: '聯絡研究團隊',
+    title: '聯絡研究團隊',
+    sitePrompt: '你想聯絡邊個研究中心？',
+    noContactsAtSite: '冇提供聯絡人',
+    contactsAt: '{{site}} 嘅聯絡人',
+    changeSite: '揀第個研究中心',
+    adviceTitle: '請先同你自己嘅醫療團隊傾',
+    adviceBody:
+      '你嘅腫瘤科醫生或者護士清楚你嘅病歷，可以話你知一個臨床試驗值唔值得考慮。研究協調員可以解答關於研究本身嘅問題，但係唔可以就你嘅治療畀意見。',
+    email: '發電郵',
+    showPhone: '顯示電話號碼',
+    phoneExtension: '分機 {{ext}}',
+    unnamed: '研究聯絡人',
+    emptyBody:
+      '呢個臨床試驗冇登記聯絡資料。Cancer Trials Canada 上面嘅試驗頁面可能有其他聯絡方法。',
+    loadError: '載入唔到聯絡資料，請再試一次。',
   },
   bookmarks: {
     title: '儲低咗嘅試驗',

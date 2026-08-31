@@ -4,7 +4,7 @@ import uuid
 from typing import TYPE_CHECKING
 
 from sqlalchemy import ARRAY, ForeignKey, Index, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from models.base import Base
@@ -38,6 +38,9 @@ class TrialSite(Base):
     state: Mapped[str | None] = mapped_column(Text, nullable=True)
     cancer_type_names: Mapped[list[str]] = mapped_column(
         ARRAY(Text), nullable=False, server_default="{}"
+    )
+    coordinators: Mapped[list[dict[str, str | None]]] = mapped_column(
+        JSONB, nullable=False, server_default="[]", deferred=True
     )
 
     trial: Mapped[Trial] = relationship("Trial", back_populates="sites")

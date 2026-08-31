@@ -61,11 +61,10 @@ def test_identity_is_derived_from_the_business_key() -> None:
 
 
 def test_only_projected_columns_reach_the_database() -> None:
-    """Coordinators and the trial-level vocabulary are captured, never loaded."""
+    """The trial-level vocabulary is captured, never loaded."""
     trial = CanonicalTrial.model_validate(PAYLOAD)
 
     assert trial.biomarkers == ["BRCA1"]
-    assert trial.sites[0].coordinators[0].email == "coordinator@example.org"
 
     for columns, model, row in (
         (TRIAL_COLUMNS, Trial, to_trial_row(trial)),
@@ -74,6 +73,45 @@ def test_only_projected_columns_reach_the_database() -> None:
     ):
         assert set(columns) <= {column.name for column in model.__table__.columns}
         assert set(row.model_dump()) == set(columns)
+
+
+def test_coordinators_are_projected_as_contactable_rows() -> None:
+    """Every field is optional; only an entry with no way to reach anyone is dropped."""
+    site = {
+        **SITE,
+        "coordinators": [
+            {
+                "firstName": "Ada",
+                "lastName": "Lovelace",
+                "phoneNumber": "416-946-4501 ",
+            },
+            {"email": "coordinator@example.org"},
+            {"phoneNumber": "902-473-2700", "phoneExtension": "204"},
+            {"phoneExtension": "204"},
+        ],
+    }
+    trial = CanonicalTrial.model_validate({**PAYLOAD, "sites": [site]})
+
+    assert to_site_rows(trial)[0].coordinators == [
+        {
+            "full_name": "Ada Lovelace",
+            "email": None,
+            "phone_number": "416-946-4501",
+            "phone_extension": None,
+        },
+        {
+            "full_name": None,
+            "email": "coordinator@example.org",
+            "phone_number": None,
+            "phone_extension": None,
+        },
+        {
+            "full_name": None,
+            "email": None,
+            "phone_number": "902-473-2700",
+            "phone_extension": "204",
+        },
+    ]
 
 
 def test_a_site_listed_twice_yields_one_junction_row() -> None:

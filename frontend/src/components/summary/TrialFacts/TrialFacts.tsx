@@ -1,18 +1,30 @@
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-import { TRIAL_STATUS } from '@/lib/trialStatus';
-import { deriveTrialStatus, formatPhase, primarySite, uniqueCancerTypes } from '@/lib/trial';
+import { normalizeStatus, TRIAL_STATUS } from '@/lib/trialStatus';
+import {
+  deriveTrialStatus,
+  findSite,
+  formatPhase,
+  primarySite,
+  uniqueCancerTypes,
+} from '@/lib/trial';
 import Fact from '@/components/summary/Fact/Fact';
 import FactValues from '@/components/summary/FactValues/FactValues';
 import type { Trial } from '@/types/trial';
 
 const EMPTY_VALUE = '—';
 
-function TrialFacts({ trial }: { trial: Trial }) {
+interface TrialFactsProps {
+  trial: Trial;
+  selectedSiteName?: string | null;
+}
+
+function TrialFacts({ trial, selectedSiteName }: TrialFactsProps) {
   const { t } = useTranslation();
-  const status = deriveTrialStatus(trial);
-  const site = primarySite(trial);
-  const cancerTypes = uniqueCancerTypes(trial);
+  const selected = findSite(trial, selectedSiteName);
+  const site = selected ?? primarySite(trial);
+  const status = selected ? normalizeStatus(selected.state) : deriveTrialStatus(trial);
+  const cancerTypes = selected ? [...new Set(selected.cancerTypeNames)] : uniqueCancerTypes(trial);
   const phases = trial.phases.map(formatPhase);
   const treatments = trial.treatmentTypeNames;
 

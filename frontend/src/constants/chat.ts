@@ -7,7 +7,7 @@ export const ChatRole = {
 
 export type ChatRole = (typeof ChatRole)[keyof typeof ChatRole];
 
-const TRIAL_DATA_UPDATED_AT = new Date('2026-05-12T00:00:00Z');
+const TRIAL_DATA_UPDATED_AT = new Date('2026-08-31T00:00:00Z');
 
 const TRIAL_DATA_UPDATED_ON = new Intl.DateTimeFormat('en-GB', {
   timeZone: 'UTC',
@@ -23,6 +23,8 @@ export const TRIAL_DATA = {
 export const CITATION_HREF_PREFIX = '#citation-';
 
 export const DEFINITION_HREF_PREFIX = '#define-';
+
+export const CONTACT_HREF_PREFIX = '#contact-';
 
 export const SELECTED_TRIALS_PROMPT = 'Focus on these specific trials (by NCT number): ';
 

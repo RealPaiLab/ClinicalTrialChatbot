@@ -71,6 +71,9 @@ const es = {
       'Su mensaje es demasiado largo. Manténgalo por debajo de {{limit}} caracteres e inténtelo de nuevo.',
   },
   map: {
+    closeSite: 'Cerrar',
+    trialCount_one: '{{count}} ensayo',
+    trialCount_other: '{{count}} ensayos',
     coverageArea: 'Área de cobertura',
     coverageNotice: 'La cobertura incluye centros de ensayos clínicos en todo Canadá.',
     seeTrials: 'Ver los ensayos en el mapa',
@@ -107,6 +110,24 @@ const es = {
     addedToChatHint: 'Añadido, pregunte a {{agent}} lo que quiera',
     viewOnCtc: 'Ver en Cancer Trials Canada',
     close: 'Cerrar',
+  },
+  contact: {
+    cta: 'Contactar al equipo de investigación',
+    title: 'Contactar al equipo de investigación',
+    sitePrompt: '¿A qué centro desea contactar?',
+    noContactsAtSite: 'Sin contacto registrado',
+    contactsAt: 'Contactos en {{site}}',
+    changeSite: 'Elegir otro centro',
+    adviceTitle: 'Hable primero con su propio equipo médico',
+    adviceBody:
+      'Su oncólogo o su enfermera conoce su historial y puede decirle si vale la pena considerar un ensayo. Los coordinadores de investigación responden preguntas sobre el estudio, pero no pueden asesorarle sobre su atención médica.',
+    email: 'Enviar un correo electrónico',
+    showPhone: 'Mostrar el número de teléfono',
+    phoneExtension: 'ext. {{ext}}',
+    unnamed: 'Contacto del estudio',
+    emptyBody:
+      'Este ensayo no tiene datos de contacto registrados. La página del ensayo en Cancer Trials Canada puede indicar otra forma de comunicarse.',
+    loadError: 'No se pudieron cargar los datos de contacto. Inténtelo de nuevo.',
   },
   bookmarks: {
     title: 'Ensayos guardados',
