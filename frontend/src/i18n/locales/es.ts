@@ -71,7 +71,6 @@ const es = {
       'Su mensaje es demasiado largo. Manténgalo por debajo de {{limit}} caracteres e inténtelo de nuevo.',
   },
   map: {
-    closeSite: 'Cerrar',
     trialCount_one: '{{count}} ensayo',
     trialCount_other: '{{count}} ensayos',
     coverageArea: 'Área de cobertura',

@@ -65,7 +65,6 @@ const zhCn = {
     messageTooLong: '您的消息过长。请控制在 {{limit}} 个字符以内后重试。',
   },
   map: {
-    closeSite: '关闭',
     trialCount_one: '{{count}} 项试验',
     trialCount_other: '{{count}} 项试验',
     coverageArea: '覆盖范围',

@@ -75,7 +75,6 @@ const de = {
       'Ihre Nachricht ist zu lang. Bitte halten Sie sie unter {{limit}} Zeichen und versuchen Sie es erneut.',
   },
   map: {
-    closeSite: 'Schließen',
     trialCount_one: '{{count}} Studie',
     trialCount_other: '{{count}} Studien',
     coverageArea: 'Abgedecktes Gebiet',
