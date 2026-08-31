@@ -24,6 +24,8 @@ export const CITATION_HREF_PREFIX = '#citation-';
 
 export const DEFINITION_HREF_PREFIX = '#define-';
 
+export const CONTACT_HREF_PREFIX = '#contact-';
+
 export const SELECTED_TRIALS_PROMPT = 'Focus on these specific trials (by NCT number): ';
 
 export const ASK_AI_PROMPT_PREFIX = 'What does ';

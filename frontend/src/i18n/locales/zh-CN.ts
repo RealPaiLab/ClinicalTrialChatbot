@@ -65,6 +65,9 @@ const zhCn = {
     messageTooLong: '您的消息过长。请控制在 {{limit}} 个字符以内后重试。',
   },
   map: {
+    closeSite: '关闭',
+    trialCount_one: '{{count}} 项试验',
+    trialCount_other: '{{count}} 项试验',
     coverageArea: '覆盖范围',
     coverageNotice: '覆盖范围包括加拿大各地的试验中心。',
     seeTrials: '在地图上查看试验',
@@ -98,6 +101,23 @@ const zhCn = {
     addedToChatHint: '已添加，可以向 {{agent}} 提出任何问题',
     viewOnCtc: '在 Cancer Trials Canada 上查看',
     close: '关闭',
+  },
+  contact: {
+    cta: '联系研究团队',
+    title: '联系研究团队',
+    sitePrompt: '您想联系哪个研究中心？',
+    noContactsAtSite: '未提供联系人',
+    contactsAt: '{{site}} 的联系人',
+    changeSite: '选择其他研究中心',
+    adviceTitle: '请先咨询您自己的医疗团队',
+    adviceBody:
+      '您的肿瘤科医生或护士了解您的病史，能够判断某项试验是否值得考虑。研究协调员可以解答与研究本身相关的问题，但无法就您的治疗提供建议。',
+    email: '发送邮件',
+    showPhone: '显示电话号码',
+    phoneExtension: '分机 {{ext}}',
+    unnamed: '研究联系人',
+    emptyBody: '该试验没有登记联系方式。Cancer Trials Canada 上的试验页面可能提供其他联系方式。',
+    loadError: '无法加载联系方式，请重试。',
   },
   bookmarks: {
     title: '已保存的试验',

@@ -15,6 +15,11 @@ export function trialStatuses(trial: Trial): TrialStatus[] {
   return STATUS_PRIORITY.filter((status) => statuses.includes(status));
 }
 
+export function findSite(trial: Trial, siteName: string | null | undefined): TrialSite | null {
+  if (!siteName) return null;
+  return trial.sites.find((site) => site.nameEn === siteName) ?? null;
+}
+
 export function primarySite(trial: Trial): TrialSite | null {
   return (
     trial.sites.find((site) => normalizeStatus(site.state) === 'recruiting') ??

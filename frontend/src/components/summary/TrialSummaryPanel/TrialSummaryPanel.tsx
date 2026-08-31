@@ -17,6 +17,7 @@ interface TrialSummaryPanelProps {
   isInContext?: boolean;
   onToggleBookmark?: (trialRef: string) => void;
   isBookmarked?: boolean;
+  selectedSiteName?: string | null;
 }
 
 function TranslationSkeleton() {
@@ -48,6 +49,7 @@ function TrialSummaryPanel({
   isInContext,
   onToggleBookmark,
   isBookmarked,
+  selectedSiteName,
 }: TrialSummaryPanelProps) {
   const { t } = useTranslation();
   const { trial: displayTrial, isPending, source } = useTrialTranslation(trial);
@@ -78,13 +80,14 @@ function TrialSummaryPanel({
         isInContext={isInContext}
         onToggleBookmark={onToggleBookmark}
         isBookmarked={isBookmarked}
+        selectedSiteName={selectedSiteName}
       />
       <ScrollArea className="min-h-0 flex-1">
         {isPending ? (
           <TranslationSkeleton />
         ) : (
           <div className="flex flex-col gap-5 p-4">
-            <TrialFacts trial={displayTrial} />
+            <TrialFacts trial={displayTrial} selectedSiteName={selectedSiteName} />
             {displayTrial.descriptionEn && (
               <MessageResponse className="text-muted-foreground text-sm leading-relaxed">
                 {displayTrial.descriptionEn}

@@ -13,8 +13,14 @@ import MessageFeedback from '@/components/chat/MessageFeedback/MessageFeedback';
 import SearchingIndicator from '@/components/chat/SearchingIndicator/SearchingIndicator';
 import TermDefinition from '@/components/chat/TermDefinition/TermDefinition';
 import TrialCitation from '@/components/chat/TrialCitation/TrialCitation';
-import { ChatRole, CITATION_HREF_PREFIX, DEFINITION_HREF_PREFIX } from '@/constants/chat';
-import { linkifyCitations, linkifyDefinitions } from '@/lib/citations';
+import TrialContactLink from '@/components/chat/TrialContactLink/TrialContactLink';
+import {
+  ChatRole,
+  CITATION_HREF_PREFIX,
+  CONTACT_HREF_PREFIX,
+  DEFINITION_HREF_PREFIX,
+} from '@/constants/chat';
+import { linkifyCitations, linkifyContacts, linkifyDefinitions } from '@/lib/citations';
 import type { ChatMessage, TrialSummary } from '@/types/trial';
 
 type FetchTrial = (trialRef: string, signal?: AbortSignal) => Promise<TrialSummary>;
@@ -38,6 +44,10 @@ function createMarkdownComponents(
         return (
           <TrialCitation trialRef={trialRef} fetchTrial={fetchTrial} onSelect={onCitationClick} />
         );
+      }
+      if (href?.startsWith(CONTACT_HREF_PREFIX)) {
+        const trialRef = href.slice(CONTACT_HREF_PREFIX.length);
+        return <TrialContactLink trialRef={trialRef} fetchTrial={fetchTrial} />;
       }
       if (href?.startsWith(DEFINITION_HREF_PREFIX)) {
         const definition = decodeURIComponent(href.slice(DEFINITION_HREF_PREFIX.length));
@@ -86,7 +96,7 @@ function ChatMessages({
                     <MessageResponse
                       components={createMarkdownComponents(fetchTrial, onCitationClick)}
                     >
-                      {linkifyDefinitions(linkifyCitations(message.content))}
+                      {linkifyDefinitions(linkifyCitations(linkifyContacts(message.content)))}
                     </MessageResponse>
                   )}
                 </MessageContent>

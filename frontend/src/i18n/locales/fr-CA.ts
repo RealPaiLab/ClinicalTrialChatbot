@@ -71,6 +71,9 @@ const frCa = {
     messageTooLong: 'Votre message est trop long. Limitez-le à {{limit}} caractères et réessayez.',
   },
   map: {
+    closeSite: 'Fermer',
+    trialCount_one: '{{count}} essai',
+    trialCount_other: '{{count}} essais',
     coverageArea: 'Zone couverte',
     coverageNotice: 'La couverture comprend des sites d’essais cliniques partout au Canada.',
     seeTrials: 'Voir les essais sur la carte',
@@ -107,6 +110,24 @@ const frCa = {
     addedToChatHint: 'Ajouté, posez n’importe quelle question à {{agent}}',
     viewOnCtc: 'Voir sur Cancer Trials Canada',
     close: 'Fermer',
+  },
+  contact: {
+    cta: 'Contacter l’équipe de recherche',
+    title: 'Contacter l’équipe de recherche',
+    sitePrompt: 'Quel établissement souhaitez-vous contacter?',
+    noContactsAtSite: 'Aucune personne-ressource inscrite',
+    contactsAt: 'Personnes-ressources à {{site}}',
+    changeSite: 'Choisir un autre établissement',
+    adviceTitle: 'Parlez-en d’abord à votre équipe soignante',
+    adviceBody:
+      'Votre oncologue ou votre infirmière connaît vos antécédents et peut vous dire si un essai vaut la peine d’être envisagé. Les coordonnateurs de recherche répondent aux questions sur l’étude, mais ne peuvent pas vous conseiller sur vos soins.',
+    email: 'Envoyer un courriel',
+    showPhone: 'Afficher le numéro de téléphone',
+    phoneExtension: 'poste {{ext}}',
+    unnamed: 'Personne-ressource de l’étude',
+    emptyBody:
+      'Aucune coordonnée n’est inscrite pour cet essai. La page de l’essai sur Essais cliniques Canada peut indiquer un autre moyen de communication.',
+    loadError: 'Impossible de charger les coordonnées. Veuillez réessayer.',
   },
   bookmarks: {
     title: 'Essais enregistrés',

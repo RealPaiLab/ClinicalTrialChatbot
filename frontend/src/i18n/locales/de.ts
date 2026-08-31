@@ -75,6 +75,9 @@ const de = {
       'Ihre Nachricht ist zu lang. Bitte halten Sie sie unter {{limit}} Zeichen und versuchen Sie es erneut.',
   },
   map: {
+    closeSite: 'Schließen',
+    trialCount_one: '{{count}} Studie',
+    trialCount_other: '{{count}} Studien',
     coverageArea: 'Abgedecktes Gebiet',
     coverageNotice: 'Die Abdeckung umfasst Studienzentren in ganz Kanada.',
     seeTrials: 'Studien auf der Karte ansehen',
@@ -111,6 +114,24 @@ const de = {
     addedToChatHint: 'Hinzugefügt, fragen Sie {{agent}} alles dazu',
     viewOnCtc: 'Auf Cancer Trials Canada ansehen',
     close: 'Schließen',
+  },
+  contact: {
+    cta: 'Studienteam kontaktieren',
+    title: 'Das Studienteam kontaktieren',
+    sitePrompt: 'Welchen Standort möchten Sie kontaktieren?',
+    noContactsAtSite: 'Keine Kontaktperson hinterlegt',
+    contactsAt: 'Kontakte an {{site}}',
+    changeSite: 'Anderen Standort wählen',
+    adviceTitle: 'Sprechen Sie zuerst mit Ihrem Behandlungsteam',
+    adviceBody:
+      'Ihre Onkologin oder Ihr Pflegeteam kennt Ihre Vorgeschichte und kann einschätzen, ob eine Studie für Sie infrage kommt. Studienkoordinatoren beantworten Fragen zur Studie selbst, dürfen Sie aber nicht zu Ihrer Behandlung beraten.',
+    email: 'E-Mail schreiben',
+    showPhone: 'Telefonnummer anzeigen',
+    phoneExtension: 'Durchwahl {{ext}}',
+    unnamed: 'Studienkontakt',
+    emptyBody:
+      'Für diese Studie sind keine Kontaktdaten hinterlegt. Auf der Studienseite von Cancer Trials Canada finden Sie möglicherweise einen anderen Weg zur Kontaktaufnahme.',
+    loadError: 'Die Kontaktdaten konnten nicht geladen werden. Bitte versuchen Sie es erneut.',
   },
   bookmarks: {
     title: 'Gespeicherte Studien',
