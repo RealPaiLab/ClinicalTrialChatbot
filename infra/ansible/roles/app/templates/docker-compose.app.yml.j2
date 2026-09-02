@@ -52,6 +52,7 @@ services:
       LLM_MODEL: {{ llm_model }}
       EMBEDDING_PROVIDER: {{ embedding_provider }}
       EMBEDDING_MODEL: "{{ embedding_model }}"
+      CTC_API_BASE_URL: "{{ ctc_api_base_url }}"
       LANGFUSE_HOST: {{ langfuse_host }}
 {% if langfuse_capture_content is defined %}
       LANGFUSE_CAPTURE_CONTENT: "{{ langfuse_capture_content | string | lower }}"
@@ -73,6 +74,9 @@ services:
 {% if restrict_to_province | default('') | length > 0 %}
       RESTRICT_TO_PROVINCE: "{{ restrict_to_province }}"
 {% endif %}
+    volumes:
+      # `run --rm` would discard the dumps a single-stage rerun reads back.
+      - ingestion_data:/app/scripts/data
     depends_on:
       postgres:
         condition: service_healthy
@@ -97,3 +101,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  ingestion_data:
