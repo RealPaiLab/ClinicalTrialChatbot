@@ -13,6 +13,10 @@ frontend_version: staging
 
 translation_provider: llm
 
+## Ingestion pipeline
+ingestion_enabled: true
+ingestion_on_calendar: "*-*-* 03:00:00 UTC"
+
 cors_allow_origins:
   - "https://{{ public_domain }}"
 

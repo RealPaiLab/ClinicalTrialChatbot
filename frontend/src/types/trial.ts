@@ -90,3 +90,7 @@ export interface ChatMessage {
   observationId?: string;
   error?: ChatError;
 }
+
+export interface DataFreshness {
+  publishedAt: string | null;
+}

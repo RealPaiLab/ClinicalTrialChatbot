@@ -4,10 +4,12 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from sqlalchemy import text
+from sqlalchemy import ScalarSelect, func, insert, select, text, update
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from core.database import engine
+from models.ingestion_run import CTC_PIPELINE, PUBLISHED, ROLLED_BACK, IngestionRun
+from models.trial import Trial
 from scripts.ctc.db.shadow import BUILD_SCHEMA, LIVE_SCHEMA
 from scripts.ctc.db.tables import PIPELINE_TABLE_NAMES
 
@@ -31,6 +33,47 @@ async def _move(connection: AsyncConnection, source: str, target: str) -> None:
         await connection.execute(
             text(f'ALTER TABLE "{source}"."{name}" SET SCHEMA "{target}"')
         )
+
+
+def _newest_published(pipeline: str) -> ScalarSelect[int]:
+    return (
+        select(IngestionRun.id)
+        .where(IngestionRun.pipeline == pipeline, IngestionRun.status == PUBLISHED)
+        .order_by(IngestionRun.published_at.desc(), IngestionRun.id.desc())
+        .limit(1)
+        .scalar_subquery()
+    )
+
+
+async def _record_run(
+    connection: AsyncConnection, live: str, pipeline: str, generation: str
+) -> datetime:
+    """Log the publish in the transaction that performs it, so the two land
+    together. Re-running publish to fix a lost record would swap a second time."""
+    scoped = await connection.execution_options(schema_translate_map={None: live})
+    count = await scoped.execute(select(func.count()).select_from(Trial))
+    recorded = await scoped.execute(
+        insert(IngestionRun)
+        .values(
+            pipeline=pipeline,
+            generation=generation,
+            trial_count=count.scalar_one(),
+            status=PUBLISHED,
+        )
+        .returning(IngestionRun.published_at)
+    )
+    published_at: datetime = recorded.scalar_one()
+    return published_at
+
+
+async def _retire_run(connection: AsyncConnection, live: str, pipeline: str) -> None:
+    """Mark the newest publish as undone, so the freshness date walks back."""
+    scoped = await connection.execution_options(schema_translate_map={None: live})
+    await scoped.execute(
+        update(IngestionRun)
+        .where(IngestionRun.id == _newest_published(pipeline))
+        .values(status=ROLLED_BACK, rolled_back_at=func.now())
+    )
 
 
 async def generations() -> list[str]:
@@ -62,7 +105,8 @@ async def swap(
     live: str = LIVE_SCHEMA,
     keep: int = DEFAULT_KEEP_GENERATIONS,
     lock_timeout: str = DEFAULT_LOCK_TIMEOUT,
-) -> tuple[str, list[str]]:
+    pipeline: str = CTC_PIPELINE,
+) -> tuple[str, datetime, list[str]]:
     """Archive the live tables under a new generation, then move the build in."""
     archive = _generation_name()
     async with engine.begin() as connection:
@@ -70,7 +114,8 @@ async def swap(
         await connection.execute(text(f'CREATE SCHEMA "{archive}"'))
         await _move(connection, live, archive)
         await _move(connection, build, live)
-    return archive, await prune(keep)
+        published_at = await _record_run(connection, live, pipeline, archive)
+    return archive, published_at, await prune(keep)
 
 
 async def rollback(
@@ -78,6 +123,7 @@ async def rollback(
     build: str = BUILD_SCHEMA,
     live: str = LIVE_SCHEMA,
     lock_timeout: str = DEFAULT_LOCK_TIMEOUT,
+    pipeline: str = CTC_PIPELINE,
 ) -> str:
     """Restore the newest archived generation; what was live moves to the build."""
     available = await generations()
@@ -92,4 +138,5 @@ async def rollback(
         await _move(connection, live, build)
         await _move(connection, newest, live)
         await connection.execute(text(f'DROP SCHEMA "{newest}" CASCADE'))
+        await _retire_run(connection, live, pipeline)
     return newest

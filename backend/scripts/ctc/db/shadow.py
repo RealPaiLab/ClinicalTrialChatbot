@@ -7,12 +7,12 @@ from contextlib import asynccontextmanager
 
 from alembic.config import Config
 from alembic.script import ScriptDirectory
-from sqlalchemy import func, select, text
+from sqlalchemy import Table, func, select, text
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession
 
 from core.database import AsyncSessionFactory, engine
 from models.base import Base
-from scripts.ctc.db.tables import PIPELINE_TABLES
+from scripts.ctc.db.tables import PIPELINE_TABLE_NAMES, PIPELINE_TABLES
 
 BUILD_SCHEMA = "ctc_build"
 LIVE_SCHEMA = "public"
@@ -50,14 +50,24 @@ async def assert_migrations_are_current() -> None:
         )
 
 
+def _build_tables() -> list[Table]:
+    """Only what the swap moves. Anything else on `Base` stays in `public`."""
+    return [Base.metadata.tables[name] for name in PIPELINE_TABLE_NAMES]
+
+
 async def recreate(schema: str) -> None:
     """Drop and rebuild the schema from the models, indexes included."""
     async with engine.begin() as connection:
         await connection.execute(text(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
         await connection.execute(text(f'CREATE SCHEMA "{schema}"'))
 
+    tables = _build_tables()
     async with shadow_connection(schema) as connection:
-        await connection.run_sync(Base.metadata.create_all)
+        await connection.run_sync(
+            lambda sync_connection: Base.metadata.create_all(
+                sync_connection, tables=tables
+            )
+        )
 
 
 async def counts(schema: str) -> dict[str, int]:

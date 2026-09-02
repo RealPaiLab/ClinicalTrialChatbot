@@ -12,9 +12,12 @@ from core.config import get_settings
 from core.embeddings import EmbeddingProvider, get_embedder
 from core.embeddings.columns import EMBEDDING_COLUMNS, resolve_provider
 from core.embeddings.openai_batch import OpenAIBatchEmbedder
+from core.logger import get_logger
 from models import Trial
 from scripts.ctc.db.shadow import BUILD_SCHEMA, shadow_connection, shadow_session
 from services.documents import compose_trial_document
+
+logger = get_logger(__name__)
 
 
 @dataclass(frozen=True, slots=True)
@@ -83,6 +86,7 @@ async def _embed_openai(
     embedder = OpenAIBatchEmbedder(get_settings())
     if batch_id is None:
         batch_id = await embedder.submit({str(k): v for k, v in documents.items()})
+        logger.info("submitted openai embedding batch %s", batch_id)
     vectors = await embedder.fetch(batch_id)
     written = await _write(
         schema,
