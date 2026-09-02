@@ -1,6 +1,5 @@
 export const PDF_DATA_DATE_LOCALE = 'en-GB';
 
-
 const LOCALE_OVERRIDES: Record<string, string> = { en: PDF_DATA_DATE_LOCALE };
 
 export function formatDataDate(iso: string, locale: string): string {

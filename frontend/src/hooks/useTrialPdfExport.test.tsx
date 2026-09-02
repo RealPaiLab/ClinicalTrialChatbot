@@ -29,9 +29,7 @@ describe('useTrialPdfExport', () => {
     rendered.mockClear();
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () =>
-        Response.json({ published_at: '2026-09-02T13:04:22Z' })
-      )
+      vi.fn(async () => Response.json({ published_at: '2026-09-02T13:04:22Z' }))
     );
   });
 

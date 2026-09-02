@@ -24,9 +24,7 @@ function AppHeader({
   const { t } = useTranslation();
   const { updatedOn } = useDataFreshness();
   const lastUpdated = updatedOn ? t('data.lastUpdated', { date: updatedOn.toUpperCase() }) : null;
-  const notice = updatedOn
-    ? t('data.detailedNotice', { date: updatedOn })
-    : t('data.shortNotice');
+  const notice = updatedOn ? t('data.detailedNotice', { date: updatedOn }) : t('data.shortNotice');
 
   return (
     <header className="bg-header text-header-foreground border-border after:bg-amber relative flex h-12 shrink-0 items-center justify-between border-b px-4 after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:content-['']">
