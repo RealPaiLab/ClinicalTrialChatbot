@@ -265,6 +265,7 @@ class FakeSessionFactory:
         scalars.all.return_value = rows
         scalars.one_or_none.return_value = rows[0] if rows else None
         self.result.scalars.return_value.all.return_value = rows
+        self.result.scalar_one_or_none.return_value = rows[0] if rows else None
         # count_matches() reads scalar_one(); with one canned result per session,
         # "everything we handed back" is the only sensible total.
         self.result.scalar_one.return_value = len(rows)
