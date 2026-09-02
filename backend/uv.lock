@@ -454,6 +454,7 @@ dependencies = [
     { name = "deepeval" },
     { name = "fastapi" },
     { name = "google-cloud-translate" },
+    { name = "httpx" },
     { name = "langfuse" },
     { name = "openai" },
     { name = "openpyxl" },
@@ -461,6 +462,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "pydantic-ai" },
     { name = "pydantic-settings" },
+    { name = "python-dotenv" },
     { name = "pyyaml" },
     { name = "redis" },
     { name = "rich" },
@@ -471,7 +473,6 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "httpx" },
     { name = "mypy" },
     { name = "pre-commit" },
     { name = "pytest" },
@@ -487,6 +488,7 @@ requires-dist = [
     { name = "deepeval", specifier = ">=4.0.7" },
     { name = "fastapi", specifier = ">=0.136.3" },
     { name = "google-cloud-translate", specifier = ">=3.27.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
     { name = "langfuse", specifier = ">=4.9.1" },
     { name = "openai", specifier = ">=2.38.0" },
     { name = "openpyxl", specifier = ">=3.1.5" },
@@ -494,6 +496,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.13.4" },
     { name = "pydantic-ai", specifier = ">=1.104.0" },
     { name = "pydantic-settings", specifier = ">=2.14.1" },
+    { name = "python-dotenv", specifier = ">=1.2.2" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "redis", specifier = ">=8.0.0" },
     { name = "rich", specifier = ">=13.6.0,<15" },
@@ -504,7 +507,6 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "httpx", specifier = ">=0.28.1" },
     { name = "mypy", specifier = ">=2.1.0" },
     { name = "pre-commit", specifier = ">=4.6.0" },
     { name = "pytest", specifier = ">=9.0.3" },
