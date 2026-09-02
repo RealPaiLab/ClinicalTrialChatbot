@@ -1,7 +1,6 @@
 import { Document, Link, Page, Text, View } from '@react-pdf/renderer';
 import { STATUS_COLOR, styles } from '@/components/export/pdf/theme';
 import { PRINT_DOC } from '@/constants/bookmarks';
-import { TRIAL_DATA } from '@/constants/chat';
 import { parseTextBlocks } from '@/lib/textBlocks';
 import {
   formatPhases,
@@ -86,7 +85,15 @@ function RichText({ text }: { text: string | null }) {
   );
 }
 
-function TrialPages({ trial, generatedOn }: { trial: Trial; generatedOn: string }) {
+function TrialPages({
+  trial,
+  generatedOn,
+  dataUpdatedOn,
+}: {
+  trial: Trial;
+  generatedOn: string;
+  dataUpdatedOn: string | null;
+}) {
   const title = trial.officialTitleEn ?? trial.shortTitleEn ?? publicTrialId(trial) ?? 'Trial';
   const site = primarySite(trial);
   const place = [site?.city, site?.province].filter(Boolean).join(', ');
@@ -179,15 +186,23 @@ function TrialPages({ trial, generatedOn }: { trial: Trial; generatedOn: string 
             {window.location.origin}
           </Link>
         </Text>
-        <Text>
-          {PRINT_DOC.dataCheckpoint} {TRIAL_DATA.updatedOn}
-        </Text>
+        {dataUpdatedOn && (
+          <Text>
+            {PRINT_DOC.dataCheckpoint} {dataUpdatedOn}
+          </Text>
+        )}
       </View>
     </Page>
   );
 }
 
-function TrialPdfDocument({ trials }: { trials: Trial[] }) {
+function TrialPdfDocument({
+  trials,
+  dataUpdatedOn = null,
+}: {
+  trials: Trial[];
+  dataUpdatedOn?: string | null;
+}) {
   const generatedOn = DATE_FORMAT.format(new Date());
 
   return (
@@ -197,6 +212,7 @@ function TrialPdfDocument({ trials }: { trials: Trial[] }) {
           key={trial.trialRef ?? trial.acronymOrProtocolId ?? index}
           trial={trial}
           generatedOn={generatedOn}
+          dataUpdatedOn={dataUpdatedOn}
         />
       ))}
     </Document>
