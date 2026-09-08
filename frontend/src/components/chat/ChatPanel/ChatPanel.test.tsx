@@ -7,12 +7,12 @@ import { StreamEventType } from '@/constants/chat';
 import type { StreamEvent, TrialSummary } from '@/types/trial';
 import { mockTrials } from '@/test/fixtures/trials';
 
-const REPLY = 'I found a trial that may fit. [NCT04267848] is recruiting in Toronto.';
+const REPLY = 'I found a trial that may fit. [CTC-4267848A] is recruiting in Toronto.';
 
 async function* streamWithTrials(): AsyncGenerator<StreamEvent> {
   yield {
     type: StreamEventType.AgentResponse,
-    data: { message: 'I found a trial', usedNctNumbers: [], followUpQuestions: [] },
+    data: { message: 'I found a trial', usedTrialRefs: [], followUpQuestions: [] },
   };
   yield {
     type: StreamEventType.ChatResult,
@@ -29,15 +29,15 @@ async function* streamWithoutTrials(): AsyncGenerator<StreamEvent> {
   yield {
     type: StreamEventType.AgentResponse,
     data: {
-      message: 'See [NCT04267848] now.',
-      usedNctNumbers: ['NCT04267848'],
+      message: 'See [CTC-4267848A] now.',
+      usedTrialRefs: ['CTC-4267848A'],
       followUpQuestions: [],
     },
   };
   yield {
     type: StreamEventType.ChatResult,
     data: {
-      message: 'See [NCT04267848] now.',
+      message: 'See [CTC-4267848A] now.',
       trials: [],
       followUpQuestions: [],
       observationId: '',
@@ -66,9 +66,7 @@ describe('ChatPanel', () => {
     await userEvent.type(screen.getByRole('textbox'), 'breast cancer trials in Toronto');
     await userEvent.click(screen.getByRole('button', { name: /submit/i }));
 
-    expect(
-      await screen.findByRole('button', { name: /show trial nct04267848/i })
-    ).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /show .+ on the map/i })).toBeInTheDocument();
     await waitFor(() => {
       expect(onTrialsChange).toHaveBeenCalledWith([mockTrials[0]]);
     });
@@ -78,7 +76,9 @@ describe('ChatPanel', () => {
   it('fetches a cited trial on detect when the stream has no trial payload', async () => {
     const detectFetch = vi.fn(
       async (): Promise<TrialSummary> => ({
+        trialRef: 'CTC-4267848A',
         nctNumber: 'NCT04267848',
+        acronymOrProtocolId: null,
         shortTitleEn: 'Fetched On Detect',
         officialTitleEn: null,
         descriptionEn: null,
@@ -97,7 +97,7 @@ describe('ChatPanel', () => {
     await userEvent.click(screen.getByRole('button', { name: /submit/i }));
 
     expect(await screen.findByText(/fetched on detect/i)).toBeInTheDocument();
-    expect(detectFetch).toHaveBeenCalledWith('NCT04267848', expect.anything());
+    expect(detectFetch).toHaveBeenCalledWith('CTC-4267848A', expect.anything());
     expect(onTrialsChange).not.toHaveBeenCalled();
   });
 
@@ -115,7 +115,7 @@ describe('ChatPanel', () => {
 
     await userEvent.type(screen.getByRole('textbox'), 'hello');
     await userEvent.click(screen.getByRole('button', { name: /submit/i }));
-    await screen.findByRole('button', { name: /show trial nct04267848/i });
+    await screen.findByRole('button', { name: /show .+ on the map/i });
 
     await userEvent.click(screen.getByRole('button', { name: /new conversation/i }));
 
@@ -143,7 +143,7 @@ describe('ChatPanel', () => {
 
     const sentText = createStream.mock.calls[0][0];
     expect(sentText).toContain('what are the side effects?');
-    expect(sentText).toContain('NCT04267848');
+    expect(sentText).toContain('CTC-4267848A');
     expect(onClearContext).toHaveBeenCalledTimes(1);
   });
 });

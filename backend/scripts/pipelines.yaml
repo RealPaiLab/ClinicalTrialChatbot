@@ -1,0 +1,42 @@
+ctc:
+  source:
+    kind: api
+    api:
+      base_url: ${CTC_API_BASE_URL}
+      search_scope: CA
+      page_size: 100
+      concurrency: 5
+
+  diff:
+    strategy: timestamp
+    # true rebuilds and re-embeds everything.
+    full_refresh: false
+
+  build:
+    schema: ctc_build
+    batch_size: 500
+
+  geocode:
+    concurrency: 20
+    limit: null
+
+  embed:
+    provider: null      # null uses EMBEDDING_PROVIDER
+    batch_size: null    # null uses EMBEDDING_BATCH_SIZE
+    limit: null
+    batch_id: null      # resume an OpenAI batch that was already submitted
+    force: false
+
+  validate:
+    max_trial_drop_pct: 5
+    max_location_drop_pct: 5
+    max_site_drop_pct: 5
+    min_geocode_coverage: 0.95
+    min_embedding_coverage: 0.99
+    coverage_must_not_regress: true
+
+  publish:
+    keep_generations: 3
+    lock_timeout: 5s
+
+  stages: [ingest, diff, build, geocode, embed, validate, publish]

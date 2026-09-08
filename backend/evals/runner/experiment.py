@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import asyncio
+
 from langfuse import get_client
 from langfuse.experiment import ExperimentResult
 
 from core.config import get_settings
-from core.dependencies import get_isolated_trial_search
+from core.dependencies import get_isolated_trial_search, get_isolated_vocabulary_service
 from core.logger import get_logger
 from evals.adapters.langfuse_evaluators import build_evaluators
 from evals.dataset import DATASET_NAME
@@ -23,6 +25,8 @@ def run_experiment(
     """Run the agent over a Langfuse dataset and score it (sync; needs Langfuse up)."""
     settings = get_settings()
     logger.info("Eval run starting (dataset=%s, run_name=%s)", dataset_name, run_name)
+    # The agent under eval must see the same tool vocabulary production does.
+    asyncio.run(get_isolated_vocabulary_service().refresh())
     try:
         dataset = get_client().get_dataset(dataset_name)
         result = dataset.run_experiment(

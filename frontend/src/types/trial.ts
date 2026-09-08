@@ -1,5 +1,6 @@
 import { StreamEventType } from '@/constants/chat';
-import type { ChatRole } from '@/constants/chat';
+import type { ChatErrorKey, ChatRole } from '@/constants/chat';
+import type { LanguageCode, TranslationSource } from '@/constants/language';
 
 export type { ChatRole };
 
@@ -15,6 +16,7 @@ export interface TrialSite {
 }
 
 export interface Trial {
+  trialRef: string;
   nctNumber: string | null;
   acronymOrProtocolId: string | null;
   shortTitleEn: string | null;
@@ -24,6 +26,7 @@ export interface Trial {
   exclusionCriteriaEn: string | null;
   phases: string[];
   treatmentTypeNames: string[];
+  diseaseStages: string[];
   interventionNames: string[];
   treatmentLines: string[];
   sites: TrialSite[];
@@ -31,8 +34,26 @@ export interface Trial {
 
 export type TrialSummary = Pick<
   Trial,
-  'nctNumber' | 'shortTitleEn' | 'officialTitleEn' | 'descriptionEn'
+  | 'trialRef'
+  | 'nctNumber'
+  | 'acronymOrProtocolId'
+  | 'shortTitleEn'
+  | 'officialTitleEn'
+  | 'descriptionEn'
 >;
+
+export interface TrialTranslation {
+  trialRef: string;
+  language: LanguageCode;
+  source: TranslationSource;
+  shortTitle: string | null;
+  officialTitle: string | null;
+  description: string | null;
+  inclusionCriteria: string | null;
+  exclusionCriteria: string | null;
+  cancerTypeNames: Record<string, string>;
+  treatmentTypeNames: Record<string, string>;
+}
 
 export type TrialStatus = 'recruiting' | 'opening_soon';
 
@@ -45,7 +66,7 @@ export interface ChatResult {
 
 export interface AgentResponse {
   message: string;
-  usedNctNumbers: string[];
+  usedTrialRefs: string[];
   followUpQuestions: string[];
 }
 
@@ -54,12 +75,22 @@ export type StreamEvent =
   | { type: typeof StreamEventType.ChatResult; data: ChatResult }
   | { type: typeof StreamEventType.Error; data: string };
 
+export interface ChatError {
+  key: ChatErrorKey;
+  params?: { seconds?: number; limit?: number };
+}
+
 export interface ChatMessage {
   id: string;
   role: ChatRole;
   content: string;
   trials?: Trial[];
+  contextTrialRefs?: string[];
   followUpQuestions?: string[];
   observationId?: string;
-  isError?: boolean;
+  error?: ChatError;
+}
+
+export interface DataFreshness {
+  publishedAt: string | null;
 }

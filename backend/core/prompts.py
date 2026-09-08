@@ -13,9 +13,7 @@ def fetch_prompt(name: str, fallback: str) -> str:
     """Return the Langfuse-versioned prompt, falling back to the local constant."""
     settings = get_settings()
     try:
-        prompt = get_langfuse_client().get_prompt(
-            name, label=settings.langfuse_prompt_label
-        )
+        prompt = get_langfuse_client().get_prompt(name, label=settings.prompt_label)
         return str(prompt.compile())
     except Exception as exc:
         logger.warning("Using local prompt %r (Langfuse fetch failed): %s", name, exc)
@@ -28,7 +26,7 @@ def seed_prompt(name: str, content: str) -> None:
     if not settings.langfuse_seed_prompt:
         return
     client = get_langfuse_client()
-    label = settings.langfuse_prompt_label
+    label = settings.prompt_label
     try:
         client.get_prompt(name, label=label)
         return
@@ -44,6 +42,22 @@ def seed_prompt(name: str, content: str) -> None:
         logger.warning("Prompt seed skipped (Langfuse unavailable): %s", exc)
 
 
+def promote_prompt(name: str, *, from_label: str, to_label: str) -> int:
+    """Move `to_label` onto the exact version that currently carries `from_label`."""
+    client = get_langfuse_client()
+    prompt = client.get_prompt(name, label=from_label, cache_ttl_seconds=0)
+    version = int(prompt.version)
+    client.update_prompt(name=name, version=version, new_labels=[to_label])
+    logger.info(
+        "Promoted prompt %r v%d from label %r to %r.",
+        name,
+        version,
+        from_label,
+        to_label,
+    )
+    return version
+
+
 def publish_prompt(name: str, content: str) -> None:
     """Publish a new labeled version of the prompt (used by bootstrap_prompt.py)."""
     settings = get_settings()
@@ -51,9 +65,7 @@ def publish_prompt(name: str, content: str) -> None:
     client.create_prompt(
         name=name,
         prompt=content,
-        labels=[settings.langfuse_prompt_label],
+        labels=[settings.prompt_label],
         type="text",
     )
-    logger.info(
-        "Published prompt %r with label %r.", name, settings.langfuse_prompt_label
-    )
+    logger.info("Published prompt %r with label %r.", name, settings.prompt_label)

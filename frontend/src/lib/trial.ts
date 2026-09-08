@@ -4,10 +4,20 @@ import type { Trial, TrialSite, TrialStatus } from '@/types/trial';
 const STATUS_PRIORITY: TrialStatus[] = ['recruiting', 'opening_soon'];
 
 export function deriveTrialStatus(trial: Trial): TrialStatus | null {
+  return trialStatuses(trial)[0] ?? null;
+}
+
+/** Every distinct site status, in priority order: sites can disagree. */
+export function trialStatuses(trial: Trial): TrialStatus[] {
   const statuses = trial.sites
     .map((site) => normalizeStatus(site.state))
     .filter((status): status is TrialStatus => status !== null);
-  return STATUS_PRIORITY.find((status) => statuses.includes(status)) ?? null;
+  return STATUS_PRIORITY.filter((status) => statuses.includes(status));
+}
+
+export function findSite(trial: Trial, siteName: string | null | undefined): TrialSite | null {
+  if (!siteName) return null;
+  return trial.sites.find((site) => site.nameEn === siteName) ?? null;
 }
 
 export function primarySite(trial: Trial): TrialSite | null {
@@ -22,6 +32,16 @@ export function uniqueCancerTypes(trial: Trial): string[] {
   return [...new Set(trial.sites.flatMap((site) => site.cancerTypeNames))];
 }
 
+export function publicTrialId(
+  trial: Pick<Trial, 'nctNumber' | 'acronymOrProtocolId'> | null | undefined
+): string | null {
+  return trial?.nctNumber ?? trial?.acronymOrProtocolId ?? null;
+}
+
+export function formatPhase(phase: string): string {
+  return phase.replace(/phase\s*/i, 'Phase ');
+}
+
 export function formatPhases(phases: string[]): string {
-  return phases.map((phase) => phase.replace(/phase\s*/i, 'Phase ')).join(' / ');
+  return phases.map(formatPhase).join(' / ');
 }

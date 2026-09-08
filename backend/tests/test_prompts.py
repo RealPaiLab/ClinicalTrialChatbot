@@ -8,6 +8,7 @@ from agents.clinical_trials.prompts import (
 )
 from agents.input_triage.prompts import LOCAL_TRIAGE_PROMPT, get_triage_prompt
 from core import prompts
+from core.config import Environment, Settings
 
 
 def test_falls_back_to_local_when_langfuse_unavailable(
@@ -27,6 +28,74 @@ def test_uses_langfuse_prompt_when_available(monkeypatch: pytest.MonkeyPatch) ->
     monkeypatch.setattr(prompts, "get_langfuse_client", lambda: client)
     assert get_clinical_trials_prompt() == "FETCHED PROMPT"
     assert get_triage_prompt() == "FETCHED PROMPT"
+
+
+def test_promote_relabels_the_tested_version(monkeypatch: pytest.MonkeyPatch) -> None:
+    client = MagicMock()
+    client.get_prompt.return_value.version = 7
+    monkeypatch.setattr(prompts, "get_langfuse_client", lambda: client)
+
+    version = prompts.promote_prompt(
+        "clinical-trial-chatbot-system", from_label="staging", to_label="production"
+    )
+
+    assert version == 7
+    assert client.get_prompt.call_args.kwargs["label"] == "staging"
+    # The tested version is re-labeled; nothing new is created from the local constant.
+    client.create_prompt.assert_not_called()
+    assert client.update_prompt.call_args.kwargs == {
+        "name": "clinical-trial-chatbot-system",
+        "version": 7,
+        "new_labels": ["production"],
+    }
+
+
+def test_promote_raises_when_the_source_label_is_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client = MagicMock()
+    client.get_prompt.side_effect = RuntimeError("no such label")
+    monkeypatch.setattr(prompts, "get_langfuse_client", lambda: client)
+
+    with pytest.raises(RuntimeError):
+        prompts.promote_prompt(
+            "clinical-trial-chatbot-system", from_label="staging", to_label="production"
+        )
+    client.update_prompt.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("environment", "override", "expected"),
+    [
+        (Environment.DEVELOPMENT, None, "development"),
+        (Environment.STAGING, None, "staging"),
+        (Environment.PRODUCTION, None, "production"),
+        (Environment.DEVELOPMENT, "staging", "staging"),
+    ],
+)
+def test_prompt_label_follows_the_environment_unless_overridden(
+    environment: Environment, override: str | None, expected: str
+) -> None:
+    settings = Settings(environment=environment, langfuse_prompt_label=override)
+
+    assert settings.prompt_label == expected
+
+
+def test_fetch_reads_the_environments_label(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A local run must not read (or seed) the label another environment serves."""
+    client = MagicMock()
+    monkeypatch.setattr(prompts, "get_langfuse_client", lambda: client)
+    monkeypatch.setattr(
+        prompts,
+        "get_settings",
+        lambda: Settings(
+            environment=Environment.DEVELOPMENT, langfuse_prompt_label=None
+        ),
+    )
+
+    get_clinical_trials_prompt()
+
+    assert client.get_prompt.call_args.kwargs["label"] == "development"
 
 
 def test_each_agent_fetches_its_own_prompt_name(

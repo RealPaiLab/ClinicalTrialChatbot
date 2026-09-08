@@ -65,17 +65,19 @@ jobs:
           APP_VM_HOST: ${{ secrets.APP_VM_HOST }}
         run: ssh-keyscan -H "$APP_VM_HOST" >> ~/.ssh/known_hosts
 
-      - name: Write the inventory (App VM under the app group)
+      - name: Write the inventory (App VM under the production group)
         env:
           APP_VM_HOST: ${{ secrets.APP_VM_HOST }}
         run: |
           cat > inventory/hosts.yml <<EOF
           all:
             children:
-              app:
-                hosts:
-                  app-vm:
-                    ansible_host: $APP_VM_HOST
+              common:
+                children:
+                  production:
+                    hosts:
+                      production-vm:
+                        ansible_host: $APP_VM_HOST
           EOF
 
       # Release (push) runs migrations; manual rollback (workflow_dispatch) skips them.

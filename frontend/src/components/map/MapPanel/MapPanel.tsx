@@ -1,57 +1,55 @@
 import { useRef, useState } from 'react';
-import MapGL, { Layer, Source, type MapRef } from 'react-map-gl/mapbox';
+import MapGL, { Layer, NavigationControl, Source, type MapRef } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Info, MapPin } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import MapLegend from '@/components/map/MapLegend/MapLegend';
-import TrialMarker from '@/components/map/TrialMarker/TrialMarker';
 import TrialCluster from '@/components/map/TrialCluster/TrialCluster';
 import { useClusterDisclosure } from '@/hooks/useClusterDisclosure';
 import { useMapViewSync } from '@/hooks/useMapViewSync';
 import { useTrialPins } from '@/hooks/useTrialPins';
-import { ONTARIO_BOUNDARY, ONTARIO_CENTER } from '@/assets/ontario.geojson';
+import { CANADA_BOUNDARY, CANADA_CENTER } from '@/assets/canada.geojson';
+import { publicTrialId } from '@/lib/trial';
 import { config } from '@/config';
 import type { Trial } from '@/types/trial';
 
 const MAPBOX_TOKEN = config.mapboxToken;
 const LIGHT_STYLE = config.mapboxStyleLight;
 const DARK_STYLE = config.mapboxStyleDark;
-const INITIAL_VIEW = { longitude: ONTARIO_CENTER[0], latitude: ONTARIO_CENTER[1], zoom: 3.9 };
-const EMPTY_HINT = 'Trials will appear here as you chat.';
-const ONTARIO_ONLY_NOTICE = 'Coverage is currently limited to Ontario.';
+const INITIAL_VIEW = { longitude: CANADA_CENTER[0], latitude: CANADA_CENTER[1], zoom: 2.5 };
+const MIN_ZOOM = 2;
+const MAX_ZOOM = 16;
 
 interface MapPanelProps {
   trials: Trial[];
-  selectedNctNumber?: string | null;
+  selectedTrialRef?: string | null;
   selectedSiteKey?: string | null;
-  onSelectTrial?: (nctNumber: string, siteKey?: string | null) => void;
+  onSelectTrial?: (trialRef: string, siteKey?: string | null) => void;
   dark?: boolean;
 }
 
 function MapPanel({
   trials,
-  selectedNctNumber,
+  selectedTrialRef,
   selectedSiteKey,
   onSelectTrial,
   dark,
 }: MapPanelProps) {
+  const { t } = useTranslation();
   const mapRef = useRef<MapRef | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   const { markers, units } = useTrialPins(trials);
-  const { openKey, toggle, close } = useClusterDisclosure(
-    units,
-    selectedNctNumber,
-    selectedSiteKey
-  );
+  const { openKey, toggle, close } = useClusterDisclosure(units, selectedTrialRef, selectedSiteKey);
   useMapViewSync({
     mapRef,
     containerRef,
     loaded,
     markers,
     units,
-    selectedNctNumber,
+    selectedTrialRef,
     selectedSiteKey,
     initialView: INITIAL_VIEW,
   });
@@ -75,76 +73,61 @@ function MapPanel({
         mapboxAccessToken={MAPBOX_TOKEN}
         mapStyle={dark ? DARK_STYLE : LIGHT_STYLE}
         initialViewState={INITIAL_VIEW}
+        minZoom={MIN_ZOOM}
+        maxZoom={MAX_ZOOM}
         projection="mercator"
         reuseMaps
         style={{ width: '100%', height: '100%' }}
         onLoad={() => setLoaded(true)}
       >
-        <Source id="ontario" type="geojson" data={ONTARIO_BOUNDARY}>
+        <NavigationControl position="top-right" showCompass={false} />
+
+        <Source id="canada" type="geojson" data={CANADA_BOUNDARY}>
           <Layer
-            id="ontario-fill"
+            id="canada-fill"
             type="fill"
             paint={{
               'fill-color': dark ? '#7e9ce6' : '#2f3f7b',
-              'fill-opacity': ['interpolate', ['linear'], ['zoom'], 5, dark ? 0.08 : 0.05, 7, 0],
+              'fill-opacity': ['interpolate', ['linear'], ['zoom'], 4, dark ? 0.08 : 0.05, 6, 0],
             }}
           />
           <Layer
-            id="ontario-line"
+            id="canada-line"
             type="line"
             paint={{
               'line-color': dark ? '#7e9ce6' : '#2f3f7b',
               'line-width': 1.5,
-              'line-opacity': ['interpolate', ['linear'], ['zoom'], 5, 0.6, 7, 0],
+              'line-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.6, 6, 0],
             }}
           />
         </Source>
 
-        {units.map((unit) => {
-          if (unit.items.length === 1) {
-            const marker = unit.items[0];
-            return (
-              <TrialMarker
-                key={unit.key}
-                longitude={unit.longitude}
-                latitude={unit.latitude}
-                status={marker.status}
-                selected={
-                  marker.trial.nctNumber === selectedNctNumber &&
-                  (!selectedSiteKey || selectedSiteKey === unit.key)
-                }
-                label={`${marker.site.nameEn} — ${marker.trial.shortTitleEn ?? marker.trial.nctNumber ?? 'trial'}`}
-                onSelect={() => {
-                  if (marker.trial.nctNumber) onSelectTrial?.(marker.trial.nctNumber, unit.key);
-                }}
-              />
-            );
-          }
-          return (
-            <TrialCluster
-              key={unit.key}
-              longitude={unit.longitude}
-              latitude={unit.latitude}
-              locationName={unit.locationName}
-              selectedNctNumber={
-                selectedSiteKey && selectedSiteKey !== unit.key ? null : selectedNctNumber
-              }
-              open={openKey === unit.key}
-              onToggle={() => toggle(unit.key)}
-              onClose={close}
-              onSelectTrial={(nct) => onSelectTrial?.(nct, unit.key)}
-              items={unit.items.map((item) => ({
-                nctNumber: item.trial.nctNumber,
-                title:
-                  item.trial.shortTitleEn ??
-                  item.trial.officialTitleEn ??
-                  item.trial.nctNumber ??
-                  'Trial',
-                status: item.status,
-              }))}
-            />
-          );
-        })}
+        {/* Every pin opens the popup, single-trial sites included, so the site is
+            named before a trial is picked. */}
+        {units.map((unit) => (
+          <TrialCluster
+            key={unit.key}
+            longitude={unit.longitude}
+            latitude={unit.latitude}
+            locationName={unit.locationName}
+            selectedTrialRef={
+              selectedSiteKey && selectedSiteKey !== unit.key ? null : selectedTrialRef
+            }
+            open={openKey === unit.key}
+            onToggle={() => toggle(unit.key)}
+            onClose={close}
+            onSelectTrial={(nct) => onSelectTrial?.(nct, unit.key)}
+            items={unit.items.map((item) => ({
+              trialRef: item.trial.trialRef,
+              title:
+                item.trial.shortTitleEn ??
+                item.trial.officialTitleEn ??
+                publicTrialId(item.trial) ??
+                'Trial',
+              status: item.status,
+            }))}
+          />
+        ))}
       </MapGL>
 
       <div className="absolute top-3 left-3 z-10">
@@ -152,14 +135,14 @@ function MapPanel({
           <HoverCardTrigger asChild>
             <button
               type="button"
-              aria-label="Coverage area"
+              aria-label={t('map.coverageArea')}
               className="bg-canvas/90 text-muted-foreground hover:text-foreground flex size-7 shrink-0 items-center justify-center rounded-md border shadow-sm backdrop-blur transition-colors"
             >
               <Info className="size-3.5" />
             </button>
           </HoverCardTrigger>
           <HoverCardContent align="start" className="w-64 text-sm leading-relaxed">
-            {ONTARIO_ONLY_NOTICE}
+            {t('map.coverageNotice')}
           </HoverCardContent>
         </HoverCard>
       </div>
@@ -169,7 +152,7 @@ function MapPanel({
       ) : (
         <div className="text-muted-foreground pointer-events-none absolute inset-0 grid place-items-center">
           <p className="bg-card/80 rounded-lg border px-3 py-2 text-sm backdrop-blur">
-            {EMPTY_HINT}
+            {t('map.emptyHint')}
           </p>
         </div>
       )}

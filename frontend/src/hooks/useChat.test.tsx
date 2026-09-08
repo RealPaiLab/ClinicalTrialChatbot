@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { describe, expect, it, vi } from 'vitest';
-import { CHAT_ERROR, MAX_MESSAGE_LENGTH } from '@/constants/chat';
+import { CHAT_ERROR_KEY, MAX_MESSAGE_LENGTH } from '@/constants/chat';
 import { createQueryClient } from '@/lib/queryClient';
 import { useChat } from './useChat';
 
@@ -21,9 +21,9 @@ describe('useChat', () => {
 
     expect(createStream).not.toHaveBeenCalled();
     await waitFor(() => {
-      expect(result.current.messages.at(-1)).toMatchObject({
-        content: CHAT_ERROR.messageTooLong,
-        isError: true,
+      expect(result.current.messages.at(-1)?.error).toEqual({
+        key: CHAT_ERROR_KEY.messageTooLong,
+        params: { limit: MAX_MESSAGE_LENGTH },
       });
     });
   });

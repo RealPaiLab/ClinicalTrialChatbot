@@ -1,7 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 
 function NotFoundPage() {
+  const { t } = useTranslation();
+
   return (
     <div className="bg-background text-foreground grain relative flex h-screen w-screen items-center justify-center overflow-hidden px-6">
       <div
@@ -18,14 +21,14 @@ function NotFoundPage() {
 
       <div className="relative flex flex-col items-center gap-5 text-center">
         <p className="text-eyebrow text-primary animate-in fade-in duration-700">
-          You've wandered off
+          {t('notFound.eyebrow')}
         </p>
         <h1 className="text-display animate-in fade-in slide-in-from-bottom-2 max-w-xl duration-700">
-          You're not in the right place
+          {t('notFound.title')}
         </h1>
         <div className="bg-primary/40 h-px w-16" />
         <Button asChild size="lg" className="animate-in fade-in duration-1000">
-          <Link to="/">Take me back</Link>
+          <Link to="/">{t('notFound.action')}</Link>
         </Button>
       </div>
     </div>

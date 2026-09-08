@@ -6,22 +6,16 @@ from typing import cast
 
 from sqlalchemy import ColumnElement, Select, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import InstrumentedAttribute, selectinload
+from sqlalchemy.orm import selectinload, undefer
 from sqlalchemy.sql.operators import ColumnOperators
 
 from core.embeddings import EmbeddingProvider
+from core.embeddings.columns import EMBEDDING_COLUMNS
 from models.location import Location
 from models.trial import Trial
 from models.trial_site import TrialSite
 from schemas.provinces import split_locations
 from schemas.trial import TrialFilter
-
-_EMBEDDING_COLUMNS: dict[
-    EmbeddingProvider, InstrumentedAttribute[list[float] | None]
-] = {
-    EmbeddingProvider.OLLAMA: Trial.qwen_embedding,
-    EmbeddingProvider.OPENAI: Trial.openai_embedding,
-}
 
 
 def _contains(column: ColumnOperators, term: str) -> ColumnElement[bool]:
@@ -84,8 +78,15 @@ def _site_match_exists(
     return stmt.where(TrialSite.trial_id == Trial.id, *conditions).exists()
 
 
-def _phase_filter(value: str) -> ColumnElement[bool]:
-    return _contains(func.array_to_string(Trial.phases, " "), value)
+_TRIAL_ARRAY_COLUMNS: dict[str, ColumnOperators] = {
+    "phases": Trial.phases,
+    "treatment_types": Trial.treatment_type_names,
+    "disease_stages": Trial.disease_stages,
+}
+
+
+def _array_match(column: ColumnOperators, value: str) -> ColumnElement[bool]:
+    return _contains(func.array_to_string(column, " "), value)
 
 
 def _province_restriction(province: str) -> ColumnElement[bool]:
@@ -104,14 +105,15 @@ def _filter_conditions(
     flt: TrialFilter, restrict_province: str | None = None
 ) -> list[ColumnElement[bool]]:
     """Combined same-site predicate (cancer/location/status/province) AND the
-    trial-level phase predicate."""
+    trial-level array predicates (phase, treatment type, disease stage)."""
     conditions: list[ColumnElement[bool]] = []
     site_match = _site_match_exists(flt, restrict_province)
     if site_match is not None:
         conditions.append(site_match)
-    phases = [v for v in flt.phases if v]
-    if phases:
-        conditions.append(or_(*(_phase_filter(v) for v in phases)))
+    for field, column in _TRIAL_ARRAY_COLUMNS.items():
+        terms = [v for v in getattr(flt, field) if v]
+        if terms:
+            conditions.append(or_(*(_array_match(column, v) for v in terms)))
     return conditions
 
 
@@ -164,6 +166,23 @@ class TrialRepository:
         )
         return await self._run(stmt)
 
+    async def count_matches(
+        self,
+        flt: TrialFilter,
+        *,
+        query: str | None = None,
+        provider: EmbeddingProvider | None = None,
+    ) -> int:
+        """How many trials match"""
+        conditions = _filter_conditions(flt, self._restrict_to_province)
+        if query:
+            conditions.append(_keyword_condition(query))
+        if provider is not None:
+            conditions.append(EMBEDDING_COLUMNS[provider].is_not(None))
+        stmt = select(func.count()).select_from(Trial).where(*conditions)
+        result = await self._session.execute(stmt)
+        return int(result.scalar_one())
+
     async def semantic_search(
         self,
         flt: TrialFilter,
@@ -175,7 +194,7 @@ class TrialRepository:
     ) -> list[Trial]:
         """Vector search: filter conditions, ranked by cosine distance against
         the column matching the provider that produced the query embedding."""
-        column = _EMBEDDING_COLUMNS[provider]
+        column = EMBEDDING_COLUMNS[provider]
         conditions = [
             *_filter_conditions(flt, self._restrict_to_province),
             column.is_not(None),
@@ -188,6 +207,35 @@ class TrialRepository:
             .offset(offset)
         )
         return await self._run(stmt)
+
+    async def get_by_refs(self, trial_refs: list[str]) -> list[Trial]:
+        """Fetch trials by their refs."""
+        if not trial_refs:
+            return []
+        conditions: list[ColumnElement[bool]] = [Trial.trial_ref.in_(trial_refs)]
+        if self._restrict_to_province:
+            conditions.append(_province_restriction(self._restrict_to_province))
+        return await self._run(self._base_select().where(*conditions))
+
+    async def get_site_contacts(self, trial_ref: str) -> list[TrialSite]:
+        conditions: list[ColumnElement[bool]] = [Trial.trial_ref == trial_ref]
+        if self._restrict_to_province:
+            conditions.append(_contains(Location.province, self._restrict_to_province))
+        stmt = (
+            select(TrialSite)
+            .join(Trial, TrialSite.trial_id == Trial.id)
+            .join(Location, TrialSite.location_id == Location.id)
+            .where(*conditions)
+            .options(undefer(TrialSite.coordinators), selectinload(TrialSite.location))
+            .order_by(Location.name_en)
+        )
+        result = await self._session.execute(stmt)
+        return list(result.scalars().unique().all())
+
+    async def exists_by_ref(self, trial_ref: str) -> bool:
+        stmt = select(Trial.id).where(Trial.trial_ref == trial_ref).limit(1)
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none() is not None
 
     async def get_by_ncts(self, nct_numbers: list[str]) -> list[Trial]:
         """Fetch trials by their NCT numbers."""

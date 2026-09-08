@@ -86,3 +86,26 @@ async def test_semantic_search_orders_by_cosine_distance_within_filters() -> Non
     assert "order by" in sql
     assert "limit" in sql
     assert "cancer_type_names" in sql
+
+
+async def test_trial_level_filters_reach_the_where_clause() -> None:
+    factory = FakeSessionFactory([make_orm_trial("NCT-1")])
+    repo = TrialRepository(factory.session)
+    await repo.syntactic_search(
+        TrialFilter(treatment_types=["Immunotherapy"], disease_stages=["Metastatic"])
+    )
+    sql = _sql(factory.last_statement)
+    assert "treatment_type_names" in sql
+    assert "disease_stages" in sql
+    assert "exists" not in sql
+
+
+async def test_trial_level_filters_combine_with_the_same_site_exists() -> None:
+    factory = FakeSessionFactory([make_orm_trial("NCT-1")])
+    repo = TrialRepository(factory.session)
+    await repo.syntactic_search(
+        TrialFilter(cancer_types=["lung"], disease_stages=["Metastatic"])
+    )
+    sql = _sql(factory.last_statement)
+    assert "exists" in sql
+    assert "disease_stages" in sql

@@ -1,6 +1,6 @@
 import { Marker } from 'react-map-gl/mapbox';
 import { Button } from '@/components/ui/button';
-import HospitalPin from '@/components/map/HospitalPin/HospitalPin';
+import CountPin from '@/components/map/CountPin/CountPin';
 import type { TrialStatus } from '@/types/trial';
 
 interface TrialMarkerProps {
@@ -25,7 +25,7 @@ function TrialMarker({ longitude, latitude, status, selected, label, onSelect }:
         }}
         className="h-auto bg-transparent p-0 hover:bg-transparent focus-visible:ring-0"
       >
-        <HospitalPin status={status} selected={selected} />
+        <CountPin count={1} status={status} selected={selected} />
       </Button>
     </Marker>
   );

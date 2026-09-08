@@ -7,19 +7,19 @@ import FollowUpChips from '@/components/chat/FollowUpChips/FollowUpChips';
 import { useTurnstile } from '@/components/turnstile/TurnstileContext';
 import { ASK_AI_PROMPT_PREFIX, ASK_AI_PROMPT_SUFFIX, ChatRole } from '@/constants/chat';
 import { useChat } from '@/hooks/useChat';
-import { getTrialSummary } from '@/services/trials';
+import { getTrial } from '@/services/trials';
 import { useAppStore } from '@/store/appStore';
 import type { StreamEvent, Trial, TrialSummary } from '@/types/trial';
 
 interface ChatPanelProps {
   onTrialsChange?: (trials: Trial[]) => void;
-  onCitationClick?: (nctNumber: string) => void;
+  onCitationClick?: (trialRef: string) => void;
   onReset?: () => void;
   contextTrials?: Trial[];
-  onRemoveContext?: (nctNumber: string) => void;
+  onRemoveContext?: (trialRef: string) => void;
   onClearContext?: () => void;
   createStream?: (text: string, signal?: AbortSignal) => AsyncGenerator<StreamEvent>;
-  fetchTrial?: (nctNumber: string, signal?: AbortSignal) => Promise<TrialSummary>;
+  fetchTrial?: (trialRef: string, signal?: AbortSignal) => Promise<TrialSummary>;
 }
 
 function ChatPanel({
@@ -30,7 +30,7 @@ function ChatPanel({
   onRemoveContext,
   onClearContext,
   createStream,
-  fetchTrial = getTrialSummary,
+  fetchTrial = getTrial,
 }: ChatPanelProps) {
   const turnstile = useTurnstile();
   const getTurnstileToken = useCallback(() => turnstile.token, [turnstile.token]);
@@ -46,10 +46,10 @@ function ChatPanel({
   const displayMessages = tourMessages.length > 0 ? tourMessages : messages;
 
   const handleSend = (text: string) => {
-    const contextNctNumbers = contextTrials
-      .map((trial) => trial.nctNumber)
+    const contextTrialRefs = contextTrials
+      .map((trial) => trial.trialRef)
       .filter((nct): nct is string => Boolean(nct));
-    void sendMessage(text, contextNctNumbers);
+    void sendMessage(text, contextTrialRefs);
     onClearContext?.();
   };
 

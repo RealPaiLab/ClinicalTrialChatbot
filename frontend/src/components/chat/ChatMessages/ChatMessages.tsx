@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Components } from 'streamdown';
 import {
   Conversation,
@@ -7,42 +8,46 @@ import {
 } from '@/components/ai-elements/conversation';
 import { Message, MessageContent, MessageResponse } from '@/components/ai-elements/message';
 import AskAiSelection from '@/components/chat/AskAiSelection/AskAiSelection';
+import MessageContextTrials from '@/components/chat/MessageContextTrials/MessageContextTrials';
 import MessageFeedback from '@/components/chat/MessageFeedback/MessageFeedback';
 import SearchingIndicator from '@/components/chat/SearchingIndicator/SearchingIndicator';
 import TermDefinition from '@/components/chat/TermDefinition/TermDefinition';
 import TrialCitation from '@/components/chat/TrialCitation/TrialCitation';
+import TrialContactLink from '@/components/chat/TrialContactLink/TrialContactLink';
 import {
-  AGENT_NAME,
   ChatRole,
   CITATION_HREF_PREFIX,
+  CONTACT_HREF_PREFIX,
   DEFINITION_HREF_PREFIX,
 } from '@/constants/chat';
-import { linkifyCitations, linkifyDefinitions } from '@/lib/citations';
+import { linkifyCitations, linkifyContacts, linkifyDefinitions } from '@/lib/citations';
 import type { ChatMessage, TrialSummary } from '@/types/trial';
 
-const STARTER_MESSAGE = `Hello, I'm ${AGENT_NAME}. I help people find cancer clinical trials in Ontario. How can I help you today?`;
-
-type FetchTrial = (nctNumber: string, signal?: AbortSignal) => Promise<TrialSummary>;
+type FetchTrial = (trialRef: string, signal?: AbortSignal) => Promise<TrialSummary>;
 
 interface ChatMessagesProps {
   messages: ChatMessage[];
   sessionId: string;
   fetchTrial: FetchTrial;
-  onCitationClick?: (nctNumber: string) => void;
+  onCitationClick?: (trialRef: string) => void;
   onAskAi?: (text: string) => void;
 }
 
 function createMarkdownComponents(
   fetchTrial: FetchTrial,
-  onCitationClick?: (nctNumber: string) => void
+  onCitationClick?: (trialRef: string) => void
 ): Components {
   return {
     a: ({ href, children }) => {
       if (href?.startsWith(CITATION_HREF_PREFIX)) {
-        const nctNumber = href.slice(CITATION_HREF_PREFIX.length);
+        const trialRef = href.slice(CITATION_HREF_PREFIX.length);
         return (
-          <TrialCitation nctNumber={nctNumber} fetchTrial={fetchTrial} onSelect={onCitationClick} />
+          <TrialCitation trialRef={trialRef} fetchTrial={fetchTrial} onSelect={onCitationClick} />
         );
+      }
+      if (href?.startsWith(CONTACT_HREF_PREFIX)) {
+        const trialRef = href.slice(CONTACT_HREF_PREFIX.length);
+        return <TrialContactLink trialRef={trialRef} fetchTrial={fetchTrial} />;
       }
       if (href?.startsWith(DEFINITION_HREF_PREFIX)) {
         const definition = decodeURIComponent(href.slice(DEFINITION_HREF_PREFIX.length));
@@ -64,6 +69,7 @@ function ChatMessages({
   onCitationClick,
   onAskAi,
 }: ChatMessagesProps) {
+  const { t } = useTranslation();
   const rootRef = useRef<HTMLDivElement>(null);
   return (
     <div ref={rootRef} className="contents">
@@ -72,7 +78,7 @@ function ChatMessages({
         <ConversationContent>
           {messages.length === 0 ? (
             <Message from={ChatRole.Assistant}>
-              <MessageContent>{STARTER_MESSAGE}</MessageContent>
+              <MessageContent>{t('chat.starter')}</MessageContent>
             </Message>
           ) : (
             messages.map((message) => (
@@ -80,18 +86,27 @@ function ChatMessages({
                 <MessageContent>
                   {message.role !== ChatRole.Assistant ? (
                     message.content
+                  ) : message.error ? (
+                    <span className="text-destructive">
+                      {t(message.error.key, message.error.params)}
+                    </span>
                   ) : message.content === '' ? (
                     <SearchingIndicator />
-                  ) : message.isError ? (
-                    <span className="text-destructive">{message.content}</span>
                   ) : (
                     <MessageResponse
                       components={createMarkdownComponents(fetchTrial, onCitationClick)}
                     >
-                      {linkifyDefinitions(linkifyCitations(message.content))}
+                      {linkifyDefinitions(linkifyCitations(linkifyContacts(message.content)))}
                     </MessageResponse>
                   )}
                 </MessageContent>
+                {message.role === ChatRole.User && message.contextTrialRefs && (
+                  <MessageContextTrials
+                    trialRefs={message.contextTrialRefs}
+                    fetchTrial={fetchTrial}
+                    onSelect={onCitationClick}
+                  />
+                )}
                 {message.role === ChatRole.Assistant && message.observationId && (
                   <MessageFeedback sessionId={sessionId} observationId={message.observationId} />
                 )}

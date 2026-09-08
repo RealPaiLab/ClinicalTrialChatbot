@@ -1,0 +1,13 @@
+---
+# Opt in per environment.
+ingestion_enabled: false
+
+# deploy_slot keeps a co-hosted second environment from colliding.
+ingestion_unit_name: "{{ project_name }}-{{ deploy_slot }}-ingestion"
+
+ingestion_on_calendar: "Sat *-*-* 13:00:00 UTC"
+
+# timeout for ingestion to complete, in seconds. 6 hours by default.
+ingestion_timeout_sec: 21600
+
+ingestion_command: "python -m scripts.run ctc"

@@ -10,6 +10,8 @@ export interface DebugSearchParams {
   locations?: string[];
   statuses?: string[];
   phases?: string[];
+  treatmentTypes?: string[];
+  diseaseStages?: string[];
   query?: string;
   semantic?: string;
   embeddingProvider?: string;
@@ -24,6 +26,8 @@ function buildQuery(params: DebugSearchParams): string {
     locations: params.locations,
     statuses: params.statuses,
     phases: params.phases,
+    treatment_types: params.treatmentTypes,
+    disease_stages: params.diseaseStages,
   };
   for (const [key, values] of Object.entries(lists)) {
     for (const value of values ?? []) {

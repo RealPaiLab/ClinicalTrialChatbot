@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from pydantic_ai.messages import (
@@ -13,12 +13,14 @@ from pydantic_ai.models.test import TestModel
 from agents.clinical_trials.agent import get_clinical_trials_agent
 from agents.clinical_trials.output import AgentResponse
 from agents.input_triage.agent import get_input_triage_agent
-from repository.conversation.memory_repository import InMemoryConversationRepository
+from core.kv.memory import InMemoryKeyValueStore
+from repository.conversation.repository import ConversationRepository
 from schemas.chat import ChatResult
 from services.chat_service import ChatService
 from services.conversation_service import (
     ConversationService,
     recent_turns,
+    turn_count,
     user_facing_turns,
 )
 from tests.factories import StubTrialSearch, make_citation, make_test_model
@@ -31,7 +33,7 @@ def _user_turn(text: str, *, with_tool: bool = False) -> list[object]:
             ModelRequest(
                 parts=[
                     ToolReturnPart(
-                        tool_name="syntactic_search", content=[], tool_call_id="c"
+                        tool_name="semantic_search", content=[], tool_call_id="c"
                     )
                 ]
             )
@@ -94,19 +96,19 @@ def _chat(
     search: StubTrialSearch, conversation: ConversationService | None = None
 ) -> ChatService:
     conversation = conversation or ConversationService(
-        InMemoryConversationRepository(3600)
+        ConversationRepository(InMemoryKeyValueStore(), ttl_seconds=3600)
     )
     return ChatService(conversation, trial_search=search)
 
 
 async def test_stream_yields_partials_then_result() -> None:
-    citation = make_citation("NCT01111111")
-    chat = _chat(StubTrialSearch(results=[citation], by_nct={"NCT01111111": citation}))
+    citation = make_citation("CTC-11111111")
+    chat = _chat(StubTrialSearch(results=[citation], by_ref={"CTC-11111111": citation}))
     model = make_test_model(
-        call_tools=["syntactic_search"],
+        call_tools=["semantic_search"],
         output={
-            "message": "see [NCT01111111]",
-            "used_nct_numbers": ["NCT01111111"],
+            "message": "see [CTC-11111111]",
+            "used_trial_refs": ["CTC-11111111"],
             "follow_up_questions": ["where are you?"],
         },
     )
@@ -121,7 +123,7 @@ async def test_stream_yields_partials_then_result() -> None:
     assert any(isinstance(i, AgentResponse) for i in items)
     assert isinstance(items[-1], ChatResult)
     final = items[-1]
-    assert [c.nct_number for c in final.trials] == ["NCT01111111"]
+    assert [c.trial_ref for c in final.trials] == ["CTC-11111111"]
     assert final.follow_up_questions == ["where are you?"]
 
 
@@ -130,8 +132,8 @@ async def test_stream_strips_unverified_nct_without_retrying() -> None:
     model = make_test_model(
         call_tools=[],
         output={
-            "message": "I found [NCT09999999] for you.",
-            "used_nct_numbers": ["NCT09999999"],
+            "message": "I found [CTC-99999999] for you.",
+            "used_trial_refs": ["CTC-99999999"],
             "follow_up_questions": [],
         },
     )
@@ -145,16 +147,18 @@ async def test_stream_strips_unverified_nct_without_retrying() -> None:
 
     final = items[-1]
     assert isinstance(final, ChatResult)
-    assert "NCT09999999" not in final.message
+    assert "CTC-99999999" not in final.message
     assert final.trials == []
 
 
 async def test_history_persists_across_turns() -> None:
-    conversation = ConversationService(InMemoryConversationRepository(3600))
+    conversation = ConversationService(
+        ConversationRepository(InMemoryKeyValueStore(), ttl_seconds=3600)
+    )
     chat = _chat(StubTrialSearch(), conversation)
     model = make_test_model(
         call_tools=[],
-        output={"message": "hi", "used_nct_numbers": [], "follow_up_questions": []},
+        output={"message": "hi", "used_trial_refs": [], "follow_up_questions": []},
     )
     with (
         get_input_triage_agent().override(model=_allow_triage()),
@@ -171,6 +175,64 @@ async def test_history_persists_across_turns() -> None:
     assert after_second > after_first
 
 
+def test_turn_count_counts_patient_turns_only() -> None:
+    history = [*_user_turn("q1", with_tool=True), *_user_turn("q2")]
+
+    assert turn_count(history) == 2  # type: ignore[arg-type]
+
+
+async def test_scratchpad_persists_across_turns() -> None:
+    conversation = ConversationService(
+        ConversationRepository(InMemoryKeyValueStore(), ttl_seconds=3600)
+    )
+    chat = _chat(StubTrialSearch(), conversation)
+    model = make_test_model(
+        call_tools=["remember"],
+        output={"message": "hi", "used_trial_refs": [], "follow_up_questions": []},
+    )
+    with (
+        get_input_triage_agent().override(model=_allow_triage()),
+        get_clinical_trials_agent().override(model=model),
+    ):
+        async for _ in chat.stream_chat("s1", "turn one"):
+            pass
+        after_first = await conversation.get_memory("s1")
+        async for _ in chat.stream_chat("s1", "turn two"):
+            pass
+        after_second = await conversation.get_memory("s1")
+
+    assert [n.turn for n in after_first.notes] == [1]
+    # the second turn loaded the existing scratchpad instead of starting a fresh one
+    assert after_second.notes == after_first.notes
+
+
+async def test_hallucinated_turn_is_flagged_in_langfuse() -> None:
+    chat = _chat(StubTrialSearch())
+    chat._langfuse = MagicMock()
+    chat._langfuse.get_current_observation_id.return_value = "obs-1"
+    model = make_test_model(
+        call_tools=[],
+        output={
+            "message": "I found [CTC-99999999] for you.",
+            "used_trial_refs": ["CTC-99999999"],
+            "follow_up_questions": [],
+        },
+    )
+    with (
+        get_input_triage_agent().override(model=_allow_triage()),
+        get_clinical_trials_agent().override(model=model),
+    ):
+        async for _ in chat.stream_chat("s1", "any breast cancer trials?"):
+            pass
+
+    observation = chat._langfuse.start_as_current_observation.return_value
+    span = observation.__enter__.return_value
+    flagged = span.update.call_args.kwargs
+    assert flagged["level"] == "WARNING"
+    assert "CTC-99999999" in flagged["status_message"]
+    assert flagged["metadata"] == {"hallucinated_trials": ["CTC-99999999"]}
+
+
 async def test_stream_reraises_on_failure() -> None:
     conversation = AsyncMock()
     conversation.get_history.side_effect = RuntimeError("store down")
@@ -182,11 +244,13 @@ async def test_stream_reraises_on_failure() -> None:
 
 
 async def test_reset_clears_history() -> None:
-    conversation = ConversationService(InMemoryConversationRepository(3600))
+    conversation = ConversationService(
+        ConversationRepository(InMemoryKeyValueStore(), ttl_seconds=3600)
+    )
     chat = _chat(StubTrialSearch(), conversation)
     model = make_test_model(
         call_tools=[],
-        output={"message": "hi", "used_nct_numbers": [], "follow_up_questions": []},
+        output={"message": "hi", "used_trial_refs": [], "follow_up_questions": []},
     )
     with (
         get_input_triage_agent().override(model=_allow_triage()),
@@ -200,12 +264,12 @@ async def test_reset_clears_history() -> None:
 
 
 async def test_refused_turn_runs_without_search_tools() -> None:
-    search = StubTrialSearch(results=[make_citation("NCT-1")])
+    search = StubTrialSearch(results=[make_citation("CTC-00000001")])
     chat = _chat(search)
     model = make_test_model(
         output={
             "message": "I can't help with that, but I can find trials.",
-            "used_nct_numbers": [],
+            "used_trial_refs": [],
             "follow_up_questions": [],
         }
     )
@@ -220,15 +284,15 @@ async def test_refused_turn_runs_without_search_tools() -> None:
 
 
 async def test_triage_failure_allows_turn() -> None:
-    search = StubTrialSearch(results=[make_citation("NCT-1")])
+    search = StubTrialSearch(results=[make_citation("CTC-00000001")])
     chat = _chat(search)
     chat._triage_agent = AsyncMock()
     chat._triage_agent.run.side_effect = RuntimeError("triage down")
     model = make_test_model(
-        call_tools=["syntactic_search"],
+        call_tools=["semantic_search"],
         output={
             "message": "found some",
-            "used_nct_numbers": [],
+            "used_trial_refs": [],
             "follow_up_questions": [],
         },
     )
@@ -236,4 +300,4 @@ async def test_triage_failure_allows_turn() -> None:
         async for _ in chat.stream_chat("s1", "breast cancer trials"):
             pass
 
-    assert any(name == "syntactic_search" for name, _ in search.calls)
+    assert any(name == "semantic_search" for name, _ in search.calls)

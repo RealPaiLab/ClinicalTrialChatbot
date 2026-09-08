@@ -7,3 +7,6 @@
 Thumbs.db
 .env
 .env.runtime
+
+# Local agent traces
+traces/

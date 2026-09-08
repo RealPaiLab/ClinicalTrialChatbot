@@ -1,12 +1,15 @@
-# Managed by Ansible (reverse_proxy role).
+{% set zone = reverse_proxy_site_name | replace('-', '_') | replace('.', '_') %}
+{% set server_names = public_domain ~ (' ' ~ external_domain if external_domain | default('') else '') %}
+# Managed by Ansible (reverse_proxy role). Site: {{ reverse_proxy_site_name }}.
 {% if reverse_proxy_rate_limit_enabled | default(true) %}
 # Rate-limit zones (http context). Chat is tighter: each turn is an expensive LLM call.
-limit_req_zone $binary_remote_addr zone=chat:10m rate={{ reverse_proxy_chat_rate }};
-limit_req_zone $binary_remote_addr zone=api:10m rate={{ reverse_proxy_api_rate }};
+# Zone names carry the site name so co-hosted sites cannot redeclare each other's zones.
+limit_req_zone $binary_remote_addr zone={{ zone }}_chat:10m rate={{ reverse_proxy_chat_rate }};
+limit_req_zone $binary_remote_addr zone={{ zone }}_api:10m rate={{ reverse_proxy_api_rate }};
 {% endif %}
 server {
     listen 80;
-    server_name {{ public_domain }}{% if external_domain | default('') %} {{ external_domain }}{% endif %};
+    server_name {{ server_names }};
 
     location /.well-known/acme-challenge/ {
         alias {{ reverse_proxy_acme_webroot }}/;
@@ -18,7 +21,7 @@ server {
 }
 server {
     listen 443 ssl;
-    server_name {{ public_domain }}{% if external_domain | default('') %} {{ external_domain }}{% endif %};
+    server_name {{ server_names }};
 
     ssl_certificate {{ reverse_proxy_cert_fullchain }};
     ssl_certificate_key {{ reverse_proxy_cert_privkey }};
@@ -34,10 +37,10 @@ server {
     # Chat API -> backend. Tighter rate limit (each turn is an expensive LLM call). SSE-safe.
     location /api/chat/ {
 {% if reverse_proxy_rate_limit_enabled | default(true) %}
-        limit_req zone=chat burst={{ reverse_proxy_chat_burst }} nodelay;
+        limit_req zone={{ zone }}_chat burst={{ reverse_proxy_chat_burst }} nodelay;
         limit_req_status 429;
 {% endif %}
-        proxy_pass http://127.0.0.1:8000/chat/;
+        proxy_pass http://127.0.0.1:{{ reverse_proxy_backend_port }}/chat/;
         proxy_http_version 1.1;
         proxy_set_header Connection "";
         proxy_buffering off;
@@ -47,10 +50,10 @@ server {
     # Rest of the API -> backend container (localhost-bound). SSE-safe: never buffer the stream.
     location /api/ {
 {% if reverse_proxy_rate_limit_enabled | default(true) %}
-        limit_req zone=api burst={{ reverse_proxy_api_burst }} nodelay;
+        limit_req zone={{ zone }}_api burst={{ reverse_proxy_api_burst }} nodelay;
         limit_req_status 429;
 {% endif %}
-        proxy_pass http://127.0.0.1:8000/;
+        proxy_pass http://127.0.0.1:{{ reverse_proxy_backend_port }}/;
         proxy_http_version 1.1;
         proxy_set_header Connection "";
         proxy_buffering off;
@@ -59,6 +62,6 @@ server {
     }
     # SPA -> frontend container (localhost-bound).
     location / {
-        proxy_pass http://127.0.0.1:8080/;
+        proxy_pass http://127.0.0.1:{{ reverse_proxy_frontend_port }}/;
     }
 }

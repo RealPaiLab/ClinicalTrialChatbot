@@ -24,7 +24,11 @@ def _should_retry(exc: BaseException) -> bool:
 
 
 def build_retrying_client(
-    *, max_retries: int, max_wait: float, read_timeout: float
+    *,
+    max_retries: int,
+    max_wait: float,
+    read_timeout: float,
+    wrapped: httpx.AsyncBaseTransport | None = None,
 ) -> httpx.AsyncClient:
     """An httpx.AsyncClient that retries transient failures with backoff."""
     transport = AsyncTenacityTransport(
@@ -37,6 +41,7 @@ def build_retrying_client(
             stop=stop_after_attempt(max_retries + 1),
             reraise=True,
         ),
+        wrapped=wrapped,
         validate_response=lambda response: response.raise_for_status(),
     )
     return httpx.AsyncClient(

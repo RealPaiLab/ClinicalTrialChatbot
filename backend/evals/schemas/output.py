@@ -10,8 +10,8 @@ class AgentEvalOutput(BaseModel):
 
     answer: str
     contexts: list[str] = Field(default_factory=list)  # fetched trial documents (text)
-    retrieved_ncts: list[str] = Field(default_factory=list)  # fetched trial NCT ids
-    used_ncts: list[str] = Field(default_factory=list)  # cited NCT ids
+    retrieved_refs: list[str] = Field(default_factory=list)  # fetched trial refs
+    used_refs: list[str] = Field(default_factory=list)  # cited trial refs
     tool_calls: list[ToolCall] = Field(default_factory=list)
 
     @property

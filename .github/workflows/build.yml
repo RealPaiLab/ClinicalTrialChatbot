@@ -43,7 +43,7 @@ jobs:
     uses: ./.github/workflows/image.yml
     with:
       package: ${{ needs.resolve.outputs.package }}
-      push: true
+      channel: release
       version: ${{ needs.resolve.outputs.version }}
     secrets: inherit
 

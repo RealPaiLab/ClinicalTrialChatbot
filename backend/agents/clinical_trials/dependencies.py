@@ -6,7 +6,8 @@ from dataclasses import dataclass, field
 from typing import Protocol
 
 from schemas.glossary import GlossaryDefinition, GlossarySource
-from schemas.trial import TrialCitation, TrialFilter
+from schemas.memory import ConversationMemory
+from schemas.trial import TrialCitation, TrialFilter, TrialSearchPage
 
 
 class TrialSearch(Protocol):
@@ -19,7 +20,7 @@ class TrialSearch(Protocol):
         query: str | None = None,
         limit: int | None = None,
         offset: int = 0,
-    ) -> list[TrialCitation]: ...
+    ) -> TrialSearchPage: ...
 
     async def semantic_search(
         self,
@@ -27,7 +28,9 @@ class TrialSearch(Protocol):
         *,
         query: str,
         limit: int | None = None,
-    ) -> list[TrialCitation]: ...
+    ) -> TrialSearchPage: ...
+
+    async def get_by_refs(self, trial_refs: list[str]) -> list[TrialCitation]: ...
 
     async def get_by_ncts(self, nct_numbers: list[str]) -> list[TrialCitation]: ...
 
@@ -56,7 +59,14 @@ class AgentDeps:
     trial_search: TrialSearch
     glossary: GlossaryLookup = field(default_factory=_NullGlossary)
     fetched_trials: dict[str, TrialCitation] = field(default_factory=dict)
+    # identifiers surfaced by tools in earlier turns: guardrail only, never returned
+    known_refs: set[str] = field(default_factory=set)
+    known_ncts: set[str] = field(default_factory=set)
     tool_calls: int = 0
     seen_calls: set[str] = field(default_factory=set)
     refusal_directive: str | None = None
     verified_context: str | None = None
+    memory: ConversationMemory = field(default_factory=ConversationMemory)
+    turn_index: int = 1
+    memory_calls: int = 0
+    hallucinated_refs: list[str] = field(default_factory=list)

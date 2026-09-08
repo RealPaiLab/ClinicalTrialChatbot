@@ -66,6 +66,8 @@ function DebugPage() {
   const [locations, setLocations] = useState('');
   const [status, setStatus] = useState<string>(ANY_STATUS);
   const [phases, setPhases] = useState('');
+  const [treatmentTypes, setTreatmentTypes] = useState('');
+  const [diseaseStages, setDiseaseStages] = useState('');
   const [text, setText] = useState('');
   const [mode, setMode] = useState<Mode>('lexical');
   const [provider, setProvider] = useState<string>(DEFAULT_PROVIDER);
@@ -87,6 +89,8 @@ function DebugPage() {
       locations: splitList(locations),
       statuses: status === ANY_STATUS ? [] : [status],
       phases: splitList(phases),
+      treatmentTypes: splitList(treatmentTypes),
+      diseaseStages: splitList(diseaseStages),
       query: mode === 'lexical' ? text : undefined,
       semantic: mode === 'semantic' ? text : undefined,
       embeddingProvider:
@@ -112,7 +116,7 @@ function DebugPage() {
       </header>
 
       <div className="border-border bg-card/40 shrink-0 border-b px-4 py-3">
-        <div className="grid gap-3 md:grid-cols-4">
+        <div className="grid gap-3 md:grid-cols-3">
           <FilterField
             label="Cancer types"
             value={cancerTypes}
@@ -123,7 +127,7 @@ function DebugPage() {
             label="Locations"
             value={locations}
             onChange={setLocations}
-            placeholder="Toronto, Ontario"
+            placeholder="Vancouver, British Columbia"
           />
           <div className="flex flex-col gap-1">
             <span className="text-eyebrow text-muted-foreground">Status</span>
@@ -146,6 +150,18 @@ function DebugPage() {
             value={phases}
             onChange={setPhases}
             placeholder="PHASE2, PHASE3"
+          />
+          <FilterField
+            label="Treatment types"
+            value={treatmentTypes}
+            onChange={setTreatmentTypes}
+            placeholder="Immunotherapy, Targeted Therapy"
+          />
+          <FilterField
+            label="Disease stages"
+            value={diseaseStages}
+            onChange={setDiseaseStages}
+            placeholder="Metastatic, Advanced"
           />
         </div>
 

@@ -1,0 +1,44 @@
+---
+- name: Install the ingestion units
+  ansible.builtin.template:
+    src: "ingestion.{{ item }}.j2"
+    dest: "/etc/systemd/system/{{ ingestion_unit_name }}.{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - service
+    - timer
+  become: true
+  notify: Reload systemd
+  when: ingestion_enabled | bool
+
+- name: Enable the ingestion timer
+  ansible.builtin.systemd_service:
+    name: "{{ ingestion_unit_name }}.timer"
+    state: started
+    enabled: true
+    daemon_reload: true
+  become: true
+  when: ingestion_enabled | bool
+
+# Without this, disabling the flag leaves a live timer behind.
+- name: Stop the ingestion timer where scheduling is off
+  ansible.builtin.systemd_service:
+    name: "{{ ingestion_unit_name }}.timer"
+    state: stopped
+    enabled: false
+  become: true
+  failed_when: false
+  when: not (ingestion_enabled | bool)
+
+- name: Remove the ingestion units where scheduling is off
+  ansible.builtin.file:
+    path: "/etc/systemd/system/{{ ingestion_unit_name }}.{{ item }}"
+    state: absent
+  loop:
+    - service
+    - timer
+  become: true
+  notify: Reload systemd
+  when: not (ingestion_enabled | bool)

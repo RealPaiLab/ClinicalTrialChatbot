@@ -21,13 +21,13 @@ class AgentResponse(BaseModel):
             "instead of a parenthetical; define each term inline only once. "
             "Explain what terms mean and who a trial is for; do not judge whether "
             "the patient personally qualifies. Cite each referenced trial inline "
-            "by its NCT number in square brackets, e.g. [NCT01234567]."
+            "by its ref in square brackets, e.g. [CTC-7K2M4QX9]."
         )
     )
-    used_nct_numbers: list[str] = Field(
+    used_trial_refs: list[str] = Field(
         default_factory=list,
         description=(
-            "NCT numbers of the trials actually used to answer this turn "
+            "Refs of the trials actually used to answer this turn "
             "(not every trial a tool returned)."
         ),
     )
@@ -41,7 +41,7 @@ class AgentResponse(BaseModel):
             "trials. When populated, each is a quick prompt in the patient's own "
             "voice that helps them refine toward the right trial: add a missing "
             "detail, go deeper on a trial, or clarify their diagnosis (e.g. 'Only "
-            "recruiting trials', 'Trials in Ontario', 'Tell me about the first "
+            "recruiting trials', 'Trials closer to me', 'Tell me about the first "
             "one'). These are options for the patient to send next, NOT questions "
             "you ask them."
         ),

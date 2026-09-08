@@ -13,7 +13,17 @@ FROM python:3.14-slim AS run
 
 WORKDIR /app
 
+# Pull in security fixes published after the base image was last rebuilt (openssl et al.)
+RUN apt-get update \
+    && apt-get upgrade -y --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN addgroup --system app && adduser --system --ingroup app --no-create-home app
+
+# The runtime serves from /app/.venv and never installs anything, so drop the base image's pip
+RUN rm -rf /usr/local/lib/python3*/site-packages/pip \
+    /usr/local/lib/python3*/site-packages/pip-*.dist-info \
+    /usr/local/bin/pip*
 
 COPY --from=build /app/.venv /app/.venv
 

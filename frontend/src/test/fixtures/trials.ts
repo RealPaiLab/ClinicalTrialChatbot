@@ -3,6 +3,7 @@ import type { ChatMessage, Trial } from '@/types/trial';
 
 export const mockTrials: Trial[] = [
   {
+    trialRef: 'CTC-4267848A',
     nctNumber: 'NCT04267848',
     acronymOrProtocolId: 'CCTG-BR42',
     shortTitleEn: 'Immunotherapy for Advanced Triple-Negative Breast Cancer',
@@ -14,6 +15,7 @@ export const mockTrials: Trial[] = [
     exclusionCriteriaEn: 'Prior treatment with a PD-1 or PD-L1 inhibitor.',
     phases: ['PHASE2'],
     treatmentTypeNames: ['immunotherapy', 'chemotherapy'],
+    diseaseStages: ['Metastatic'],
     interventionNames: ['Pembrolizumab', 'Paclitaxel'],
     treatmentLines: ['first-line'],
     sites: [
@@ -40,6 +42,7 @@ export const mockTrials: Trial[] = [
     ],
   },
   {
+    trialRef: 'CTC-3520491B',
     nctNumber: 'NCT03520491',
     acronymOrProtocolId: 'LUNG-IO-7',
     shortTitleEn: 'Targeted Therapy for EGFR-Mutated Non-Small Cell Lung Cancer',
@@ -50,6 +53,7 @@ export const mockTrials: Trial[] = [
     exclusionCriteriaEn: 'Symptomatic brain metastases.',
     phases: ['PHASE3'],
     treatmentTypeNames: ['targeted therapy'],
+    diseaseStages: ['Advanced'],
     interventionNames: ['Osimertinib'],
     treatmentLines: ['first-line'],
     sites: [
@@ -66,6 +70,7 @@ export const mockTrials: Trial[] = [
     ],
   },
   {
+    trialRef: 'CTC-2499770C',
     nctNumber: 'NCT02499770',
     acronymOrProtocolId: 'COLO-ADJ-3',
     shortTitleEn: 'Adjuvant Chemotherapy Duration in Stage III Colon Cancer',
@@ -77,6 +82,7 @@ export const mockTrials: Trial[] = [
     exclusionCriteriaEn: 'Prior chemotherapy for colon cancer.',
     phases: ['PHASE3'],
     treatmentTypeNames: ['chemotherapy'],
+    diseaseStages: [],
     interventionNames: ['FOLFOX'],
     treatmentLines: ['adjuvant'],
     sites: [
@@ -104,7 +110,7 @@ export const mockConversation: ChatMessage[] = [
     id: 'm2',
     role: ChatRole.Assistant,
     content:
-      'I found a trial that may fit. **[NCT04267848]** is testing immunotherapy added to chemotherapy for advanced triple-negative breast cancer, and it is currently **recruiting** at Princess Margaret Cancer Centre in Toronto.',
+      'I found a trial that may fit. **[CTC-4267848A]** is testing immunotherapy added to chemotherapy for advanced triple-negative breast cancer, and it is currently **recruiting** at Princess Margaret Cancer Centre in Toronto.',
     trials: [mockTrials[0]],
     followUpQuestions: [
       'What are the eligibility requirements?',
@@ -119,7 +125,7 @@ export const mockWireStreamLines: string[] = [
     type: StreamEventType.AgentResponse,
     data: {
       message: 'Looking for trials that match advanced triple-negative breast cancer near Toronto',
-      used_nct_numbers: [],
+      used_trial_refs: [],
       follow_up_questions: [],
     },
   }),
@@ -127,8 +133,8 @@ export const mockWireStreamLines: string[] = [
     type: StreamEventType.AgentResponse,
     data: {
       message:
-        'I found a trial that may fit. [NCT04267848] is testing immunotherapy added to chemotherapy.',
-      used_nct_numbers: ['NCT04267848'],
+        'I found a trial that may fit. [CTC-4267848A] is testing immunotherapy added to chemotherapy.',
+      used_trial_refs: ['CTC-4267848A'],
       follow_up_questions: ['What are the eligibility requirements?'],
     },
   }),
@@ -136,13 +142,14 @@ export const mockWireStreamLines: string[] = [
     type: StreamEventType.ChatResult,
     data: {
       message:
-        'I found a trial that may fit. **[NCT04267848]** is testing immunotherapy added to chemotherapy for advanced triple-negative breast cancer, and it is currently **recruiting** at Princess Margaret Cancer Centre in Toronto.',
+        'I found a trial that may fit. **[CTC-4267848A]** is testing immunotherapy added to chemotherapy for advanced triple-negative breast cancer, and it is currently **recruiting** at Princess Margaret Cancer Centre in Toronto.',
       follow_up_questions: [
         'What are the eligibility requirements?',
         'Are there trials in Montreal too?',
       ],
       trials: [
         {
+          trial_ref: 'CTC-4267848A',
           nct_number: 'NCT04267848',
           acronym_or_protocol_id: 'CCTG-BR42',
           short_title_en: 'Immunotherapy for Advanced Triple-Negative Breast Cancer',
@@ -155,6 +162,7 @@ export const mockWireStreamLines: string[] = [
           exclusion_criteria_en: 'Prior treatment with a PD-1 or PD-L1 inhibitor.',
           phases: ['PHASE2'],
           treatment_type_names: ['immunotherapy', 'chemotherapy'],
+          disease_stages: ['Metastatic'],
           intervention_names: ['Pembrolizumab', 'Paclitaxel'],
           treatment_lines: ['first-line'],
           sites: [

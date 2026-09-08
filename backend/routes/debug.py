@@ -19,6 +19,8 @@ async def search_trials(
     locations: Annotated[list[str] | None, Query()] = None,
     statuses: Annotated[list[str] | None, Query()] = None,
     phases: Annotated[list[str] | None, Query()] = None,
+    treatment_types: Annotated[list[str] | None, Query()] = None,
+    disease_stages: Annotated[list[str] | None, Query()] = None,
     query: str | None = None,
     semantic: str | None = None,
     embedding_provider: EmbeddingProvider | None = None,
@@ -31,15 +33,19 @@ async def search_trials(
         locations=locations or [],
         statuses=statuses or [],
         phases=phases or [],
+        treatment_types=treatment_types or [],
+        disease_stages=disease_stages or [],
     )
     if semantic:
-        return await trial_search.semantic_search(
+        page = await trial_search.semantic_search(
             flt,
             query=semantic,
             provider=embedding_provider,
             limit=limit,
             offset=offset,
         )
-    return await trial_search.syntactic_search(
-        flt, query=query, limit=limit, offset=offset
-    )
+    else:
+        page = await trial_search.syntactic_search(
+            flt, query=query, limit=limit, offset=offset
+        )
+    return page.trials

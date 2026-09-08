@@ -9,8 +9,12 @@ vi.mock('@/components/turnstile/TurnstileGate', () => ({
   default: ({ children }: { children: ReactNode }) => children,
 }));
 
-// Same for the consent gate: its own test covers it, and this test is about layout.
+// Same for the consent and language gates: this test is about layout.
 vi.mock('@/components/consent/ConsentGate', () => ({
+  default: ({ children }: { children: ReactNode }) => children,
+}));
+
+vi.mock('@/components/language/LanguageGate', () => ({
   default: ({ children }: { children: ReactNode }) => children,
 }));
 

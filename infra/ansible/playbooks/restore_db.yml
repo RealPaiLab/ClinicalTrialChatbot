@@ -2,7 +2,7 @@
 # Pass the dump path:  -e db_restore_dump_src=/path/to/ctc_seed.dump
 ---
 - name: Restore database
-  hosts: app
+  hosts: "{{ deploy_target | default('production') }}"
   vars_files:
     - "{{ playbook_dir }}/../secrets.yml"
   roles:

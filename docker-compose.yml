@@ -149,6 +149,7 @@ services:
     environment:
       POSTGRES_HOST: postgres
       LANGFUSE_HOST: http://langfuse-web:3000
+      REDIS_URL: redis://redis:6379/0
     depends_on:
       postgres:
         condition: service_healthy

@@ -26,10 +26,23 @@ describe('ChatMessages', () => {
     expect(screen.getByText('one')).toBeInTheDocument();
   });
 
+  it('shows the trials sent as context under the user message', async () => {
+    const messages: ChatMessage[] = [
+      {
+        id: 'a',
+        role: ChatRole.User,
+        content: 'Am I eligible for this one?',
+        contextTrialRefs: ['CTC-4267848A'],
+      },
+    ];
+    renderWithClient(<ChatMessages messages={messages} sessionId="s1" fetchTrial={fetchTrial} />);
+    expect(await screen.findByRole('button', { name: /show .+ on the map/i })).toBeInTheDocument();
+  });
+
   it('renders inline trial citations and reports clicks', async () => {
     const onCitationClick = vi.fn();
     const messages: ChatMessage[] = [
-      { id: 'c', role: ChatRole.Assistant, content: 'This one fits: [NCT04267848].' },
+      { id: 'c', role: ChatRole.Assistant, content: 'This one fits: [CTC-4267848A].' },
     ];
     renderWithClient(
       <ChatMessages
@@ -41,9 +54,9 @@ describe('ChatMessages', () => {
     );
 
     const citation = await screen.findByRole('button', {
-      name: /show trial nct04267848 on the map/i,
+      name: /show .+ on the map/i,
     });
     await userEvent.click(citation);
-    expect(onCitationClick).toHaveBeenCalledWith('NCT04267848');
+    expect(onCitationClick).toHaveBeenCalledWith('CTC-4267848A');
   });
 });

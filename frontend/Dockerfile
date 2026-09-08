@@ -7,7 +7,7 @@ COPY . .
 RUN pnpm build
 
 FROM nginx:alpine AS run
-RUN apk upgrade --no-cache && apk add --no-cache "c-ares>=1.34.8-r0"
+RUN apk upgrade --no-cache && apk add --no-cache "c-ares>=1.34.8-r0" "libexpat>=2.8.4-r0"
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY env.template.js /etc/nginx/app-template/config.template.js

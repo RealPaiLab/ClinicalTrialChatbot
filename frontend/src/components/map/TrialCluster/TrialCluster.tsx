@@ -1,14 +1,15 @@
+import { useTranslation } from 'react-i18next';
 import { Marker, Popup } from 'react-map-gl/mapbox';
 import { Button } from '@/components/ui/button';
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
-import ClusterPin from '@/components/map/ClusterPin/ClusterPin';
-import DualPin from '@/components/map/DualPin/DualPin';
+import CountPin from '@/components/map/CountPin/CountPin';
+import DualPin, { type StatusCount } from '@/components/map/DualPin/DualPin';
 import { TRIAL_STATUS } from '@/lib/trialStatus';
 import { cn } from '@/lib/utils';
 import type { TrialStatus } from '@/types/trial';
 
 export interface ClusterItem {
-  nctNumber: string | null;
+  trialRef: string | null;
   title: string;
   status: TrialStatus;
 }
@@ -18,11 +19,11 @@ interface TrialClusterProps {
   latitude: number;
   locationName: string;
   items: ClusterItem[];
-  selectedNctNumber?: string | null;
+  selectedTrialRef?: string | null;
   open: boolean;
   onToggle: () => void;
   onClose: () => void;
-  onSelectTrial: (nctNumber: string) => void;
+  onSelectTrial: (trialRef: string) => void;
 }
 
 function TrialCluster({
@@ -30,15 +31,21 @@ function TrialCluster({
   latitude,
   locationName,
   items,
-  selectedNctNumber,
+  selectedTrialRef,
   open,
   onToggle,
   onClose,
   onSelectTrial,
 }: TrialClusterProps) {
-  const selected = items.some((item) => item.nctNumber === selectedNctNumber);
-  const selectedStatus = items.find((item) => item.nctNumber === selectedNctNumber)?.status ?? null;
-  const statuses = [...new Set(items.map((item) => item.status))];
+  const { t } = useTranslation();
+  const selected = items.some((item) => item.trialRef === selectedTrialRef);
+  const selectedStatus = items.find((item) => item.trialRef === selectedTrialRef)?.status ?? null;
+  const groups = items.reduce<StatusCount[]>((acc, item) => {
+    const group = acc.find((entry) => entry.status === item.status);
+    return group
+      ? acc.map((entry) => (entry === group ? { ...entry, count: entry.count + 1 } : entry))
+      : [...acc, { status: item.status, count: 1 }];
+  }, []);
 
   return (
     <>
@@ -46,17 +53,17 @@ function TrialCluster({
         <Button
           type="button"
           variant="ghost"
-          aria-label={`${items.length} trials at ${locationName}`}
+          aria-label={`${t('map.trialCount', { count: items.length })} — ${locationName}`}
           onClick={(event) => {
             event.stopPropagation();
             onToggle();
           }}
           className="h-auto bg-transparent p-0 hover:bg-transparent focus-visible:ring-0"
         >
-          {statuses.length > 1 ? (
-            <DualPin statuses={statuses} selectedStatus={selectedStatus} />
+          {groups.length > 1 ? (
+            <DualPin groups={groups} selectedStatus={selectedStatus} />
           ) : (
-            <ClusterPin count={items.length} status={statuses[0]} selected={selected} />
+            <CountPin count={items.length} status={groups[0].status} selected={selected} />
           )}
         </Button>
       </Marker>
@@ -75,7 +82,9 @@ function TrialCluster({
         >
           <div className="bg-card text-foreground w-64 overflow-hidden rounded-lg border shadow-lg">
             <div className="border-border border-b px-3 py-2">
-              <p className="text-eyebrow text-primary">{items.length} trials</p>
+              <p className="text-eyebrow text-primary">
+                {t('map.trialCount', { count: items.length })}
+              </p>
               <p className="text-foreground truncate text-sm font-medium">{locationName}</p>
             </div>
             <Command className="bg-transparent">
@@ -83,13 +92,13 @@ function TrialCluster({
                 <CommandGroup>
                   {items.map((item, index) => (
                     <CommandItem
-                      key={item.nctNumber ?? `no-nct-${index}`}
-                      value={item.nctNumber ?? `no-nct-${index}`}
-                      disabled={!item.nctNumber}
-                      data-checked={item.nctNumber === selectedNctNumber}
+                      key={item.trialRef ?? `no-ref-${index}`}
+                      value={item.trialRef ?? `no-ref-${index}`}
+                      disabled={!item.trialRef}
+                      data-checked={item.trialRef === selectedTrialRef}
                       onSelect={() => {
-                        if (item.nctNumber) {
-                          onSelectTrial(item.nctNumber);
+                        if (item.trialRef) {
+                          onSelectTrial(item.trialRef);
                           onClose();
                         }
                       }}

@@ -1,7 +1,7 @@
-# Repetitive. Run by CI on a release tag. App VM only
+# Repetitive. Run by CI on a release tag, or locally with -e deploy_target=staging.
 ---
 - name: Deploy app
-  hosts: app
+  hosts: "{{ deploy_target | default('production') }}"
   remote_user: "{{ deploy_user }}"
   become: false
   vars:
@@ -12,7 +12,10 @@
         that:
           - deploy_package | default('') in ['backend', 'frontend']
           - image_tag | default('') | length > 0
-        fail_msg: "Pass -e deploy_package=backend|frontend and -e image_tag=X.Y.Z"
+          - deploy_target | default('production') in ['production', 'staging']
+        fail_msg: >-
+          Pass -e deploy_package=backend|frontend and -e image_tag=X.Y.Z
+          (staging also needs -e deploy_target=staging)
 
     - name: Pin the released version for compose interpolation
       ansible.builtin.lineinfile:
