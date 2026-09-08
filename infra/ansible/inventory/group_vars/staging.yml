@@ -14,7 +14,8 @@ frontend_version: staging
 translation_provider: llm
 
 ## Ingestion pipeline
-ingestion_enabled: true
+# Ships disabled everywhere. Flip to true to start the daily validation runs.
+ingestion_enabled: false
 ingestion_on_calendar: "*-*-* 03:00:00 UTC"
 
 cors_allow_origins:
