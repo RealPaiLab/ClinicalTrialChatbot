@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.7.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.6.1...frontend-v0.7.0) (2026-09-08)
+
+
+### Features
+
+* add a staging environment ([af10008](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/af1000801c3e8b3421177362019d3f0ae9ebbb2d))
+* add new font files and implement animations for sheet transitions ([c65f3bc](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/c65f3bcd8393286578168b48fc2e524b7b73ce63))
+* add PDF export functionality with trial details and styling ([9e293cd](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/9e293cdd39a569df4f71d1291a96fd22fc723279))
+* add pdf renderer dependencies ([5332d01](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/5332d0145ce5c0ba7f43c1d7ca6a36b37482ed6f))
+* add Sheet component ([470f23d](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/470f23dbb7c0e60f07b70ca3b6532920ad2ecb09))
+* add Toaster component ([56e80fc](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/56e80fc240c95f643a8fc16f7c8641804469b6cf))
+* contact information for trial sites ([#106](https://github.com/RealPaiLab/ClinicalTrialChatbot/issues/106)) ([a0b7cfc](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/a0b7cfcd1f10706002cc5d4d88a719cb7ca57b66))
+* **dependencies:** add i18next and react-i18next for internationalization support ([af73275](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/af73275e92042345d881a07b1b6e2c0b2cc2b5b5))
+* enhance bookmarking functionality in TrialSummary components and ChatPanel ([8ba2cb9](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/8ba2cb9eb7b644190d3f2e58d96f183222ec219d))
+* enhance language selection and onboarding tour experience with improved dialog and blur effects ([#87](https://github.com/RealPaiLab/ClinicalTrialChatbot/issues/87)) ([1485c03](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/1485c03aa793616fa40bfc40d92a8b09fb4087e7))
+* enhance map view synchronization with initial view handling and empty state checks ([bb2d302](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/bb2d30281941fe873eac9efbf0591879f160078e))
+* implement bookmarking functionality with state management and UI components ([112e078](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/112e0787503491d92fc4f009b23b76e3d71548c5))
+* implement BookmarkRow and BookmarksSheet components with loading states and export functionality ([1806c02](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/1806c025806c8a0fb4047c36e03cc320d90e93f5))
+* implement environment configuration for frontend and update related components ([15ad74b](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/15ad74bdf63cff296aa83af54acc3e962a2abb7c))
+* integrate i18n for translations across components ([10f81c2](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/10f81c2091475140de71da567d58e0f39b53960d))
+* schedule the trial data refresh and show when it last ran ([#109](https://github.com/RealPaiLab/ClinicalTrialChatbot/issues/109)) ([c9a48ec](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/c9a48ecd1b3ca4031ac2895996ea0768f9f16e4b))
+* **translation:** Add 6 supported translation languages ([ebcf9ec](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/ebcf9ec185e50b01215e89645b027a8e3133d3c4))
+* **translation:** on-demand trial translation in the summary panel ([2ffe289](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/2ffe289be3e62f69eb826fd6f1761aff1786f0ea))
+* **translation:** update pre-release version text to use translation key ([d78e58f](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/d78e58fb0f0835b8bf3b166fc094b0e26f0a9b4c))
+* wire the agent to the full CTC corpus ([#102](https://github.com/RealPaiLab/ClinicalTrialChatbot/issues/102)) ([d6e5b1b](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/d6e5b1b77c64792fab4a2dcd07e9b930e0418dea))
+
+
+### Bug Fixes
+
+* add zoom buttons and navigation control to the map ([bce260e](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/bce260e4627ede096e71836d59d4e4ba814d5e45))
+* enhance chat messages with trial context and improve UI responsiveness ([815bc43](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/815bc43adaa352e6bdb3e65caf0f417aad3c823d))
+* implement CountPin component to display trial count on map pins ([e92bf45](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/e92bf4538402845de0a1fb6d6731e61da9e9b38d))
+* improve map view synchronization and animation parameters ([f49e2a5](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/f49e2a5f2b092971e900a2310dd722a58b6641e9))
+* restore the map popup and open it for single trial sites ([#107](https://github.com/RealPaiLab/ClinicalTrialChatbot/issues/107)) ([37564d0](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/37564d0ecd560b38295f700d98919a6b97fc6a40))
+
 ## [0.6.1](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.6.0...frontend-v0.6.1) (2026-07-27)
 
 
