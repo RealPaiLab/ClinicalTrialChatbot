@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.9.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.8.1...backend-v0.9.0) (2026-09-08)
+
+
+### Features
+
+* add a staging environment ([af10008](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/af1000801c3e8b3421177362019d3f0ae9ebbb2d))
+* add staging environment support and update related configurations ([2ee4c03](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/2ee4c0306748e82a83ace5e3ca67c0223f4a1501))
+* **backend:** staged CTC ingestion pipeline ([#101](https://github.com/RealPaiLab/ClinicalTrialChatbot/issues/101)) ([3af7516](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/3af7516096f1dd286fe80bced77ffbe86a00b965))
+* contact information for trial sites ([#106](https://github.com/RealPaiLab/ClinicalTrialChatbot/issues/106)) ([a0b7cfc](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/a0b7cfcd1f10706002cc5d4d88a719cb7ca57b66))
+* enhance conversation memory management with Redis support and add new test cases ([8ced0b1](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/8ced0b13834bf376204d3793f2b15c3ab0f39aa6))
+* enhance trial citation handling with narrowed site management and new input option ([1fea83b](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/1fea83b52b50a237a95d287c094bcf04d540b8f3))
+* give the agent a conversation memory and fix location handling ([2447b00](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/2447b00b764836c014bbd422b1f0956016a93f87))
+* implement conversation memory management and hallucination reporting ([3c20151](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/3c20151a0efe7e698e0c0c56b4c06a417ff73225))
+* implement conversation repository for managing session history and scratchpad ([b0197d2](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/b0197d2e2a37cd45ccc2203f0c471ae5d09eae20))
+* implement key-value store for conversation history with Redis and in-memory options ([3e13456](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/3e13456e4e924379f870376581687193d6656097))
+* implement memory management for clinical trials agent with remember functionality ([6dda0bc](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/6dda0bcd73aacd3528ba1134ceefad0814321901))
+* implement staging environment setup with configuration and deployment scripts ([0cb79a0](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/0cb79a0510122cd3245b83718511c30952b7eda5))
+* improve location parsing in split_locations function and add corresponding tests ([cc11bef](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/cc11bef72f82a9f5609f1d399a06fb42329663b8))
+* refine conversation guidance to enhance patient interaction and information gathering ([8054898](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/8054898ac68ad13583112d09d75c893f53bfa4ac))
+* schedule the trial data refresh and show when it last ran ([#109](https://github.com/RealPaiLab/ClinicalTrialChatbot/issues/109)) ([c9a48ec](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/c9a48ecd1b3ca4031ac2895996ea0768f9f16e4b))
+* **tests:** add tests for cached translation handling in translation service ([62660db](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/62660dbdffe463a7996f76c0a5a6a7a287ba7651))
+* **tests:** add unit tests for LLM translation provider and update translation service tests ([c0262af](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/c0262af34c96bb9a902bd7440e286ee80939726b))
+* **translation:** enhance translation service with cached translation support and language handling ([bbbe772](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/bbbe77299f38d1a4546687a057e01b2511f8f9f0))
+* **translation:** implement translation service with LLM and Google providers ([7124d99](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/7124d997073824339142a1df75cd8a359e41928f))
+* **translation:** on-demand trial translation in the summary panel ([2ffe289](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/2ffe289be3e62f69eb826fd6f1761aff1786f0ea))
+* update Langfuse prompt handling to use dynamic prompt label from settings ([26f1452](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/26f1452e8a6dd813081668c91cf3a17c933dcc05))
+* wire the agent to the full CTC corpus ([#102](https://github.com/RealPaiLab/ClinicalTrialChatbot/issues/102)) ([d6e5b1b](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/d6e5b1b77c64792fab4a2dcd07e9b930e0418dea))
+
+
+### Bug Fixes
+
+* enhance NCT tracking ([4a78d4e](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/4a78d4e28d3121db2d0a44344c90a20ce5c783e7))
+* update dependency version ([f7b4c33](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/f7b4c3308552348979a82d256bd74462a1c1b6b8))
+
 ## [0.8.1](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.8.0...backend-v0.8.1) (2026-07-27)
 
 
