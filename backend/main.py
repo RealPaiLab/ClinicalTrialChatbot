@@ -17,7 +17,7 @@ from core.http_retry import aclose_retrying_client
 from core.langfuse import setup_langfuse
 from core.middleware import ClientIPMiddleware
 from core.redis import aclose_redis_client
-from routes import chat, debug, evals, feedback, translation, trials
+from routes import chat, debug, evals, feedback, meta, translation, trials
 
 
 @asynccontextmanager
@@ -66,6 +66,7 @@ app.include_router(trials.router)
 app.include_router(translation.router)
 app.include_router(feedback.router)
 app.include_router(evals.router)
+app.include_router(meta.router)
 
 if not get_settings().is_production:
     app.include_router(debug.router)

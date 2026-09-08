@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import LanguagePicker from '@/components/layout/LanguagePicker/LanguagePicker';
-import { TRIAL_DATA } from '@/constants/chat';
+import { useDataFreshness } from '@/hooks/useDataFreshness';
 
 interface AppHeaderProps {
   dark: boolean;
@@ -22,8 +22,9 @@ function AppHeader({
   onToggleTheme,
 }: AppHeaderProps) {
   const { t } = useTranslation();
-  const lastUpdated = t('data.lastUpdated', { date: TRIAL_DATA.updatedOn.toUpperCase() });
-  const detailedNotice = t('data.detailedNotice', { date: TRIAL_DATA.updatedOn });
+  const { updatedOn } = useDataFreshness();
+  const lastUpdated = updatedOn ? t('data.lastUpdated', { date: updatedOn.toUpperCase() }) : null;
+  const notice = updatedOn ? t('data.detailedNotice', { date: updatedOn }) : t('data.shortNotice');
 
   return (
     <header className="bg-header text-header-foreground border-border after:bg-amber relative flex h-12 shrink-0 items-center justify-between border-b px-4 after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:content-['']">
@@ -38,10 +39,12 @@ function AppHeader({
           <HoverCardTrigger asChild>
             <button
               type="button"
-              aria-label={detailedNotice}
+              aria-label={notice}
               className="text-header-foreground/80 hover:text-header-foreground flex items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors"
             >
-              <span className="text-eyebrow text-[0.65rem] font-bold">{lastUpdated}</span>
+              {lastUpdated && (
+                <span className="text-eyebrow text-[0.65rem] font-bold">{lastUpdated}</span>
+              )}
               <span
                 aria-hidden
                 className="border-header-foreground/40 flex size-3 items-center justify-center rounded-full border text-[0.55rem] leading-none font-bold"
@@ -51,7 +54,7 @@ function AppHeader({
             </button>
           </HoverCardTrigger>
           <HoverCardContent align="end" className="w-72 text-sm leading-relaxed">
-            {detailedNotice}
+            {notice}
           </HoverCardContent>
         </HoverCard>
 

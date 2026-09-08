@@ -1,5 +1,9 @@
-# Production overrides. Everything else comes from group_vars/common.yml,
+# Production overrides. Everything else comes from group_vars/common.yml
 
 cors_allow_origins:
   - "https://{{ public_domain }}"
   - "https://{{ external_domain }}"
+
+# Ingestion pipeline
+ingestion_enabled: false
+ingestion_on_calendar: "Sat *-*-* 13:00:00 UTC"

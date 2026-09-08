@@ -1,6 +1,9 @@
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { type QueryClient, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { PDF_DATA_DATE_LOCALE, formatDataDate } from '@/lib/dataDate';
+import { dataFreshnessQuery } from '@/services/dataFreshness';
 import type { Trial } from '@/types/trial';
 
 function fileNameFor(trials: Trial[]): string {
@@ -20,8 +23,19 @@ function download(blob: Blob, fileName: string): void {
   URL.revokeObjectURL(url);
 }
 
+/** The PDF renders stored English text, so its date stays English too. */
+async function fetchDataUpdatedOn(queryClient: QueryClient): Promise<string | null> {
+  try {
+    const { publishedAt } = await queryClient.ensureQueryData(dataFreshnessQuery());
+    return publishedAt === null ? null : formatDataDate(publishedAt, PDF_DATA_DATE_LOCALE);
+  } catch {
+    return null;
+  }
+}
+
 export function useTrialPdfExport() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [isExporting, setIsExporting] = useState(false);
 
   // The renderer and its fonts are a large chunk, so they load on first export
@@ -41,7 +55,10 @@ export function useTrialPdfExport() {
         ]);
 
         registerPdfFonts();
-        const blob = await pdf(<TrialPdfDocument trials={trials} />).toBlob();
+        const dataUpdatedOn = await fetchDataUpdatedOn(queryClient);
+        const blob = await pdf(
+          <TrialPdfDocument trials={trials} dataUpdatedOn={dataUpdatedOn} />
+        ).toBlob();
         download(blob, fileNameFor(trials));
         toast.success(t('export.ready'));
       } catch {
@@ -50,7 +67,7 @@ export function useTrialPdfExport() {
         setIsExporting(false);
       }
     },
-    [t]
+    [t, queryClient]
   );
 
   return { exportTrials, isExporting };

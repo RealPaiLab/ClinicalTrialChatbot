@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 
 from scripts.ctc.db.shadow import BUILD_SCHEMA, LIVE_SCHEMA
 from scripts.ctc.db.swap import (
@@ -17,6 +18,7 @@ from scripts.ctc.db.swap import (
 @dataclass(frozen=True, slots=True)
 class PublishResult:
     archived: str
+    published_at: datetime
     pruned: list[str]
     retained: list[str]
 
@@ -28,10 +30,15 @@ async def publish(
     keep: int = DEFAULT_KEEP_GENERATIONS,
     lock_timeout: str = DEFAULT_LOCK_TIMEOUT,
 ) -> PublishResult:
-    archived, pruned = await swap(
+    archived, published_at, pruned = await swap(
         build=build, live=live, keep=keep, lock_timeout=lock_timeout
     )
-    return PublishResult(archived=archived, pruned=pruned, retained=await generations())
+    return PublishResult(
+        archived=archived,
+        published_at=published_at,
+        pruned=pruned,
+        retained=await generations(),
+    )
 
 
 async def undo(

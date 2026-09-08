@@ -7,19 +7,6 @@ export const ChatRole = {
 
 export type ChatRole = (typeof ChatRole)[keyof typeof ChatRole];
 
-const TRIAL_DATA_UPDATED_AT = new Date('2026-08-31T00:00:00Z');
-
-const TRIAL_DATA_UPDATED_ON = new Intl.DateTimeFormat('en-GB', {
-  timeZone: 'UTC',
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-}).format(TRIAL_DATA_UPDATED_AT);
-
-export const TRIAL_DATA = {
-  updatedOn: TRIAL_DATA_UPDATED_ON,
-} as const;
-
 export const CITATION_HREF_PREFIX = '#citation-';
 
 export const DEFINITION_HREF_PREFIX = '#define-';

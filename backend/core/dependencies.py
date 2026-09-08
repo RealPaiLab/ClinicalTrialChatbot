@@ -13,6 +13,7 @@ from repository.translation.cache import TranslationCache
 from repository.translation.factory import get_translation_provider
 from services.chat_service import ChatService
 from services.conversation_service import ConversationService
+from services.data_freshness_service import DataFreshnessService
 from services.translation_service import TranslationService
 from services.trial_search_service import TrialSearchService
 from services.turnstile_service import TurnstileService
@@ -22,6 +23,11 @@ from services.vocabulary_service import VocabularyService
 @lru_cache
 def get_vocabulary_service() -> VocabularyService:
     return VocabularyService(ReadOnlySessionFactory)
+
+
+@lru_cache
+def get_data_freshness_service() -> DataFreshnessService:
+    return DataFreshnessService(ReadOnlySessionFactory)
 
 
 @lru_cache

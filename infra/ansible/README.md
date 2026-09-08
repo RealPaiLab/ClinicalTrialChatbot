@@ -87,3 +87,21 @@ defines an `app_secrets` mapping that picks which flat secret name it reads: pro
 `app_postgres_password` and `turnstile_*`, staging reads `staging_app_postgres_password` and
 hardcodes empty Turnstile keys (the bot gate is production-only in code, so staging is never sent
 them). Add a new per-environment secret in both places.
+
+## Scheduled ingestion
+
+The corpus refresh runs from a systemd timer installed by the `ingestion` role. It is part of
+
+```bash
+# install / update the schedule (unit name is <project>-<slot>-ingestion)
+ansible-playbook playbooks/app.yml                          # production
+ansible-playbook playbooks/app.yml -e deploy_target=staging # staging
+
+# on the VM
+systemctl list-timers ctc-app-ingestion.timer          # when it next fires
+journalctl -u ctc-app-ingestion.service -n 200         # what the last run did
+sudo systemctl start ctc-app-ingestion.service         # force a run now
+```
+
+Turn it off for an environment with `ingestion_enabled: false` in its group_vars and re-run
+`app.yml`; the role stops the timer and removes the units.

@@ -212,6 +212,7 @@ async def _publish(context: RunContext) -> StageOutcome:
         "publish",
         [
             ("archived as", result.archived),
+            ("published at", result.published_at.isoformat(timespec="seconds")),
             ("pruned", str(len(result.pruned))),
             ("generations kept", str(len(result.retained))),
         ],
