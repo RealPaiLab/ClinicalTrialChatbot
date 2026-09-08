@@ -11,8 +11,6 @@ frontend_host_port: 8081
 backend_version: staging
 frontend_version: staging
 
-translation_provider: llm
-
 ## Ingestion pipeline
 # Ships disabled everywhere. Flip to true to start the daily validation runs.
 ingestion_enabled: false
