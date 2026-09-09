@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import ARRAY, DateTime, Index, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from models.base import Base
@@ -67,6 +67,14 @@ class Trial(Base):
     study_type: Mapped[str | None] = mapped_column(Text, nullable=True)
     purpose: Mapped[str | None] = mapped_column(Text, nullable=True)
     sponsor_name: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # Age eligibility verbatim, e.g. "18 Months to 18 Years". Displayed, not parsed.
+    age_range_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # Source code to its public-URL token, e.g. {"ctc": "BCC016", "ulc": "473"}.
+    source_keys: Mapped[dict[str, str]] = mapped_column(
+        JSONB, nullable=False, server_default="{}"
+    )
 
     # It's the change signal.
     source_updated_at: Mapped[datetime | None] = mapped_column(
