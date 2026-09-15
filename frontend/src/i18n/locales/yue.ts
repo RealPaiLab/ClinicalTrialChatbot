@@ -98,7 +98,9 @@ const yue = {
     askAbout: '問下 {{agent}} 關於呢個試驗',
     addedToChat: '已經加咗入你嘅對話',
     addedToChatHint: '加咗喇，可以問 {{agent}} 任何嘢',
-    viewOnCtc: '喺 Cancer Trials Canada 上面睇',
+    viewOn: '喺 {{registry}} 上面睇',
+    age: '年齡',
+    source: '收錄來源',
     close: '閂咗佢',
   },
   contact: {
@@ -138,8 +140,13 @@ const yue = {
     failed: '整唔到個 PDF',
     failedHint: '再試多次；如果一直唔得，話我哋知。',
   },
+  sources: {
+    ctc: { label: '成人試驗', registry: 'Cancer Trials Canada' },
+    ulc: { label: '兒童試驗', registry: 'U-Link' },
+  },
   data: {
     lastUpdated: '資料最後更新於 {{date}}',
+    notYet: '未有',
     shortNotice: '資料反映最後一次更新嗰陣嘅狀態。',
     detailedNotice: '試驗資料最後更新於 {{date}}，可能已經過時。詳情請問下你嘅醫療團隊。',
   },

@@ -101,7 +101,9 @@ const en = {
     askAbout: 'Ask {{agent}} about this trial',
     addedToChat: 'Added to your chat',
     addedToChatHint: 'Added, ask {{agent}} anything about it',
-    viewOnCtc: 'View on Cancer Trials Canada',
+    viewOn: 'View on {{registry}}',
+    age: 'Age',
+    source: 'Listed by',
     close: 'Close',
   },
   contact: {
@@ -141,8 +143,13 @@ const en = {
     failed: 'The PDF could not be built',
     failedHint: 'Try again, and let us know if it keeps failing.',
   },
+  sources: {
+    ctc: { label: 'Adult trials', registry: 'Cancer Trials Canada' },
+    ulc: { label: 'Pediatric trials', registry: 'U-Link' },
+  },
   data: {
     lastUpdated: 'Data last updated {{date}}',
+    notYet: 'not yet',
     shortNotice: 'Trial data reflects the status as of the last update.',
     detailedNotice:
       'Trial data was last updated on {{date}} and may be out of date. Please reach out to your care team for more details.',

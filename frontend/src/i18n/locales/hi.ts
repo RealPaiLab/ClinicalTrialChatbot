@@ -104,7 +104,9 @@ const hi = {
     askAbout: 'इस परीक्षण के बारे में {{agent}} से पूछें',
     addedToChat: 'आपकी बातचीत में जोड़ा गया',
     addedToChatHint: 'जोड़ा गया, {{agent}} से कुछ भी पूछें',
-    viewOnCtc: 'Cancer Trials Canada पर देखें',
+    viewOn: '{{registry}} पर देखें',
+    age: 'आयु',
+    source: 'सूचीबद्ध करने वाला',
     close: 'बंद करें',
   },
   contact: {
@@ -144,8 +146,13 @@ const hi = {
     failed: 'PDF नहीं बनाई जा सकी',
     failedHint: 'फिर कोशिश करें, और बार-बार विफल हो तो हमें बताएं।',
   },
+  sources: {
+    ctc: { label: 'वयस्कों के परीक्षण', registry: 'Cancer Trials Canada' },
+    ulc: { label: 'बाल चिकित्सा परीक्षण', registry: 'U-Link' },
+  },
   data: {
     lastUpdated: 'डेटा अंतिम बार {{date}} को अपडेट हुआ',
+    notYet: 'अभी नहीं',
     shortNotice: 'डेटा अंतिम अपडेट के समय की स्थिति दर्शाता है।',
     detailedNotice:
       'परीक्षण डेटा अंतिम बार {{date}} को अपडेट हुआ था और पुराना हो सकता है। अधिक जानकारी के लिए अपनी देखभाल टीम से संपर्क करें।',

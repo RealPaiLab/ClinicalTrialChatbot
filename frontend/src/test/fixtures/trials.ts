@@ -18,6 +18,9 @@ export const mockTrials: Trial[] = [
     diseaseStages: ['Metastatic'],
     interventionNames: ['Pembrolizumab', 'Paclitaxel'],
     treatmentLines: ['first-line'],
+    ageRangeText: null,
+    sourceKeys: { ctc: 'CCTG-BR42' },
+    dataSources: ['ctc'],
     sites: [
       {
         nameEn: 'Princess Margaret Cancer Centre',
@@ -56,6 +59,9 @@ export const mockTrials: Trial[] = [
     diseaseStages: ['Advanced'],
     interventionNames: ['Osimertinib'],
     treatmentLines: ['first-line'],
+    ageRangeText: null,
+    sourceKeys: { ctc: 'LUNG-IO-7' },
+    dataSources: ['ctc'],
     sites: [
       {
         nameEn: 'BC Cancer - Vancouver',
@@ -85,6 +91,9 @@ export const mockTrials: Trial[] = [
     diseaseStages: [],
     interventionNames: ['FOLFOX'],
     treatmentLines: ['adjuvant'],
+    ageRangeText: null,
+    sourceKeys: { ctc: 'COLO-ADJ-3' },
+    dataSources: ['ctc'],
     sites: [
       {
         nameEn: 'The Ottawa Hospital Cancer Centre',

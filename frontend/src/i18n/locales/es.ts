@@ -107,7 +107,9 @@ const es = {
     askAbout: 'Preguntar a {{agent}} sobre este ensayo',
     addedToChat: 'Añadido a su conversación',
     addedToChatHint: 'Añadido, pregunte a {{agent}} lo que quiera',
-    viewOnCtc: 'Ver en Cancer Trials Canada',
+    viewOn: 'Ver en {{registry}}',
+    age: 'Edad',
+    source: 'Publicado por',
     close: 'Cerrar',
   },
   contact: {
@@ -147,8 +149,13 @@ const es = {
     failed: 'No se pudo crear el PDF',
     failedHint: 'Inténtelo de nuevo y avísenos si sigue fallando.',
   },
+  sources: {
+    ctc: { label: 'Ensayos para adultos', registry: 'Cancer Trials Canada' },
+    ulc: { label: 'Ensayos pediátricos', registry: 'U-Link' },
+  },
   data: {
     lastUpdated: 'Datos actualizados el {{date}}',
+    notYet: 'todavía no',
     shortNotice: 'Los datos reflejan el estado en la última actualización.',
     detailedNotice:
       'Los datos de los ensayos se actualizaron por última vez el {{date}} y pueden estar desactualizados. Consulte a su equipo médico para más detalles.',

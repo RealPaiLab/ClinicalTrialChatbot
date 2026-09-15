@@ -47,8 +47,8 @@ ulc:
     kind: scrape
     base_url: ${ULINK_BASE_URL:-https://u-link.care}
     concurrency: 4
-    # The capture keeps every status; only these are published. Open maps to
-    # the `recruiting` state the app already knows.
+    # Only these statuses are fetched (the site filters server-side). Open maps
+    # to the `recruiting` state the app already knows.
     statuses: [Open]
 
   diff:

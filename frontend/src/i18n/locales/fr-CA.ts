@@ -107,7 +107,9 @@ const frCa = {
     askAbout: 'Poser une question à {{agent}} sur cet essai',
     addedToChat: 'Ajouté à votre conversation',
     addedToChatHint: 'Ajouté, posez n’importe quelle question à {{agent}}',
-    viewOnCtc: 'Voir sur Cancer Trials Canada',
+    viewOn: 'Voir sur {{registry}}',
+    age: 'Âge',
+    source: 'Répertorié par',
     close: 'Fermer',
   },
   contact: {
@@ -148,8 +150,13 @@ const frCa = {
     failed: 'Le PDF n’a pas pu être créé',
     failedHint: 'Réessayez, et dites-le-nous si le problème persiste.',
   },
+  sources: {
+    ctc: { label: 'Essais pour adultes', registry: 'Cancer Trials Canada' },
+    ulc: { label: 'Essais pédiatriques', registry: 'U-Link' },
+  },
   data: {
     lastUpdated: 'Données mises à jour le {{date}}',
+    notYet: 'pas encore',
     shortNotice: 'Les données reflètent le statut au moment de la dernière mise à jour.',
     detailedNotice:
       'Les données des essais ont été mises à jour le {{date}} et peuvent être périmées. Communiquez avec votre équipe de soins pour plus de détails.',
