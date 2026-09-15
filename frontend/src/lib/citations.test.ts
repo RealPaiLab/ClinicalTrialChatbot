@@ -25,6 +25,14 @@ describe('extractTrialRefs', () => {
   it('returns an empty array when there are no references', () => {
     expect(extractTrialRefs('No trials mentioned here.')).toEqual([]);
   });
+
+  it('reads a pediatric-registry ref alongside an adult one', () => {
+    const text = 'Adults: [CTC-4267848A]. Children: [ULC-3520491B].';
+    expect(extractTrialRefs(text)).toEqual(['CTC-4267848A', 'ULC-3520491B']);
+    expect(linkifyCitations('[ULC-3520491B]')).toBe(
+      `[ULC-3520491B](${CITATION_HREF_PREFIX}ULC-3520491B)`
+    );
+  });
 });
 
 describe('linkifyCitations', () => {
