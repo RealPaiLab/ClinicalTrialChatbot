@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any, cast
 
 from fastapi import FastAPI
@@ -23,23 +23,45 @@ def make_client(runs: list[IngestionRun]) -> TestClient:
     return TestClient(app)
 
 
-def test_the_recorded_publish_is_served_as_the_freshness_date() -> None:
-    run = IngestionRun(
-        pipeline="ctc",
-        published_at=PUBLISHED_AT,
-        generation="ctc_gen_20260902T130422000000Z",
+def make_run(pipeline: str, published_at: datetime) -> IngestionRun:
+    return IngestionRun(
+        pipeline=pipeline,
+        published_at=published_at,
+        generation=f"{pipeline}_gen_{published_at:%Y%m%dT%H%M%S}000000Z",
         trial_count=1215,
     )
 
-    response = make_client([run]).get("/meta/data-freshness")
+
+def test_the_badge_date_is_the_oldest_source_and_each_source_is_listed() -> None:
+    """Newest first, as the query orders them: the first row per pipeline wins."""
+    runs = [
+        make_run("ulc", PUBLISHED_AT),
+        make_run("ctc", PUBLISHED_AT - timedelta(days=9)),
+        make_run("ctc", PUBLISHED_AT - timedelta(days=16)),
+    ]
+
+    response = make_client(runs).get("/meta/data-freshness")
 
     assert response.status_code == 200
-    assert response.json() == {"published_at": "2026-09-02T13:04:22Z"}
+    assert response.json() == {
+        "published_at": "2026-08-24T13:04:22Z",
+        "sources": [
+            {
+                "source": "ctc",
+                "name": "Cancer Trials Canada",
+                "published_at": "2026-08-24T13:04:22Z",
+            },
+            {"source": "ulc", "name": "U-Link", "published_at": "2026-09-02T13:04:22Z"},
+        ],
+    }
 
 
 def test_a_corpus_that_was_never_ingested_is_200_with_a_null_not_404() -> None:
-    """The frontend hides the badge on a null. A 404 would read as a failure."""
+    """The frontend hides the badge on a null. A 404 would read as a failure. A
+    source that has not run yet is listed with a null, not left out."""
     response = make_client([]).get("/meta/data-freshness")
 
     assert response.status_code == 200
-    assert response.json() == {"published_at": None}
+    body = response.json()
+    assert body["published_at"] is None
+    assert [s["published_at"] for s in body["sources"]] == [None, None]
