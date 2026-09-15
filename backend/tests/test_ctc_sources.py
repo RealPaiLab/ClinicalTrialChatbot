@@ -4,7 +4,7 @@ from collections.abc import Callable
 
 import httpx
 
-from scripts.ctc.sources import CtcApiSource
+from scripts.pipeline.sources import CtcApiSource
 from tests.factories import make_source_trial
 
 BASE_URL = "https://api.example.test/api/studies"

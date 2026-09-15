@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from scripts.ctc.stages.geocode import GeocodeResult, parse_coordinates
+from scripts.pipeline.stages.geocode import GeocodeResult, parse_coordinates
 
 
 def test_geojson_coordinates_are_lon_first() -> None:

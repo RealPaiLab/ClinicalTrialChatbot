@@ -2,8 +2,15 @@ from __future__ import annotations
 
 import uuid
 
-from scripts.ctc.canonical import CanonicalTrial, index_trials
-from scripts.ctc.stages.build import BuildResult
+from sqlalchemy import ColumnElement
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+
+from models import Trial
+from schemas.source import rank
+from scripts.pipeline.canonical import CanonicalTrial, index_trials
+from scripts.pipeline.db.shadow import in_schema
+from scripts.pipeline.stages.build import BuildResult
+from scripts.pipeline.stages.carry import CarryResult, _merged_trial
 from tests.factories import make_source_trial
 
 
@@ -22,6 +29,7 @@ def test_the_result_reports_what_the_next_stages_still_owe() -> None:
         trial_sites=2856,
         embeddings_carried=1200,
         coordinates_carried=146,
+        carried=CarryResult(locations=0, trials=0, trial_sites=0),
     )
 
     assert result.to_embed == 18
@@ -30,7 +38,7 @@ def test_the_result_reports_what_the_next_stages_still_owe() -> None:
 
 def test_one_location_row_per_place_however_many_trials_use_it() -> None:
     """The rows the build inserts are deduped by primary key, not by trial."""
-    from scripts.ctc.canonical import to_location_rows
+    from scripts.pipeline.canonical import to_location_rows
 
     incoming = index_trials(
         [
@@ -48,17 +56,39 @@ def test_one_location_row_per_place_however_many_trials_use_it() -> None:
 
 def test_a_dropped_site_leaves_no_junction_row_to_write() -> None:
     """Rows are written fresh, so removal needs no delete path."""
-    from scripts.ctc.canonical import to_site_rows
+    from scripts.pipeline.canonical import to_site_rows
 
     before = index_trials([make_trial("NCT01", ["Princess Margaret", "CHUM"])])
     after = index_trials([make_trial("NCT01", ["Princess Margaret"])])
 
     written: set[uuid.UUID] = {
-        row.location_id for trial in after.values() for row in to_site_rows(trial)
+        row.location_id
+        for trial in after.values()
+        for row in to_site_rows(trial, "ctc")
     }
     dropped = {
-        row.location_id for trial in before.values() for row in to_site_rows(trial)
+        row.location_id
+        for trial in before.values()
+        for row in to_site_rows(trial, "ctc")
     } - written
 
     assert len(written) == 1
     assert len(dropped) == 1
+
+
+def _merge_for(source: str) -> dict[str, ColumnElement[object]]:
+    build = in_schema(Trial, "some_build")
+    return _merged_trial(build, pg_insert(build).excluded, source)
+
+
+def test_a_trial_two_sources_list_keeps_the_higher_ranked_wording() -> None:
+    """Otherwise a merged trial would re-word itself depending on run order."""
+    assert rank("ctc") < rank("ulc")
+    assert "short_title_en" in _merge_for("ulc")
+    assert "short_title_en" not in _merge_for("ctc")
+
+
+def test_both_sources_contribute_their_own_public_url_key() -> None:
+    """A merged trial links out to both registries, whichever pipeline ran."""
+    for source in ("ctc", "ulc"):
+        assert {"source_keys", "age_range_text"} <= _merge_for(source).keys()

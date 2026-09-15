@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 
 from models import Location, Trial, TrialSite
-from scripts.ctc.canonical import (
+from scripts.pipeline.canonical import (
     LOCATION_COLUMNS,
     SITE_COLUMNS,
     TRIAL_COLUMNS,
@@ -69,7 +69,7 @@ def test_only_projected_columns_reach_the_database() -> None:
     for columns, model, row in (
         (TRIAL_COLUMNS, Trial, to_trial_row(trial)),
         (LOCATION_COLUMNS, Location, to_location_rows(trial)[0]),
-        (SITE_COLUMNS, TrialSite, to_site_rows(trial)[0]),
+        (SITE_COLUMNS, TrialSite, to_site_rows(trial, "ctc")[0]),
     ):
         assert set(columns) <= {column.name for column in model.__table__.columns}
         assert set(row.model_dump()) == set(columns)
@@ -92,7 +92,7 @@ def test_coordinators_are_projected_as_contactable_rows() -> None:
     }
     trial = CanonicalTrial.model_validate({**PAYLOAD, "sites": [site]})
 
-    assert to_site_rows(trial)[0].coordinators == [
+    assert to_site_rows(trial, "ctc")[0].coordinators == [
         {
             "full_name": "Ada Lovelace",
             "email": None,
@@ -117,7 +117,7 @@ def test_coordinators_are_projected_as_contactable_rows() -> None:
 def test_a_site_listed_twice_yields_one_junction_row() -> None:
     trial = CanonicalTrial.model_validate({**PAYLOAD, "sites": [SITE, SITE]})
 
-    assert len(to_site_rows(trial)) == 1
-    assert to_site_rows(trial)[0].location_id == uuid.UUID(
+    assert len(to_site_rows(trial, "ctc")) == 1
+    assert to_site_rows(trial, "ctc")[0].location_id == uuid.UUID(
         str(derived_id("Cross Cancer Institute"))
     )
