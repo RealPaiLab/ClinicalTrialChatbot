@@ -168,23 +168,24 @@ def test_conversation_trial_refs_reads_tool_returns() -> None:
     assert conversation_trial_refs(history) == {"CTC-33333333"}
 
 
-async def test_agent_scrubs_unverified_nct_from_message() -> None:
+async def test_agent_scrubs_unverified_refs_from_message() -> None:
+    """An invented ref is caught whichever registry prefix it wears."""
     deps = AgentDeps(trial_search=StubTrialSearch())
     agent = get_clinical_trials_agent()
     model = make_test_model(
         output={
-            "message": "After progression, [CTC-99999999] likely helps.",
-            "used_trial_refs": ["CTC-99999999"],
+            "message": "Try [CTC-99999999] or [ULC-99999999] after progression.",
+            "used_trial_refs": ["CTC-99999999", "ULC-99999999"],
             "follow_up_questions": [],
         }
     )
     with agent.override(model=model):
         result = await agent.run("proofread this", deps=deps)
 
-    assert "CTC-99999999" not in result.output.message
+    assert "99999999" not in result.output.message
     assert "rephrase" in result.output.message
     assert result.output.used_trial_refs == []
-    assert deps.hallucinated_refs == ["CTC-99999999"]
+    assert deps.hallucinated_refs == ["CTC-99999999", "ULC-99999999"]
 
 
 async def test_agent_registers_expected_tools() -> None:
