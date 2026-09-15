@@ -13,12 +13,11 @@ PIPELINES = Path(__file__).resolve().parents[1] / "scripts" / "pipelines.yaml"
 # The source block has no defaults on purpose: the endpoint is the YAML's to state.
 MINIMAL = {
     "source": {
-        "api": {
-            "base_url": "https://api.example.test",
-            "search_scope": "CA",
-            "page_size": 100,
-            "concurrency": 5,
-        }
+        "kind": "api",
+        "base_url": "https://api.example.test",
+        "search_scope": "CA",
+        "page_size": 100,
+        "concurrency": 5,
     }
 }
 
@@ -27,9 +26,22 @@ def test_the_shipped_config_parses_and_names_real_stages() -> None:
     """Catches a typo in the committed YAML. `${VAR}` placeholders stay literal:
     the environment is the run's business, not this test's."""
     document = yaml.safe_load(PIPELINES.read_text(encoding="utf-8"))
-    config = PipelineConfig.model_validate(document["ctc"])
 
-    assert set(config.stages) <= set(STAGES)
+    for name in ("ctc", "ulc"):
+        config = PipelineConfig.model_validate(document[name])
+        assert set(config.stages) <= set(STAGES)
+
+
+def test_each_source_kind_states_only_its_own_settings() -> None:
+    """A scraper has no page size and an API has no status allowlist."""
+    scrape = {"kind": "scrape", "base_url": "https://x", "concurrency": 2}
+    config = PipelineConfig.model_validate({"source": scrape | {"statuses": ["Open"]}})
+
+    assert config.source.kind == "scrape"
+    with pytest.raises(ValueError, match="statuses"):
+        PipelineConfig.model_validate({"source": scrape})
+    with pytest.raises(ValueError):
+        PipelineConfig.model_validate({"source": MINIMAL["source"] | {"statuses": []}})
 
 
 def test_the_declared_stage_order_matches_the_runnable_stages() -> None:

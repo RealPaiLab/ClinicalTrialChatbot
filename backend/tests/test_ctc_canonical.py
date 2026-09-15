@@ -54,10 +54,25 @@ def test_identity_is_derived_from_the_business_key() -> None:
     )
 
     assert trial.id == without_id.id != trial.source_id
-    assert derived_id("NCT05272826", "CMRG 010") == derived_id(
-        "nct05272826", "CMRG 010 "
+    assert derived_id("NCT05272826") == derived_id("nct05272826 ")
+    assert derived_id(None, "SRC.8") != derived_id("NCT06422806")
+
+
+def test_a_registry_number_names_the_trial_whichever_source_lists_it() -> None:
+    """Two registries listing one NCT must land on one row, each stamping its
+    own ref prefix and URL key; a trial with no registry number falls back to
+    its protocol id."""
+    ctc = CanonicalTrial.model_validate(PAYLOAD)
+    ulc = CanonicalTrial.model_validate(
+        {**PAYLOAD, "acronymOrProtocolId": "SRC-8 (pediatric)", "sourceKey": "473"}
     )
-    assert derived_id(None, "SRC.8") != derived_id("NCT06422806", "SRC.8")
+    unregistered = CanonicalTrial.model_validate({**PAYLOAD, "nctNumber": None})
+
+    assert ctc.id == ulc.id != unregistered.id
+    ctc_row, ulc_row = to_trial_row(ctc, "ctc"), to_trial_row(ulc, "ulc")
+    assert ctc_row.trial_ref[4:] == ulc_row.trial_ref[4:]
+    assert (ctc_row.trial_ref[:4], ulc_row.trial_ref[:4]) == ("CTC-", "ULC-")
+    assert (ctc_row.source_keys, ulc_row.source_keys) == ({}, {"ulc": "473"})
 
 
 def test_only_projected_columns_reach_the_database() -> None:
@@ -67,7 +82,7 @@ def test_only_projected_columns_reach_the_database() -> None:
     assert trial.biomarkers == ["BRCA1"]
 
     for columns, model, row in (
-        (TRIAL_COLUMNS, Trial, to_trial_row(trial)),
+        (TRIAL_COLUMNS, Trial, to_trial_row(trial, "ctc")),
         (LOCATION_COLUMNS, Location, to_location_rows(trial)[0]),
         (SITE_COLUMNS, TrialSite, to_site_rows(trial, "ctc")[0]),
     ):
@@ -80,11 +95,7 @@ def test_coordinators_are_projected_as_contactable_rows() -> None:
     site = {
         **SITE,
         "coordinators": [
-            {
-                "firstName": "Ada",
-                "lastName": "Lovelace",
-                "phoneNumber": "416-946-4501 ",
-            },
+            {"fullName": "Ada Lovelace", "phoneNumber": "416-946-4501 "},
             {"email": "coordinator@example.org"},
             {"phoneNumber": "902-473-2700", "phoneExtension": "204"},
             {"phoneExtension": "204"},
