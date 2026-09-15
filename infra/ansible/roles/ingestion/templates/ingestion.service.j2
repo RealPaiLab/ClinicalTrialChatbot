@@ -1,7 +1,7 @@
-# Managed by Ansible (ingestion role). Refreshes the trial corpus.
+# Managed by Ansible (ingestion role). Refreshes the {{ pipeline }} trial corpus.
 # `compose run` propagates the exit code, so a failed stage fails the unit.
 [Unit]
-Description=CTC trial ingestion pipeline ({{ app_environment }})
+Description={{ pipeline | upper }} trial ingestion pipeline ({{ app_environment }})
 Wants=docker.service
 After=docker.service network-online.target
 
@@ -9,5 +9,5 @@ After=docker.service network-online.target
 Type=oneshot
 User={{ deploy_user }}
 WorkingDirectory={{ app_dir }}
-ExecStart=/usr/bin/docker compose run --rm backend {{ ingestion_command }}
-TimeoutStartSec={{ ingestion_timeout_sec }}
+ExecStart=/usr/bin/docker compose run --rm backend python -m scripts.run {{ pipeline }}
+TimeoutStartSec={{ schedule.timeout_sec | default(ingestion_timeout_sec) }}
