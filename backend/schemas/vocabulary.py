@@ -11,6 +11,7 @@ class VocabField(StrEnum):
     CANCER_TYPE = "cancer_type"
     TREATMENT_TYPE = "treatment_type"
     DISEASE_STAGE = "disease_stage"
+    DATA_SOURCE = "data_source"
 
 
 class Vocabulary(BaseModel):

@@ -16,6 +16,8 @@ class TrialSiteInfo(BaseModel):
     lon: float | None = None
     state: str | None = None
     cancer_type_names: list[str] = Field(default_factory=list)
+    # Which registries list this centre; both when two corpora carry the trial.
+    data_sources: list[str] = Field(default_factory=list)
 
 
 class TrialCitation(BaseModel):
@@ -34,6 +36,12 @@ class TrialCitation(BaseModel):
     intervention_names: list[str] = Field(default_factory=list)
     treatment_lines: list[str] = Field(default_factory=list)
     disease_stages: list[str] = Field(default_factory=list)
+    # Age eligibility verbatim from the source, when it states one. Text, not a filter.
+    age_range_text: str | None = None
+    # Source code to the token its public trial URL is built from.
+    source_keys: dict[str, str] = Field(default_factory=dict)
+    # The distinct sources over every site the trial has, before any narrowing.
+    data_sources: list[str] = Field(default_factory=list)
     sites: list[TrialSiteInfo] = Field(default_factory=list)
 
 
@@ -53,3 +61,4 @@ class TrialFilter(BaseModel):
     phases: list[str] = Field(default_factory=list)
     treatment_types: list[str] = Field(default_factory=list)
     disease_stages: list[str] = Field(default_factory=list)
+    data_sources: list[str] = Field(default_factory=list)

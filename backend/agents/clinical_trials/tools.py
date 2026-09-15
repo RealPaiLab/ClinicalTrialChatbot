@@ -47,6 +47,8 @@ def _record(ctx: RunContext[AgentDeps], page: TrialSearchPage) -> TrialSearchRes
                 cities=sorted({s.city for s in c.sites if s.city}),
                 provinces=sorted({s.province for s in c.sites if s.province}),
                 recruiting_statuses=sorted({s.state for s in c.sites if s.state}),
+                data_sources=c.data_sources,
+                age_range=c.age_range_text,
             )
         )
     return TrialSearchResult(total_matching=page.total, trials=hits)
@@ -71,6 +73,7 @@ async def syntactic_search(
         phases=args.phases,
         treatment_types=args.treatment_types,
         disease_stages=args.disease_stages,
+        data_sources=args.data_sources,
     )
     page = await ctx.deps.trial_search.syntactic_search(
         flt, query=args.query, limit=args.limit, offset=args.offset
@@ -100,6 +103,7 @@ async def semantic_search(
         phases=args.phases,
         treatment_types=args.treatment_types,
         disease_stages=args.disease_stages,
+        data_sources=args.data_sources,
     )
     page = await ctx.deps.trial_search.semantic_search(
         flt, query=args.query, limit=args.limit

@@ -55,12 +55,18 @@ def _status_match(value: str) -> ColumnElement[bool]:
     return _contains(TrialSite.state, value)
 
 
+def _source_match(value: str) -> ColumnElement[bool]:
+    """Exact: source codes are an enum, and the GIN index answers containment."""
+    return TrialSite.data_sources.contains([value])
+
+
 def _site_match_exists(
     flt: TrialFilter, restrict_province: str | None
 ) -> ColumnElement[bool] | None:
     group_terms = {
         _cancer_match: [v for v in flt.cancer_types if v],
         _status_match: [v for v in flt.statuses if v],
+        _source_match: [v for v in flt.data_sources if v],
     }
     conditions = [
         or_(*(build(v) for v in terms)) for build, terms in group_terms.items() if terms
@@ -104,7 +110,7 @@ def _province_restriction(province: str) -> ColumnElement[bool]:
 def _filter_conditions(
     flt: TrialFilter, restrict_province: str | None = None
 ) -> list[ColumnElement[bool]]:
-    """Combined same-site predicate (cancer/location/status/province) AND the
+    """Combined same-site predicate (cancer/location/status/source/province) AND the
     trial-level array predicates (phase, treatment type, disease stage)."""
     conditions: list[ColumnElement[bool]] = []
     site_match = _site_match_exists(flt, restrict_province)

@@ -33,6 +33,7 @@ def _to_site_info(site: TrialSite) -> TrialSiteInfo:
         lon=loc.lon,
         state=site.state,
         cancer_type_names=list(site.cancer_type_names),
+        data_sources=list(site.data_sources or []),
     )
 
 
@@ -75,11 +76,16 @@ def _site_matches_status(site: TrialSite, statuses: list[str]) -> bool:
     return any(fold(term) in haystack for term in statuses)
 
 
+def _site_matches_source(site: TrialSite, data_sources: list[str]) -> bool:
+    return not data_sources or any(s in (site.data_sources or []) for s in data_sources)
+
+
 def _to_citation(
     trial: Trial,
     locations: list[str],
     cancer_types: list[str],
     statuses: list[str] | None = None,
+    data_sources: list[str] | None = None,
     restrict_province: str | None = None,
 ) -> TrialCitation:
     """Map an ORM trial to a citation, keeping only sites matching the filters."""
@@ -89,6 +95,7 @@ def _to_citation(
         if _site_matches_location(s, locations)
         and _site_matches_cancer(s, cancer_types)
         and _site_matches_status(s, statuses or [])
+        and _site_matches_source(s, data_sources or [])
         and _site_in_province(s, restrict_province)
     ]
     return TrialCitation(
@@ -105,6 +112,11 @@ def _to_citation(
         intervention_names=list(trial.intervention_names or []),
         treatment_lines=list(trial.treatment_lines or []),
         disease_stages=list(trial.disease_stages or []),
+        age_range_text=trial.age_range_text,
+        source_keys=dict(trial.source_keys or {}),
+        data_sources=sorted(
+            {src for s in trial.sites for src in (s.data_sources or [])}
+        ),
         sites=[_to_site_info(s) for s in sites],
     )
 
@@ -140,12 +152,17 @@ class TrialSearchService:
                 flt.locations,
                 flt.cancer_types,
                 flt.statuses,
+                flt.data_sources,
                 self._restrict_province,
             )
             for t in trials
         ]
         site_filtered = bool(
-            flt.locations or flt.cancer_types or flt.statuses or self._restrict_province
+            flt.locations
+            or flt.cancer_types
+            or flt.statuses
+            or flt.data_sources
+            or self._restrict_province
         )
         return [c for c in citations if c.sites or not site_filtered]
 

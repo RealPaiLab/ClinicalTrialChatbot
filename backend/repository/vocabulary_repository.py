@@ -14,6 +14,7 @@ VOCAB_COLUMNS: dict[VocabField, InstrumentedAttribute[list[str]]] = {
     VocabField.CANCER_TYPE: TrialSite.cancer_type_names,
     VocabField.TREATMENT_TYPE: Trial.treatment_type_names,
     VocabField.DISEASE_STAGE: Trial.disease_stages,
+    VocabField.DATA_SOURCE: TrialSite.data_sources,
 }
 
 

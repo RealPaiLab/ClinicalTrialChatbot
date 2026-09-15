@@ -96,6 +96,7 @@ VOCAB_ARGUMENTS: dict[str, VocabField] = {
     "cancer_types": VocabField.CANCER_TYPE,
     "treatment_types": VocabField.TREATMENT_TYPE,
     "disease_stages": VocabField.DISEASE_STAGE,
+    "data_sources": VocabField.DATA_SOURCE,
 }
 
 
