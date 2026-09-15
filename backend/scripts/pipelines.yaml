@@ -1,11 +1,10 @@
 ctc:
   source:
     kind: api
-    api:
-      base_url: ${CTC_API_BASE_URL}
-      search_scope: CA
-      page_size: 100
-      concurrency: 5
+    base_url: ${CTC_API_BASE_URL}
+    search_scope: CA
+    page_size: 100
+    concurrency: 5
 
   diff:
     strategy: timestamp
@@ -39,3 +38,44 @@ ctc:
     lock_timeout: 5s
 
   stages: [ingest, diff, build, geocode, embed, validate, publish]
+
+# The C17 pediatric registry. Server-rendered pages, so the source is a scraper;
+# the pages carry site coordinates, so there is no geocode stage.
+ulc:
+  source:
+    kind: scrape
+    base_url: ${ULINK_BASE_URL:-https://u-link.care}
+    concurrency: 4
+    # The capture keeps every status; only these are published. Open maps to
+    # the `recruiting` state the app already knows.
+    statuses: [Open]
+
+  diff:
+    strategy: timestamp
+    full_refresh: false
+
+  build:
+    batch_size: 500
+
+  embed:
+    provider: null
+    batch_size: null
+    limit: null
+    batch_id: null
+    force: false
+
+  # A corpus of ~50 published trials: one trial is 2%, so the drop thresholds
+  # are wider than CTC's, and every centre ships coordinates.
+  validate:
+    max_trial_drop_pct: 10
+    max_location_drop_pct: 10
+    max_site_drop_pct: 10
+    min_geocode_coverage: 0.95
+    min_embedding_coverage: 0.99
+    coverage_must_not_regress: true
+
+  publish:
+    keep_generations: 3
+    lock_timeout: 5s
+
+  stages: [ingest, diff, build, embed, validate, publish]

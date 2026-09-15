@@ -8,7 +8,7 @@ import httpx
 from pydantic import JsonValue
 
 from core.http_retry import build_retrying_client
-from scripts.pipeline.canonical import CanonicalTrial
+from scripts.pipeline.canonical import CanonicalTrial, clean
 from scripts.pipeline.sources.base import PageCallback, SourceRecords
 
 MAX_RETRIES = 3
@@ -54,8 +54,24 @@ class CtcApiSource:
             )
 
         raw = self._dedupe(results)
-        return SourceRecords(
-            trials=[CanonicalTrial.model_validate(entry) for entry in raw], raw=raw
+        return SourceRecords(trials=[self._canonical(entry) for entry in raw], raw=raw)
+
+    @staticmethod
+    def _canonical(entry: dict[str, JsonValue]) -> CanonicalTrial:
+        """CTC's public trial URL is built from the protocol id, and it ships a
+        coordinator's name in two parts."""
+        sites = entry.get("sites")
+        return CanonicalTrial.model_validate(
+            {
+                **entry,
+                "sourceKey": entry.get("acronymOrProtocolId"),
+                "sites": [
+                    {**site, "coordinators": _named(site.get("coordinators"))}
+                    if isinstance(site, dict)
+                    else site
+                    for site in (sites if isinstance(sites, list) else [])
+                ],
+            }
         )
 
     async def _count(self, client: httpx.AsyncClient) -> int:
@@ -83,10 +99,10 @@ class CtcApiSource:
             return studies
 
     @staticmethod
-    def _dedupe(pages: list[list[JsonValue]]) -> list[JsonValue]:
+    def _dedupe(pages: list[list[JsonValue]]) -> list[dict[str, JsonValue]]:
         """Paging serves a trial twice when the corpus shifts mid-fetch."""
         seen: set[str] = set()
-        trials: list[JsonValue] = []
+        trials: list[dict[str, JsonValue]] = []
         for page in pages:
             for entry in page:
                 if not isinstance(entry, dict):
@@ -96,3 +112,21 @@ class CtcApiSource:
                     seen.add(key)
                     trials.append(entry)
         return trials
+
+
+def _named(coordinators: JsonValue) -> list[JsonValue]:
+    if not isinstance(coordinators, list):
+        return []
+    return [
+        {
+            **c,
+            "fullName": " ".join(
+                part
+                for part in (clean(c.get("firstName")), clean(c.get("lastName")))
+                if part
+            ),
+        }
+        if isinstance(c, dict)
+        else c
+        for c in coordinators
+    ]

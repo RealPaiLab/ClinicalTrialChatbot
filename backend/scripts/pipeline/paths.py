@@ -1,4 +1,4 @@
-"""Paths for the dated dumps in `scripts/data`."""
+"""Paths for the dated dumps in `scripts/data`, one directory per pipeline."""
 
 from __future__ import annotations
 
@@ -12,29 +12,29 @@ CANONICAL_PREFIX = "canonical-"
 JSON_SUFFIX = ".json"
 
 
-def _dated(prefix: str, day: date | None) -> Path:
+def _dated(pipeline: str, prefix: str, day: date | None) -> Path:
     stamp = (day or date.today()).isoformat()
-    return DATA_DIR / f"{prefix}{stamp}{JSON_SUFFIX}"
+    return DATA_DIR / pipeline / f"{prefix}{stamp}{JSON_SUFFIX}"
 
 
-def _latest(prefix: str) -> Path | None:
-    dumps = sorted(DATA_DIR.glob(f"{prefix}*{JSON_SUFFIX}"))
+def _latest(pipeline: str, prefix: str) -> Path | None:
+    dumps = sorted((DATA_DIR / pipeline).glob(f"{prefix}*{JSON_SUFFIX}"))
     return dumps[-1] if dumps else None
 
 
-def dated_trials_path(day: date | None = None) -> Path:
+def dated_trials_path(pipeline: str, day: date | None = None) -> Path:
     """Where today's raw source payload goes."""
-    return _dated(TRIALS_PREFIX, day)
+    return _dated(pipeline, TRIALS_PREFIX, day)
 
 
-def latest_trials_path() -> Path | None:
-    return _latest(TRIALS_PREFIX)
+def latest_trials_path(pipeline: str) -> Path | None:
+    return _latest(pipeline, TRIALS_PREFIX)
 
 
-def dated_canonical_path(day: date | None = None) -> Path:
+def dated_canonical_path(pipeline: str, day: date | None = None) -> Path:
     """Where today's canonical records go."""
-    return _dated(CANONICAL_PREFIX, day)
+    return _dated(pipeline, CANONICAL_PREFIX, day)
 
 
-def latest_canonical_path() -> Path | None:
-    return _latest(CANONICAL_PREFIX)
+def latest_canonical_path(pipeline: str) -> Path | None:
+    return _latest(pipeline, CANONICAL_PREFIX)

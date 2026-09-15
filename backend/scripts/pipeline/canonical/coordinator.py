@@ -7,11 +7,10 @@ from scripts.pipeline.canonical.fields import Blankable
 
 
 class CanonicalCoordinator(CanonicalBase):
-    """Captured, never loaded: personal data stays out of the database."""
+    """A person or office a patient can contact at a site."""
 
     id: uuid.UUID | None = None
-    first_name: Blankable = None
-    last_name: Blankable = None
+    full_name: Blankable = None
     email: Blankable = None
     phone_number: Blankable = None
     phone_extension: Blankable = None

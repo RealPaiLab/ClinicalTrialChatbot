@@ -1,6 +1,8 @@
-"""The `ctc` block of `pipelines.yaml`, validated on load."""
+"""One pipeline's block of `pipelines.yaml`, validated on load."""
 
 from __future__ import annotations
+
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -24,15 +26,24 @@ class Strict(BaseModel):
 
 
 class ApiSourceConfig(Strict):
+    kind: Literal["api"]
     base_url: str
     search_scope: str
     page_size: int
     concurrency: int
 
 
-class SourceConfig(Strict):
-    kind: str = "api"
-    api: ApiSourceConfig
+class ScrapeSourceConfig(Strict):
+    kind: Literal["scrape"]
+    base_url: str
+    concurrency: int
+    # Listing statuses that get published; the capture keeps every status.
+    statuses: list[str]
+
+
+SourceConfig = Annotated[
+    ApiSourceConfig | ScrapeSourceConfig, Field(discriminator="kind")
+]
 
 
 class DiffConfig(Strict):

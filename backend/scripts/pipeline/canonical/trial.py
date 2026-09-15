@@ -5,7 +5,6 @@ from datetime import datetime
 
 from pydantic import Field, computed_field
 
-from schemas.trial_ref import derived_ref
 from scripts.pipeline.canonical.base import CanonicalBase
 from scripts.pipeline.canonical.fields import (
     Blankable,
@@ -40,6 +39,11 @@ class CanonicalTrial(CanonicalBase):
     purpose: Name = None
     sponsor_name: NameEn = Field(default=None, alias="sponsor")
 
+    # Age eligibility verbatim; there is no parser, the string is shown and embedded.
+    age_range_text: Blankable = None
+    # The token this source's public trial URL is built from.
+    source_key: Blankable = None
+
     source_updated_at: datetime | None = Field(default=None, alias="updatedAt")
 
     # Captured, not loaded: no column exists for these yet.
@@ -52,13 +56,8 @@ class CanonicalTrial(CanonicalBase):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def id(self) -> uuid.UUID:
-        """NCT alone collides (one study, several protocol records) and is missing on
-        some trials; the acronym is always there. Together they are unique."""
-        return derived_id(self.nct_number, self.acronym_or_protocol_id)
-
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def trial_ref(self) -> str:
-        """The citable spelling of `id`, and the identity everything downstream
-        keys on."""
-        return derived_ref(self.id)
+        """The NCT number is the one key both registries share, so a trial they
+        both list becomes one row. Only a trial without one keys on its protocol id."""
+        if self.nct_number:
+            return derived_id(self.nct_number)
+        return derived_id(None, self.acronym_or_protocol_id)

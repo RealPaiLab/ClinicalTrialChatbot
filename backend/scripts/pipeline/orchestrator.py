@@ -18,8 +18,7 @@ from scripts.pipeline.canonical import CanonicalTrial, index_trials
 from scripts.pipeline.config import PipelineConfig
 from scripts.pipeline.db.shadow import build_schema
 from scripts.pipeline.paths import latest_canonical_path
-from scripts.pipeline.sources.api import CtcApiSource
-from scripts.pipeline.sources.base import TrialSource
+from scripts.pipeline.sources import TrialSource, build_source
 from scripts.pipeline.stages.build import build
 from scripts.pipeline.stages.diff import DiffPlan, build_plan, load_live, site_changes
 from scripts.pipeline.stages.embed import embed
@@ -53,20 +52,12 @@ class RunContext:
         return self.config.build.schema_name or build_schema(self.name)
 
     def source(self) -> TrialSource:
-        api = self.config.source.api
-        if self.config.source.kind != "api":
-            raise ValueError(f"unknown source kind {self.config.source.kind!r}")
-        return CtcApiSource(
-            base_url=api.base_url,
-            search_scope=api.search_scope,
-            page_size=api.page_size,
-            concurrency=api.concurrency,
-        )
+        return build_source(self.config.source)
 
     def ensure_incoming(self) -> dict[uuid.UUID, CanonicalTrial]:
         if self.incoming:
             return self.incoming
-        path = latest_canonical_path()
+        path = latest_canonical_path(self.name)
         if path is None:
             raise RuntimeError("no canonical dump found; run the ingest stage first")
         console.print(f"[dim]reading {path}[/dim]")
@@ -81,7 +72,7 @@ class RunContext:
 
 
 async def _ingest(context: RunContext) -> StageOutcome:
-    trials, result = await ingest(context.source())
+    trials, result = await ingest(context.source(), pipeline=context.name)
     context.incoming = index_trials(trials)
     context.plan = None
     return StageOutcome(

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from dataclasses import dataclass, field
+from collections.abc import Callable, Sequence
+from dataclasses import dataclass
 from typing import Protocol
 
 from pydantic import JsonValue
@@ -18,7 +18,7 @@ class SourceRecords:
     """`raw` keeps what the source served, so a capture is never lossy."""
 
     trials: list[CanonicalTrial]
-    raw: list[JsonValue] = field(default_factory=list)
+    raw: Sequence[JsonValue] = ()
 
 
 class TrialSource(Protocol):

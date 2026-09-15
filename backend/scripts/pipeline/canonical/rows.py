@@ -6,7 +6,10 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
+from schemas.source import SourceCode
+from schemas.trial_ref import derived_ref
 from scripts.pipeline.canonical.coordinator import CanonicalCoordinator
+from scripts.pipeline.canonical.site import CanonicalSite
 from scripts.pipeline.canonical.trial import CanonicalTrial
 
 
@@ -32,6 +35,8 @@ class TrialRow(RowBase):
     study_type: str | None
     purpose: str | None
     sponsor_name: str | None
+    age_range_text: str | None
+    source_keys: dict[str, str]
     source_updated_at: datetime | None
 
 
@@ -41,6 +46,8 @@ class LocationRow(RowBase):
     address: str | None
     city: str | None
     province: str | None
+    lat: float | None
+    lon: float | None
 
 
 class SiteRow(RowBase):
@@ -57,25 +64,37 @@ LOCATION_COLUMNS: tuple[str, ...] = tuple(LocationRow.model_fields)
 SITE_COLUMNS: tuple[str, ...] = tuple(SiteRow.model_fields)
 
 
-def to_trial_row(trial: CanonicalTrial) -> TrialRow:
-    return TrialRow.model_validate(trial)
+def to_trial_row(trial: CanonicalTrial, data_source: str) -> TrialRow:
+    """The ref prefix and the URL key both name the source, so they are stamped
+    here rather than on the record."""
+    source = SourceCode(data_source)
+    stamped = {
+        "trial_ref": derived_ref(trial.id, source),
+        "source_keys": {source.value: trial.source_key} if trial.source_key else {},
+    }
+    copied = {
+        name: getattr(trial, name) for name in TRIAL_COLUMNS if name not in stamped
+    }
+    return TrialRow.model_validate(copied | stamped)
+
+
+def _location_row(site: CanonicalSite) -> LocationRow:
+    """Coordinates come from the source when it has them; the geocode stage
+    fills the rest."""
+    address = site.address
+    return LocationRow(
+        id=site.id,
+        name_en=site.name_en,
+        address=address.as_text() if address else None,
+        city=address.city if address else None,
+        province=address.province if address else None,
+        lat=site.lat,
+        lon=site.lon,
+    )
 
 
 def to_location_rows(trial: CanonicalTrial) -> list[LocationRow]:
-    """lat/lon belong to the geocode stage, not the source."""
-    rows: list[LocationRow] = []
-    for site in trial.sites:
-        address = site.address
-        rows.append(
-            LocationRow(
-                id=site.id,
-                name_en=site.name_en,
-                address=address.as_text() if address else None,
-                city=address.city if address else None,
-                province=address.province if address else None,
-            )
-        )
-    return rows
+    return [_location_row(site) for site in trial.sites]
 
 
 def to_coordinator_rows(
@@ -83,12 +102,11 @@ def to_coordinator_rows(
 ) -> list[dict[str, str | None]]:
     rows: list[dict[str, str | None]] = []
     for c in coordinators:
-        full_name = " ".join(p for p in (c.first_name, c.last_name) if p) or None
-        if not full_name and not c.email and not c.phone_number:
+        if not c.full_name and not c.email and not c.phone_number:
             continue
         rows.append(
             {
-                "full_name": full_name,
+                "full_name": c.full_name,
                 "email": c.email,
                 "phone_number": c.phone_number,
                 "phone_extension": c.phone_extension,
@@ -123,14 +141,6 @@ def collect_location_rows(
     rows: dict[uuid.UUID, LocationRow] = {}
     for trial in trials:
         for site in trial.sites:
-            if site.id in rows:
-                continue
-            address = site.address
-            rows[site.id] = LocationRow(
-                id=site.id,
-                name_en=site.name_en,
-                address=address.as_text() if address else None,
-                city=address.city if address else None,
-                province=address.province if address else None,
-            )
+            if site.id not in rows:
+                rows[site.id] = _location_row(site)
     return rows

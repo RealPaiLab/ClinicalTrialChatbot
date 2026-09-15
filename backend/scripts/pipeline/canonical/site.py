@@ -18,6 +18,9 @@ class CanonicalSite(CanonicalBase):
     state: Blankable = None
     cancer_type_names: NamesEn = Field(default_factory=list, alias="cancerTypes")
     coordinators: list[CanonicalCoordinator] = Field(default_factory=list)
+    # Set when the source ships coordinates; otherwise the geocode stage fills them.
+    lat: float | None = None
+    lon: float | None = None
 
     @computed_field  # type: ignore[prop-decorator]
     @property
