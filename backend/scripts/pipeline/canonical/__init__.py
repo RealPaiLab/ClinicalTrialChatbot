@@ -1,12 +1,12 @@
 """The source-agnostic trial record, and the projection of it that reaches the DB."""
 
-from scripts.ctc.canonical.address import CanonicalAddress
-from scripts.ctc.canonical.base import CanonicalBase
-from scripts.ctc.canonical.collect import index_trials
-from scripts.ctc.canonical.coordinator import CanonicalCoordinator
-from scripts.ctc.canonical.identity import ID_NAMESPACE, derived_id
-from scripts.ctc.canonical.normalize import BLANKS, clean, norm_text
-from scripts.ctc.canonical.rows import (
+from scripts.pipeline.canonical.address import CanonicalAddress
+from scripts.pipeline.canonical.base import CanonicalBase
+from scripts.pipeline.canonical.collect import index_trials
+from scripts.pipeline.canonical.coordinator import CanonicalCoordinator
+from scripts.pipeline.canonical.identity import ID_NAMESPACE, derived_id
+from scripts.pipeline.canonical.normalize import BLANKS, clean, norm_text
+from scripts.pipeline.canonical.rows import (
     LOCATION_COLUMNS,
     SITE_COLUMNS,
     TRIAL_COLUMNS,
@@ -19,8 +19,8 @@ from scripts.ctc.canonical.rows import (
     to_site_rows,
     to_trial_row,
 )
-from scripts.ctc.canonical.site import CanonicalSite
-from scripts.ctc.canonical.trial import CanonicalTrial
+from scripts.pipeline.canonical.site import CanonicalSite
+from scripts.pipeline.canonical.trial import CanonicalTrial
 
 __all__ = [
     "BLANKS",

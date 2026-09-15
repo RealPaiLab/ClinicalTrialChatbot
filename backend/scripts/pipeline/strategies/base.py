@@ -8,7 +8,7 @@ from typing import Protocol
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from scripts.ctc.canonical import CanonicalTrial
+from scripts.pipeline.canonical import CanonicalTrial
 
 
 class ChangeStrategy(Protocol):
@@ -20,8 +20,10 @@ class ChangeStrategy(Protocol):
 
     name: str
 
-    async def snapshot(self, session: AsyncSession) -> Mapping[uuid.UUID, object]:
-        """The stored state of every live trial, keyed by primary key."""
+    async def snapshot(
+        self, session: AsyncSession, data_source: str
+    ) -> Mapping[uuid.UUID, object]:
+        """The stored state of this source's live trials, keyed by primary key."""
         ...
 
     def has_changed(self, incoming: CanonicalTrial, live: object) -> bool: ...

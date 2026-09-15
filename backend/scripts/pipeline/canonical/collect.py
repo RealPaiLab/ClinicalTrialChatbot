@@ -5,8 +5,8 @@ from __future__ import annotations
 import uuid
 from collections.abc import Iterable
 
-from scripts.ctc.canonical.site import CanonicalSite
-from scripts.ctc.canonical.trial import CanonicalTrial
+from scripts.pipeline.canonical.site import CanonicalSite
+from scripts.pipeline.canonical.trial import CanonicalTrial
 
 
 def _combine_records(first: CanonicalTrial, second: CanonicalTrial) -> CanonicalTrial:

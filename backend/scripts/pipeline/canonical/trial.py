@@ -6,8 +6,8 @@ from datetime import datetime
 from pydantic import Field, computed_field
 
 from schemas.trial_ref import derived_ref
-from scripts.ctc.canonical.base import CanonicalBase
-from scripts.ctc.canonical.fields import (
+from scripts.pipeline.canonical.base import CanonicalBase
+from scripts.pipeline.canonical.fields import (
     Blankable,
     Name,
     NameEn,
@@ -15,8 +15,8 @@ from scripts.ctc.canonical.fields import (
     NamesEn,
     Strings,
 )
-from scripts.ctc.canonical.identity import derived_id
-from scripts.ctc.canonical.site import CanonicalSite
+from scripts.pipeline.canonical.identity import derived_id
+from scripts.pipeline.canonical.site import CanonicalSite
 
 
 class CanonicalTrial(CanonicalBase):

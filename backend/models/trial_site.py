@@ -18,7 +18,11 @@ class TrialSite(Base):
     __tablename__ = "trial_sites"
     __table_args__ = (
         Index("ix_trial_sites_state", "state"),
-        Index("ix_trial_sites_data_source", "data_source"),
+        Index(
+            "ix_trial_sites_data_sources_gin",
+            "data_sources",
+            postgresql_using="gin",
+        ),
         Index(
             "ix_trial_sites_cancer_type_names_gin",
             "cancer_type_names",
@@ -36,7 +40,10 @@ class TrialSite(Base):
         ForeignKey("locations.id", ondelete="CASCADE"),
         primary_key=True,
     )
-    data_source: Mapped[str] = mapped_column(Text, nullable=False, server_default="ctc")
+    # Which sources list this centre; both, when two corpora carry the same trial.
+    data_sources: Mapped[list[str]] = mapped_column(
+        ARRAY(Text), nullable=False, server_default="{ctc}"
+    )
     state: Mapped[str | None] = mapped_column(Text, nullable=True)
     cancer_type_names: Mapped[list[str]] = mapped_column(
         ARRAY(Text), nullable=False, server_default="{}"

@@ -8,7 +8,7 @@ from typing import Protocol
 
 from pydantic import JsonValue
 
-from scripts.ctc.canonical import CanonicalTrial
+from scripts.pipeline.canonical import CanonicalTrial
 
 PageCallback = Callable[[int], None]
 

@@ -4,11 +4,11 @@ import uuid
 
 from pydantic import Field, computed_field
 
-from scripts.ctc.canonical.address import CanonicalAddress
-from scripts.ctc.canonical.base import CanonicalBase
-from scripts.ctc.canonical.coordinator import CanonicalCoordinator
-from scripts.ctc.canonical.fields import Blankable, NamesEn
-from scripts.ctc.canonical.identity import derived_id
+from scripts.pipeline.canonical.address import CanonicalAddress
+from scripts.pipeline.canonical.base import CanonicalBase
+from scripts.pipeline.canonical.coordinator import CanonicalCoordinator
+from scripts.pipeline.canonical.fields import Blankable, NamesEn
+from scripts.pipeline.canonical.identity import derived_id
 
 
 class CanonicalSite(CanonicalBase):

@@ -14,19 +14,21 @@ from rich.console import Console
 from rich.table import Table
 
 from core.database import AsyncSessionFactory
-from scripts.ctc.canonical import CanonicalTrial, index_trials
-from scripts.ctc.config import CtcConfig
-from scripts.ctc.paths import latest_canonical_path
-from scripts.ctc.sources.api import CtcApiSource
-from scripts.ctc.sources.base import TrialSource
-from scripts.ctc.stages.build import build
-from scripts.ctc.stages.diff import DiffPlan, build_plan, load_live, site_changes
-from scripts.ctc.stages.embed import embed
-from scripts.ctc.stages.geocode import geocode
-from scripts.ctc.stages.ingest import ingest, load_canonical
-from scripts.ctc.stages.publish import publish
-from scripts.ctc.stages.validate import ValidationFailed, validate
-from scripts.ctc.strategies import get_strategy
+from scripts.pipeline.canonical import CanonicalTrial, index_trials
+from scripts.pipeline.config import PipelineConfig
+from scripts.pipeline.db.shadow import build_schema
+from scripts.pipeline.paths import latest_canonical_path
+from scripts.pipeline.sources.api import CtcApiSource
+from scripts.pipeline.sources.base import TrialSource
+from scripts.pipeline.stages.build import build
+from scripts.pipeline.stages.diff import DiffPlan, build_plan, load_live, site_changes
+from scripts.pipeline.stages.embed import embed
+from scripts.pipeline.stages.geocode import geocode
+from scripts.pipeline.stages.ingest import ingest, load_canonical
+from scripts.pipeline.stages.publish import publish
+from scripts.pipeline.stages.publish import undo as rollback
+from scripts.pipeline.stages.validate import ValidationFailed, validate
+from scripts.pipeline.strategies import get_strategy
 
 console = Console()
 
@@ -41,9 +43,14 @@ class StageOutcome:
 
 @dataclass
 class RunContext:
-    config: CtcConfig
+    name: str
+    config: PipelineConfig
     incoming: dict[uuid.UUID, CanonicalTrial] = field(default_factory=dict)
     plan: DiffPlan | None = None
+
+    @property
+    def build_schema(self) -> str:
+        return self.config.build.schema_name or build_schema(self.name)
 
     def source(self) -> TrialSource:
         api = self.config.source.api
@@ -92,7 +99,7 @@ async def _diff(context: RunContext) -> StageOutcome:
     incoming = context.ensure_incoming()
     strategy = get_strategy(context.config.diff.strategy)
     async with AsyncSessionFactory() as session:
-        live = await load_live(session, strategy)
+        live = await load_live(session, strategy, context.name)
     plan = build_plan(
         incoming, live, strategy, full_refresh=context.config.diff.full_refresh
     )
@@ -118,7 +125,8 @@ async def _build(context: RunContext) -> StageOutcome:
     result = await build(
         context.ensure_incoming(),
         await context.ensure_plan(),
-        schema=settings.schema_name,
+        data_source=context.name,
+        schema=context.build_schema,
         source=settings.source_schema,
         batch_size=settings.batch_size,
     )
@@ -131,13 +139,15 @@ async def _build(context: RunContext) -> StageOutcome:
             ("trial sites", str(result.trial_sites)),
             ("vectors carried", str(result.embeddings_carried)),
             ("coordinates carried", str(result.coordinates_carried)),
+            ("other sources carried", str(result.carried.trials)),
+            ("their sites carried", str(result.carried.trial_sites)),
         ],
     )
 
 
 async def _geocode(context: RunContext) -> StageOutcome:
     result = await geocode(
-        schema=context.config.build.schema_name,
+        schema=context.build_schema,
         concurrency=context.config.geocode.concurrency,
         limit=context.config.geocode.limit,
     )
@@ -155,7 +165,7 @@ async def _embed(context: RunContext) -> StageOutcome:
     settings = context.config.embed
     result = await embed(
         provider=settings.provider,
-        schema=context.config.build.schema_name,
+        schema=context.build_schema,
         batch_size=settings.batch_size,
         force=settings.force,
         limit=settings.limit,
@@ -174,7 +184,7 @@ async def _embed(context: RunContext) -> StageOutcome:
 async def _validate(context: RunContext) -> StageOutcome:
     settings = context.config.validate_
     report = await validate(
-        schema=context.config.build.schema_name,
+        schema=context.build_schema,
         live=context.config.build.source_schema,
         max_trial_drop_pct=settings.max_trial_drop_pct,
         max_location_drop_pct=settings.max_location_drop_pct,
@@ -203,7 +213,8 @@ async def _validate(context: RunContext) -> StageOutcome:
 async def _publish(context: RunContext) -> StageOutcome:
     settings = context.config.publish
     result = await publish(
-        build=context.config.build.schema_name,
+        pipeline=context.name,
+        build=context.build_schema,
         live=context.config.build.source_schema,
         keep=settings.keep_generations,
         lock_timeout=settings.lock_timeout,
@@ -238,7 +249,7 @@ def _render(outcome: StageOutcome) -> None:
     console.print()
 
 
-def resolve(config: CtcConfig, requested: list[str] | None) -> list[str]:
+def resolve(config: PipelineConfig, requested: list[str] | None) -> list[str]:
     """Which stages to run, always in the pipeline's declared order."""
     chosen = requested or config.stages
     unknown = [name for name in chosen if name not in STAGES]
@@ -249,7 +260,20 @@ def resolve(config: CtcConfig, requested: list[str] | None) -> list[str]:
     return [name for name in config.stages if name in set(chosen)]
 
 
-async def run(config: CtcConfig, stages: list[str] | None = None) -> None:
-    context = RunContext(config=config)
+async def run(
+    pipeline: str, config: PipelineConfig, stages: list[str] | None = None
+) -> None:
+    context = RunContext(name=pipeline, config=config)
     for name in resolve(config, stages):
         _render(await STAGES[name](context))
+
+
+async def undo(pipeline: str, config: PipelineConfig) -> str:
+    """Roll the pipeline's own publish back, leaving every other corpus alone."""
+    context = RunContext(name=pipeline, config=config)
+    return await rollback(
+        pipeline=pipeline,
+        build=context.build_schema,
+        live=config.build.source_schema,
+        lock_timeout=config.publish.lock_timeout,
+    )

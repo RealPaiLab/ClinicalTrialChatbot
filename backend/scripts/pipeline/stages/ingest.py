@@ -6,9 +6,9 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from scripts.ctc.canonical import CanonicalTrial
-from scripts.ctc.paths import dated_canonical_path, dated_trials_path
-from scripts.ctc.sources.base import TrialSource
+from scripts.pipeline.canonical import CanonicalTrial
+from scripts.pipeline.paths import dated_canonical_path, dated_trials_path
+from scripts.pipeline.sources.base import TrialSource
 
 
 @dataclass(frozen=True, slots=True)

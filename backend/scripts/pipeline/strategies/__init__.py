@@ -2,8 +2,8 @@
 
 from collections.abc import Callable
 
-from scripts.ctc.strategies.base import ChangeStrategy
-from scripts.ctc.strategies.timestamp import TimestampStrategy
+from scripts.pipeline.strategies.base import ChangeStrategy
+from scripts.pipeline.strategies.timestamp import TimestampStrategy
 
 StrategyFactory = Callable[[], ChangeStrategy]
 

@@ -41,7 +41,8 @@ class DiffConfig(Strict):
 
 
 class BuildConfig(Strict):
-    schema_name: str = Field(default="ctc_build", alias="schema")
+    # None derives `<pipeline>_build`, so two pipelines can never share a shadow.
+    schema_name: str | None = Field(default=None, alias="schema")
     source_schema: str = "public"
     batch_size: int = 500
 
@@ -73,7 +74,7 @@ class PublishConfig(Strict):
     lock_timeout: str = "5s"
 
 
-class CtcConfig(Strict):
+class PipelineConfig(Strict):
     source: SourceConfig
     diff: DiffConfig = Field(default_factory=DiffConfig)
     build: BuildConfig = Field(default_factory=BuildConfig)

@@ -10,8 +10,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models import Location, TrialSite
-from scripts.ctc.canonical import CanonicalTrial, LocationRow, collect_location_rows
-from scripts.ctc.strategies import ChangeStrategy
+from scripts.pipeline.canonical import (
+    CanonicalTrial,
+    LocationRow,
+    collect_location_rows,
+)
+from scripts.pipeline.db.provenance import lists_source
+from scripts.pipeline.strategies import ChangeStrategy
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,9 +53,13 @@ class DiffPlan:
         return self.changed | self.added
 
 
-async def load_live(session: AsyncSession, strategy: ChangeStrategy) -> LiveSnapshot:
-    trials = await strategy.snapshot(session)
+async def load_live(
+    session: AsyncSession, strategy: ChangeStrategy, data_source: str
+) -> LiveSnapshot:
+    """Scoped to this source: another corpus's trials are not ours to call removed."""
+    trials = await strategy.snapshot(session, data_source)
 
+    # Locations are shared across sources, so they are read whole.
     location_rows = await session.execute(
         select(Location.id, Location.address, Location.lat, Location.lon)
     )
@@ -60,7 +69,9 @@ async def load_live(session: AsyncSession, strategy: ChangeStrategy) -> LiveSnap
     }
 
     site_rows = await session.execute(
-        select(TrialSite.trial_id, TrialSite.location_id, TrialSite.state)
+        select(TrialSite.trial_id, TrialSite.location_id, TrialSite.state).where(
+            lists_source(data_source)
+        )
     )
     site_states = {(row.trial_id, row.location_id): row.state for row in site_rows}
 

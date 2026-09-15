@@ -7,15 +7,25 @@ from contextlib import asynccontextmanager
 
 from alembic.config import Config
 from alembic.script import ScriptDirectory
-from sqlalchemy import Table, func, select, text
+from sqlalchemy import MetaData, Table, func, select, text
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession
 
 from core.database import AsyncSessionFactory, engine
 from models.base import Base
-from scripts.ctc.db.tables import PIPELINE_TABLE_NAMES, PIPELINE_TABLES
+from scripts.pipeline.db.tables import PIPELINE_TABLE_NAMES, PIPELINE_TABLES
 
-BUILD_SCHEMA = "ctc_build"
 LIVE_SCHEMA = "public"
+
+
+def build_schema(pipeline: str) -> str:
+    """Each pipeline fills its own shadow, so two runs can never share one."""
+    return f"{pipeline}_build"
+
+
+def in_schema(entity: type[Base], schema: str) -> Table:
+    """The same table addressed in another schema, for statements spanning two."""
+    table = Base.metadata.tables[entity.__tablename__]
+    return table.to_metadata(MetaData(), schema=schema)
 
 
 @asynccontextmanager

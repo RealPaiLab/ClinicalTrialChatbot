@@ -5,8 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
-from scripts.ctc.db.shadow import BUILD_SCHEMA, LIVE_SCHEMA
-from scripts.ctc.db.swap import (
+from scripts.pipeline.db.shadow import LIVE_SCHEMA
+from scripts.pipeline.db.swap import (
     DEFAULT_KEEP_GENERATIONS,
     DEFAULT_LOCK_TIMEOUT,
     generations,
@@ -25,27 +25,31 @@ class PublishResult:
 
 async def publish(
     *,
-    build: str = BUILD_SCHEMA,
+    pipeline: str,
+    build: str,
     live: str = LIVE_SCHEMA,
     keep: int = DEFAULT_KEEP_GENERATIONS,
     lock_timeout: str = DEFAULT_LOCK_TIMEOUT,
 ) -> PublishResult:
     archived, published_at, pruned = await swap(
-        build=build, live=live, keep=keep, lock_timeout=lock_timeout
+        pipeline=pipeline, build=build, live=live, keep=keep, lock_timeout=lock_timeout
     )
     return PublishResult(
         archived=archived,
         published_at=published_at,
         pruned=pruned,
-        retained=await generations(),
+        retained=await generations(pipeline),
     )
 
 
 async def undo(
     *,
-    build: str = BUILD_SCHEMA,
+    pipeline: str,
+    build: str,
     live: str = LIVE_SCHEMA,
     lock_timeout: str = DEFAULT_LOCK_TIMEOUT,
 ) -> str:
     """Restore the newest generation. What is live now moves back to the build."""
-    return await rollback(build=build, live=live, lock_timeout=lock_timeout)
+    return await rollback(
+        pipeline=pipeline, build=build, live=live, lock_timeout=lock_timeout
+    )

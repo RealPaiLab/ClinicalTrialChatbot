@@ -10,7 +10,7 @@ from sqlalchemy.orm import DeclarativeBase, InstrumentedAttribute
 from core.embeddings import EmbeddingProvider
 from core.embeddings.columns import EMBEDDING_COLUMNS, resolve_provider
 from models import Location, Trial
-from scripts.ctc.db.shadow import BUILD_SCHEMA, LIVE_SCHEMA, counts, shadow_connection
+from scripts.pipeline.db.shadow import LIVE_SCHEMA, counts, shadow_connection
 
 DEFAULT_MAX_DROP_PCT = 5.0
 DEFAULT_MIN_GEOCODE_COVERAGE = 0.95
@@ -61,7 +61,7 @@ async def _column_coverage(
 
 async def validate(
     *,
-    schema: str = BUILD_SCHEMA,
+    schema: str,
     live: str = LIVE_SCHEMA,
     max_trial_drop_pct: float = DEFAULT_MAX_DROP_PCT,
     max_location_drop_pct: float = DEFAULT_MAX_DROP_PCT,

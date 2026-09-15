@@ -8,7 +8,7 @@ from typing import Annotated
 
 from pydantic import BeforeValidator
 
-from scripts.ctc.canonical.normalize import clean
+from scripts.pipeline.canonical.normalize import clean
 
 
 def _labels(key: str, value: object) -> list[str]:

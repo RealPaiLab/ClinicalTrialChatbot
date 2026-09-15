@@ -12,7 +12,7 @@ from sqlalchemy import bindparam, select, update
 from core.config import get_settings
 from core.http_retry import build_retrying_client
 from models import Location
-from scripts.ctc.db.shadow import BUILD_SCHEMA, shadow_connection
+from scripts.pipeline.db.shadow import shadow_connection
 
 MAPBOX_URL = "https://api.mapbox.com/search/geocode/v6/forward"
 DEFAULT_CONCURRENCY = 20
@@ -114,7 +114,7 @@ async def _write(schema: str, resolved: list[Coordinates]) -> int:
 
 async def geocode(
     *,
-    schema: str = BUILD_SCHEMA,
+    schema: str,
     token: str | None = None,
     concurrency: int = DEFAULT_CONCURRENCY,
     limit: int | None = None,

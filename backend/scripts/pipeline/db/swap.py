@@ -8,19 +8,23 @@ from sqlalchemy import ScalarSelect, func, insert, select, text, update
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from core.database import engine
-from models.ingestion_run import CTC_PIPELINE, PUBLISHED, ROLLED_BACK, IngestionRun
+from models.ingestion_run import PUBLISHED, ROLLED_BACK, IngestionRun
 from models.trial import Trial
-from scripts.ctc.db.shadow import BUILD_SCHEMA, LIVE_SCHEMA
-from scripts.ctc.db.tables import PIPELINE_TABLE_NAMES
+from scripts.pipeline.db.shadow import LIVE_SCHEMA
+from scripts.pipeline.db.tables import PIPELINE_TABLE_NAMES
 
-GENERATION_PREFIX = "ctc_gen_"
 DEFAULT_KEEP_GENERATIONS = 3
 DEFAULT_LOCK_TIMEOUT = "5s"
 
 
-def _generation_name() -> str:
+def generation_prefix(pipeline: str) -> str:
+    """Each pipeline archives under its own prefix, so neither prunes the other's."""
+    return f"{pipeline}_gen_"
+
+
+def _generation_name(pipeline: str) -> str:
     """Microseconds, so two publishes in the same second cannot collide."""
-    return f"{GENERATION_PREFIX}{datetime.now(UTC):%Y%m%dT%H%M%S%f}Z"
+    return f"{generation_prefix(pipeline)}{datetime.now(UTC):%Y%m%dT%H%M%S%f}Z"
 
 
 def _move_order() -> list[str]:
@@ -76,7 +80,7 @@ async def _retire_run(connection: AsyncConnection, live: str, pipeline: str) -> 
     )
 
 
-async def generations() -> list[str]:
+async def generations(pipeline: str) -> list[str]:
     """Published generations, newest first. The timestamp makes the name sortable."""
     async with engine.connect() as connection:
         result = await connection.execute(
@@ -84,14 +88,14 @@ async def generations() -> list[str]:
                 "SELECT schema_name FROM information_schema.schemata "
                 "WHERE schema_name LIKE :prefix ORDER BY schema_name DESC"
             ),
-            {"prefix": f"{GENERATION_PREFIX}%"},
+            {"prefix": f"{generation_prefix(pipeline)}%"},
         )
         return [row[0] for row in result]
 
 
-async def prune(keep: int = DEFAULT_KEEP_GENERATIONS) -> list[str]:
+async def prune(pipeline: str, keep: int = DEFAULT_KEEP_GENERATIONS) -> list[str]:
     """Drop the generations older than the ones worth keeping."""
-    stale = (await generations())[keep:]
+    stale = (await generations(pipeline))[keep:]
     if stale:
         async with engine.begin() as connection:
             for schema in stale:
@@ -101,32 +105,32 @@ async def prune(keep: int = DEFAULT_KEEP_GENERATIONS) -> list[str]:
 
 async def swap(
     *,
-    build: str = BUILD_SCHEMA,
+    pipeline: str,
+    build: str,
     live: str = LIVE_SCHEMA,
     keep: int = DEFAULT_KEEP_GENERATIONS,
     lock_timeout: str = DEFAULT_LOCK_TIMEOUT,
-    pipeline: str = CTC_PIPELINE,
 ) -> tuple[str, datetime, list[str]]:
     """Archive the live tables under a new generation, then move the build in."""
-    archive = _generation_name()
+    archive = _generation_name(pipeline)
     async with engine.begin() as connection:
         await connection.execute(text(f"SET LOCAL lock_timeout = '{lock_timeout}'"))
         await connection.execute(text(f'CREATE SCHEMA "{archive}"'))
         await _move(connection, live, archive)
         await _move(connection, build, live)
         published_at = await _record_run(connection, live, pipeline, archive)
-    return archive, published_at, await prune(keep)
+    return archive, published_at, await prune(pipeline, keep)
 
 
 async def rollback(
     *,
-    build: str = BUILD_SCHEMA,
+    pipeline: str,
+    build: str,
     live: str = LIVE_SCHEMA,
     lock_timeout: str = DEFAULT_LOCK_TIMEOUT,
-    pipeline: str = CTC_PIPELINE,
 ) -> str:
     """Restore the newest archived generation; what was live moves to the build."""
-    available = await generations()
+    available = await generations(pipeline)
     if not available:
         raise RuntimeError("no published generation to roll back to")
     newest = available[0]

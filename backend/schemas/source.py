@@ -16,3 +16,12 @@ SOURCE_NAMES: dict[SourceCode, str] = {
 }
 
 DEFAULT_SOURCE = SourceCode.CTC
+
+# When two corpora list the same trial, the earlier one owns the shared narrative.
+SOURCE_PRECEDENCE: tuple[SourceCode, ...] = (SourceCode.CTC, SourceCode.ULC)
+
+
+def rank(source: str) -> int:
+    """Lower wins. An unknown source ranks last rather than raising mid-pipeline."""
+    codes = [code.value for code in SOURCE_PRECEDENCE]
+    return codes.index(source) if source in codes else len(codes)

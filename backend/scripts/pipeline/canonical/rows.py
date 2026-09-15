@@ -6,8 +6,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
-from scripts.ctc.canonical.coordinator import CanonicalCoordinator
-from scripts.ctc.canonical.trial import CanonicalTrial
+from scripts.pipeline.canonical.coordinator import CanonicalCoordinator
+from scripts.pipeline.canonical.trial import CanonicalTrial
 
 
 class RowBase(BaseModel):
@@ -46,6 +46,7 @@ class LocationRow(RowBase):
 class SiteRow(RowBase):
     trial_id: uuid.UUID
     location_id: uuid.UUID
+    data_sources: list[str]
     state: str | None
     cancer_type_names: list[str]
     coordinators: list[dict[str, str | None]]
@@ -96,7 +97,7 @@ def to_coordinator_rows(
     return rows
 
 
-def to_site_rows(trial: CanonicalTrial) -> list[SiteRow]:
+def to_site_rows(trial: CanonicalTrial, data_source: str) -> list[SiteRow]:
     rows: list[SiteRow] = []
     seen: set[uuid.UUID] = set()
     for site in trial.sites:
@@ -107,6 +108,7 @@ def to_site_rows(trial: CanonicalTrial) -> list[SiteRow]:
             SiteRow(
                 trial_id=trial.id,
                 location_id=site.id,
+                data_sources=[data_source],
                 state=site.state,
                 cancer_type_names=site.cancer_type_names,
                 coordinators=to_coordinator_rows(site.coordinators),

@@ -14,7 +14,7 @@ from core.embeddings.columns import EMBEDDING_COLUMNS, resolve_provider
 from core.embeddings.openai_batch import OpenAIBatchEmbedder
 from core.logger import get_logger
 from models import Trial
-from scripts.ctc.db.shadow import BUILD_SCHEMA, shadow_connection, shadow_session
+from scripts.pipeline.db.shadow import shadow_connection, shadow_session
 from services.documents import compose_trial_document
 
 logger = get_logger(__name__)
@@ -99,7 +99,7 @@ async def _embed_openai(
 async def embed(
     *,
     provider: EmbeddingProvider | None = None,
-    schema: str = BUILD_SCHEMA,
+    schema: str,
     batch_size: int | None = None,
     force: bool = False,
     limit: int | None = None,

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import uuid
 
-from scripts.ctc.canonical.base import CanonicalBase
-from scripts.ctc.canonical.fields import Blankable
+from scripts.pipeline.canonical.base import CanonicalBase
+from scripts.pipeline.canonical.fields import Blankable
 
 
 class CanonicalCoordinator(CanonicalBase):

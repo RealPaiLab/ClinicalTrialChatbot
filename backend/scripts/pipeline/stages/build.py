@@ -6,30 +6,28 @@ import uuid
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
-from sqlalchemy import ARRAY, bindparam, text
-from sqlalchemy.dialects.postgresql import UUID as PgUUID
+from sqlalchemy import update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from models import Location, Trial, TrialSite
-from scripts.ctc.canonical import (
+from scripts.pipeline.canonical import (
     CanonicalTrial,
     collect_location_rows,
     to_site_rows,
     to_trial_row,
 )
-from scripts.ctc.db.shadow import (
-    BUILD_SCHEMA,
+from scripts.pipeline.db.shadow import (
     LIVE_SCHEMA,
     assert_migrations_are_current,
+    in_schema,
     recreate,
     shadow_connection,
 )
-from scripts.ctc.stages.diff import DiffPlan
+from scripts.pipeline.stages.carry import CarryResult, carry_other_sources
+from scripts.pipeline.stages.diff import DiffPlan
 
 DEFAULT_BATCH_SIZE = 500
-
-_ID_ARRAY = ARRAY(PgUUID(as_uuid=True))
 
 
 @dataclass(frozen=True, slots=True)
@@ -40,6 +38,7 @@ class BuildResult:
     trial_sites: int
     embeddings_carried: int
     coordinates_carried: int
+    carried: CarryResult
 
     @property
     def to_embed(self) -> int:
@@ -71,16 +70,15 @@ async def _carry_embeddings(
     """An unchanged trial keeps the vectors we already paid to compute."""
     if not unchanged:
         return 0
-    statement = text(
-        f"""
-        UPDATE "{schema}".trials AS build
-        SET qwen_embedding = live.qwen_embedding,
-            openai_embedding = live.openai_embedding
-        FROM "{source}".trials AS live
-        WHERE live.id = build.id AND build.id = ANY(:ids)
-        """
-    ).bindparams(bindparam("ids", type_=_ID_ARRAY))
-    result = await connection.execute(statement, {"ids": list(unchanged)})
+    build, live = in_schema(Trial, schema), in_schema(Trial, source)
+    result = await connection.execute(
+        update(build)
+        .where(live.c.id == build.c.id, build.c.id.in_(unchanged))
+        .values(
+            qwen_embedding=live.c.qwen_embedding,
+            openai_embedding=live.c.openai_embedding,
+        )
+    )
     return result.rowcount
 
 
@@ -91,15 +89,12 @@ async def _carry_coordinates(
     geocode: frozenset[uuid.UUID],
 ) -> int:
     """Every location keeps its coordinates unless the diff queued it for geocoding."""
-    statement = text(
-        f"""
-        UPDATE "{schema}".locations AS build
-        SET lat = live.lat, lon = live.lon
-        FROM "{source}".locations AS live
-        WHERE live.id = build.id AND NOT (build.id = ANY(:ids))
-        """
-    ).bindparams(bindparam("ids", type_=_ID_ARRAY))
-    result = await connection.execute(statement, {"ids": list(geocode)})
+    build, live = in_schema(Location, schema), in_schema(Location, source)
+    result = await connection.execute(
+        update(build)
+        .where(live.c.id == build.c.id, build.c.id.not_in(geocode))
+        .values(lat=live.c.lat, lon=live.c.lon)
+    )
     return result.rowcount
 
 
@@ -107,7 +102,8 @@ async def build(
     incoming: Mapping[uuid.UUID, CanonicalTrial],
     plan: DiffPlan,
     *,
-    schema: str = BUILD_SCHEMA,
+    data_source: str,
+    schema: str,
     source: str = LIVE_SCHEMA,
     batch_size: int = DEFAULT_BATCH_SIZE,
 ) -> BuildResult:
@@ -119,13 +115,20 @@ async def build(
     ]
     trials = [to_trial_row(trial).model_dump() for trial in incoming.values()]
     sites = [
-        row.model_dump() for trial in incoming.values() for row in to_site_rows(trial)
+        row.model_dump()
+        for trial in incoming.values()
+        for row in to_site_rows(trial, data_source)
     ]
 
     async with shadow_connection(schema) as connection:
         location_count = await _insert(connection, Location, locations, batch_size)
         trial_count = await _insert(connection, Trial, trials, batch_size)
         site_count = await _insert(connection, TrialSite, sites, batch_size)
+
+        # After our own rows, so the conflict clauses decide what a shared trial keeps.
+        carried = await carry_other_sources(
+            connection, schema=schema, live=source, data_source=data_source
+        )
 
         embeddings = await _carry_embeddings(connection, schema, source, plan.unchanged)
         coordinates = await _carry_coordinates(connection, schema, source, plan.geocode)
@@ -137,4 +140,5 @@ async def build(
         trial_sites=site_count,
         embeddings_carried=embeddings,
         coordinates_carried=coordinates,
+        carried=carried,
     )

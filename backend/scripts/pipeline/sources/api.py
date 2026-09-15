@@ -8,8 +8,8 @@ import httpx
 from pydantic import JsonValue
 
 from core.http_retry import build_retrying_client
-from scripts.ctc.canonical import CanonicalTrial
-from scripts.ctc.sources.base import PageCallback, SourceRecords
+from scripts.pipeline.canonical import CanonicalTrial
+from scripts.pipeline.sources.base import PageCallback, SourceRecords
 
 MAX_RETRIES = 3
 MAX_WAIT_SECONDS = 30.0

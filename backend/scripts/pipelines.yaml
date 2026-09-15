@@ -13,7 +13,6 @@ ctc:
     full_refresh: false
 
   build:
-    schema: ctc_build
     batch_size: 500
 
   geocode:
