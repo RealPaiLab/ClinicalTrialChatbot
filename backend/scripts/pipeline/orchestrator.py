@@ -145,9 +145,12 @@ async def _geocode(context: RunContext) -> StageOutcome:
     return StageOutcome(
         "geocode",
         [
-            ("requested", str(result.requested)),
-            ("resolved", str(result.resolved)),
-            ("unresolved", str(result.unresolved)),
+            ("addresses requested", str(result.requested)),
+            ("addresses resolved", str(result.resolved)),
+            ("addresses unresolved", str(result.unresolved)),
+            ("regions requested", str(result.regions_requested)),
+            ("regions resolved", str(result.regions_resolved)),
+            ("regions unresolved", str(result.regions_unresolved)),
         ],
     )
 

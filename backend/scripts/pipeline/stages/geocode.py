@@ -1,20 +1,23 @@
-"""Fill lat/lon for the addresses the diff did not carry forward."""
+"""Fill what a location is missing: coordinates from its address, or the city
+and province from its coordinates, whichever the source did not ship."""
 
 from __future__ import annotations
 
 import asyncio
 import uuid
+from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 
 import httpx
-from sqlalchemy import bindparam, select, update
+from sqlalchemy import bindparam, or_, select, update
 
 from core.config import get_settings
 from core.http_retry import build_retrying_client
 from models import Location
 from scripts.pipeline.db.shadow import shadow_connection
 
-MAPBOX_URL = "https://api.mapbox.com/search/geocode/v6/forward"
+MAPBOX_FORWARD_URL = "https://api.mapbox.com/search/geocode/v6/forward"
+MAPBOX_REVERSE_URL = "https://api.mapbox.com/search/geocode/v6/reverse"
 DEFAULT_CONCURRENCY = 20
 
 MAX_RETRIES = 3
@@ -30,16 +33,31 @@ class Coordinates:
 
 
 @dataclass(frozen=True, slots=True)
+class Region:
+    location_id: uuid.UUID
+    city: str | None
+    province: str | None
+
+
+@dataclass(frozen=True, slots=True)
 class GeocodeResult:
     requested: int
     resolved: int
+    regions_requested: int = 0
+    regions_resolved: int = 0
 
     @property
     def unresolved(self) -> int:
         return self.requested - self.resolved
 
+    @property
+    def regions_unresolved(self) -> int:
+        return self.regions_requested - self.regions_resolved
 
-async def _pending(schema: str, limit: int | None) -> list[tuple[uuid.UUID, str]]:
+
+async def _pending_coordinates(
+    schema: str, limit: int | None
+) -> list[tuple[uuid.UUID, str]]:
     statement = (
         select(Location.id, Location.address)
         .where(Location.lat.is_(None), Location.address.is_not(None))
@@ -52,21 +70,65 @@ async def _pending(schema: str, limit: int | None) -> list[tuple[uuid.UUID, str]
         return [(row.id, row.address) for row in rows]
 
 
-def parse_coordinates(payload: object) -> tuple[float, float] | None:
-    """Mapbox serves GeoJSON, so coordinates arrive lon-first."""
+async def _pending_regions(
+    schema: str, limit: int | None
+) -> list[tuple[uuid.UUID, float, float]]:
+    statement = (
+        select(Location.id, Location.lat, Location.lon)
+        .where(
+            Location.lat.is_not(None),
+            or_(Location.city.is_(None), Location.province.is_(None)),
+        )
+        .order_by(Location.id)
+    )
+    if limit is not None:
+        statement = statement.limit(limit)
+    async with shadow_connection(schema) as connection:
+        rows = await connection.execute(statement)
+        return [(row.id, row.lat, row.lon) for row in rows]
+
+
+def _first_feature(payload: object) -> dict[str, object] | None:
     if not isinstance(payload, dict):
         return None
     features = payload.get("features") or []
     if not isinstance(features, list) or not features:
         return None
-    coordinates = (features[0].get("geometry") or {}).get("coordinates") or []
-    if len(coordinates) != 2:
+    first = features[0]
+    return first if isinstance(first, dict) else None
+
+
+def parse_coordinates(payload: object) -> tuple[float, float] | None:
+    """Mapbox serves GeoJSON, so coordinates arrive lon-first."""
+    feature = _first_feature(payload)
+    if feature is None:
+        return None
+    geometry = feature.get("geometry")
+    coordinates = geometry.get("coordinates") if isinstance(geometry, dict) else None
+    if not isinstance(coordinates, list) or len(coordinates) != 2:
         return None
     lon, lat = coordinates
     return float(lat), float(lon)
 
 
-async def _resolve(
+def parse_region(payload: object) -> tuple[str | None, str | None] | None:
+    """The `place` and `region` of the feature's context: city and province."""
+    feature = _first_feature(payload)
+    if feature is None:
+        return None
+    properties = feature.get("properties")
+    context = properties.get("context") if isinstance(properties, dict) else None
+    if not isinstance(context, dict):
+        return None
+    names = [
+        entry.get("name") if isinstance(entry, dict) else None
+        for entry in (context.get("place"), context.get("region"))
+    ]
+    city, province = (str(name) if name else None for name in names)
+    return (city, province) if city or province else None
+
+
+async def _forward(
     client: httpx.AsyncClient,
     semaphore: asyncio.Semaphore,
     location_id: uuid.UUID,
@@ -77,7 +139,7 @@ async def _resolve(
     async with semaphore:
         try:
             response = await client.get(
-                MAPBOX_URL,
+                MAPBOX_FORWARD_URL,
                 params={
                     "q": address,
                     "country": "CA",
@@ -93,7 +155,36 @@ async def _resolve(
     return Coordinates(location_id=location_id, lat=parsed[0], lon=parsed[1])
 
 
-async def _write(schema: str, resolved: list[Coordinates]) -> int:
+async def _reverse(
+    client: httpx.AsyncClient,
+    semaphore: asyncio.Semaphore,
+    location_id: uuid.UUID,
+    lat: float,
+    lon: float,
+    token: str,
+) -> Region | None:
+    async with semaphore:
+        try:
+            response = await client.get(
+                MAPBOX_REVERSE_URL,
+                params={
+                    "latitude": lat,
+                    "longitude": lon,
+                    "types": "place",
+                    "country": "CA",
+                    "limit": 1,
+                    "access_token": token,
+                },
+            )
+            parsed = parse_region(response.json())
+        except httpx.HTTPError, AttributeError, TypeError, ValueError:
+            parsed = None
+    if parsed is None:
+        return None
+    return Region(location_id=location_id, city=parsed[0], province=parsed[1])
+
+
+async def _write_coordinates(schema: str, resolved: Sequence[Coordinates]) -> int:
     if not resolved:
         return 0
     statement = (
@@ -112,6 +203,47 @@ async def _write(schema: str, resolved: list[Coordinates]) -> int:
     return len(resolved)
 
 
+async def _write_regions(schema: str, resolved: Sequence[Region]) -> int:
+    if not resolved:
+        return 0
+    statement = (
+        update(Location)
+        .where(Location.id == bindparam("location_id"))
+        .values(city=bindparam("city"), province=bindparam("province"))
+    )
+    async with shadow_connection(schema) as connection:
+        await connection.execute(
+            statement,
+            [
+                {
+                    "location_id": item.location_id,
+                    "city": item.city,
+                    "province": item.province,
+                }
+                for item in resolved
+            ],
+        )
+    return len(resolved)
+
+
+async def _gather[T](
+    concurrency: int,
+    transport: httpx.AsyncBaseTransport | None,
+    run: Callable[
+        [httpx.AsyncClient, asyncio.Semaphore], Sequence[Awaitable[T | None]]
+    ],
+) -> list[T]:
+    semaphore = asyncio.Semaphore(concurrency)
+    async with build_retrying_client(
+        max_retries=MAX_RETRIES,
+        max_wait=MAX_WAIT_SECONDS,
+        read_timeout=READ_TIMEOUT_SECONDS,
+        wrapped=transport,
+    ) as client:
+        results = await asyncio.gather(*run(client, semaphore))
+    return [item for item in results if item is not None]
+
+
 async def geocode(
     *,
     schema: str,
@@ -121,29 +253,35 @@ async def geocode(
     transport: httpx.AsyncBaseTransport | None = None,
 ) -> GeocodeResult:
     access_token = token or get_settings().mapbox_token
-    pending = await _pending(schema, limit)
-    if not pending:
+    addresses = await _pending_coordinates(schema, limit)
+    points = await _pending_regions(schema, limit)
+    if not addresses and not points:
         return GeocodeResult(requested=0, resolved=0)
     if not access_token:
         raise RuntimeError(
-            f"{len(pending)} addresses need coordinates but MAPBOX_TOKEN is unset"
+            f"{len(addresses)} addresses and {len(points)} points need geocoding "
+            "but MAPBOX_TOKEN is unset"
         )
 
-    semaphore = asyncio.Semaphore(concurrency)
-    async with build_retrying_client(
-        max_retries=MAX_RETRIES,
-        max_wait=MAX_WAIT_SECONDS,
-        read_timeout=READ_TIMEOUT_SECONDS,
-        wrapped=transport,
-    ) as client:
-        results = await asyncio.gather(
-            *(
-                _resolve(client, semaphore, location_id, address, access_token)
-                for location_id, address in pending
-            )
-        )
-
-    resolved = [item for item in results if item is not None]
+    coordinates = await _gather(
+        concurrency,
+        transport,
+        lambda client, semaphore: [
+            _forward(client, semaphore, location_id, address, access_token)
+            for location_id, address in addresses
+        ],
+    )
+    regions = await _gather(
+        concurrency,
+        transport,
+        lambda client, semaphore: [
+            _reverse(client, semaphore, location_id, lat, lon, access_token)
+            for location_id, lat, lon in points
+        ],
+    )
     return GeocodeResult(
-        requested=len(pending), resolved=await _write(schema, resolved)
+        requested=len(addresses),
+        resolved=await _write_coordinates(schema, coordinates),
+        regions_requested=len(points),
+        regions_resolved=await _write_regions(schema, regions),
     )

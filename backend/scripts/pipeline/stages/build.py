@@ -6,7 +6,7 @@ import uuid
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
-from sqlalchemy import update
+from sqlalchemy import func, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncConnection
 
@@ -88,12 +88,18 @@ async def _carry_coordinates(
     source: str,
     geocode: frozenset[uuid.UUID],
 ) -> int:
-    """Every location keeps its coordinates unless the diff queued it for geocoding."""
+    """Every location keeps its coordinates unless the diff queued it for geocoding,
+    and a region the source left blank keeps the one reverse-geocoded last time."""
     build, live = in_schema(Location, schema), in_schema(Location, source)
     result = await connection.execute(
         update(build)
         .where(live.c.id == build.c.id, build.c.id.not_in(geocode))
-        .values(lat=live.c.lat, lon=live.c.lon)
+        .values(
+            lat=live.c.lat,
+            lon=live.c.lon,
+            city=func.coalesce(build.c.city, live.c.city),
+            province=func.coalesce(build.c.province, live.c.province),
+        )
     )
     return result.rowcount
 
@@ -113,7 +119,9 @@ async def build(
     locations = [
         row.model_dump() for row in collect_location_rows(incoming.values()).values()
     ]
-    trials = [to_trial_row(trial).model_dump() for trial in incoming.values()]
+    trials = [
+        to_trial_row(trial, data_source).model_dump() for trial in incoming.values()
+    ]
     sites = [
         row.model_dump()
         for trial in incoming.values()

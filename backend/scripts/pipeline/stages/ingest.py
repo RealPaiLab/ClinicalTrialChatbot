@@ -24,12 +24,14 @@ def _write(path: Path, payload: object) -> Path:
     return path
 
 
-async def ingest(source: TrialSource) -> tuple[list[CanonicalTrial], IngestResult]:
+async def ingest(
+    source: TrialSource, *, pipeline: str
+) -> tuple[list[CanonicalTrial], IngestResult]:
     records = await source.load()
 
-    raw_path = _write(dated_trials_path(), records.raw) if records.raw else None
+    raw_path = _write(dated_trials_path(pipeline), records.raw) if records.raw else None
     canonical_path = _write(
-        dated_canonical_path(),
+        dated_canonical_path(pipeline),
         [trial.model_dump(mode="json") for trial in records.trials],
     )
 

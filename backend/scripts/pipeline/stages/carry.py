@@ -23,8 +23,8 @@ from models import Location, Trial, TrialSite
 from schemas.source import rank
 from scripts.pipeline.db.shadow import in_schema
 
-# Neither identifies the trial, and both are merged rather than replaced.
-_NOT_NARRATIVE = frozenset({"id", "trial_ref", "source_keys", "age_range_text"})
+# The key, and the two columns merged rather than replaced.
+_NOT_NARRATIVE = frozenset({"id", "source_keys", "age_range_text"})
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,7 +48,8 @@ def _merged_trial(
     theirs: ReadOnlyColumnCollection[str, KeyedColumnElement[object]],
     source: str,
 ) -> dict[str, ColumnElement[object]]:
-    """Keys and age always merge; only a higher-ranked source replaces the narrative."""
+    """Keys and age always merge; only a higher-ranked source replaces the
+    narrative, and with it the ref, so a merged trial keeps that source's prefix."""
     merged: dict[str, ColumnElement[object]] = {
         "source_keys": ours.c.source_keys.op("||", return_type=JSONB)(
             theirs.source_keys
@@ -75,14 +76,25 @@ async def carry_other_sources(
     live_locations = in_schema(Location, live)
     owned = _owned_by_others(live_sites, data_source)
 
-    locations = pg_insert(in_schema(Location, schema)).from_select(
+    build_locations = in_schema(Location, schema)
+    locations = pg_insert(build_locations).from_select(
         list(live_locations.c.keys()),
         select(*live_locations.c).where(
             exists().where(live_sites.c.location_id == live_locations.c.id, owned)
         ),
     )
+    # A centre both corpora name reads as the higher-ranked source spells it.
     carried_locations = await connection.execute(
-        locations.on_conflict_do_nothing(index_elements=["id"])
+        locations.on_conflict_do_update(
+            index_elements=["id"],
+            set_={
+                column.name: locations.excluded[column.name]
+                for column in build_locations.c
+                if column.name != "id"
+            },
+        )
+        if rank(data_source) > 0
+        else locations.on_conflict_do_nothing(index_elements=["id"])
     )
 
     # Our own key is dropped from the carried map so the one we just wrote wins.
