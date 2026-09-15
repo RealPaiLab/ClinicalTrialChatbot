@@ -37,7 +37,7 @@ class ScrapeSourceConfig(Strict):
     kind: Literal["scrape"]
     base_url: str
     concurrency: int
-    # Listing statuses that get published; the capture keeps every status.
+    # Listing statuses to fetch; the site filters server-side, so nothing else is read.
     statuses: list[str]
 
 

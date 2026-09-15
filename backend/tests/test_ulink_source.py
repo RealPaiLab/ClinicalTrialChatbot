@@ -113,21 +113,25 @@ def _handler(request: httpx.Request) -> httpx.Response:
     return httpx.Response(200, text=FIRST_PAGE if page == 0 else LAST_PAGE)
 
 
-async def test_the_capture_keeps_every_status_and_tags_come_from_the_index() -> None:
-    """A closed trial is captured for the record but not built, and a diagnosis
-    is what the site's own filter says, not the free-text cell."""
+async def test_every_listing_is_status_filtered_and_tags_come_from_the_index() -> None:
+    """The site filters by status server-side, so nothing else is ever read, and
+    a diagnosis is what its own filter says, not the free-text cell."""
+    statuses: set[str | None] = set()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        statuses.add(request.url.params.get("statut"))
+        return _handler(request)
+
     source = UlinkScrapeSource(
         base_url="https://u-link.test",
         statuses=["Open"],
-        transport=httpx.MockTransport(_handler),
+        transport=httpx.MockTransport(handler),
     )
 
     records = await source.load()
 
-    assert len(records.raw) == 13
-    statuses = {entry["status"] for entry in records.raw if isinstance(entry, dict)}
-    assert statuses == {"Open", "Completed", "Closed to enrollment"}
-    assert [t.state for t in records.trials] == [["Open"]] * 7
+    assert statuses == {"Open"}
+    assert len(records.raw) == len(records.trials) == 13
 
     by_nct = {trial.nct_number: trial for trial in records.trials}
     assert by_nct["NCT07549321"].sites[0].cancer_type_names == ["Neuroblastoma"]

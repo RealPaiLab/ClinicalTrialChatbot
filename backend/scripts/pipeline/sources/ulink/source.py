@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Iterable, Sequence
+from itertools import product
 
 import httpx
 from pydantic import JsonValue
@@ -36,7 +37,7 @@ class UlinkScrapeSource:
         transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
         self._base_url = base_url
-        self._statuses = frozenset(statuses)
+        self._statuses = tuple(statuses)
         self._concurrency = concurrency
         self._transport = transport
 
@@ -49,16 +50,23 @@ class UlinkScrapeSource:
         )
 
     async def load(self) -> SourceRecords:
-        """The capture keeps every status; the allowlist decides what is published."""
+        """The site filters by status server-side, so only the allowlisted
+        statuses are ever fetched: one listing per status."""
         async with self._client() as http:
             client = UlinkClient(
                 http, base_url=self._base_url, concurrency=self._concurrency
             )
-            pages = await client.listing()
-            entries = self._dedupe(
-                record for page in pages for record in parse_listing(page)
+            listings = await asyncio.gather(
+                *(client.listing(status=status) for status in self._statuses)
             )
-            tagged = await self._pathology_index(client, parse_pathologies(pages[0]))
+            entries = self._dedupe(
+                record
+                for pages in listings
+                for page in pages
+                for record in parse_listing(page)
+            )
+            pathologies = parse_pathologies(listings[0][0]) if listings else []
+            tagged = await self._pathology_index(client, pathologies)
 
         records = [
             entry.model_copy(update={"cancer_types": tagged.get(entry.nid, [])})
@@ -66,12 +74,7 @@ class UlinkScrapeSource:
         ]
         raw: list[JsonValue] = [record.model_dump(mode="json") for record in records]
         return SourceRecords(
-            trials=[
-                to_canonical(record)
-                for record in records
-                if record.status in self._statuses
-            ],
-            raw=raw,
+            trials=[to_canonical(record) for record in records], raw=raw
         )
 
     @staticmethod
@@ -82,18 +85,21 @@ class UlinkScrapeSource:
             seen.setdefault(record.nid, record)
         return list(seen.values())
 
-    @staticmethod
     async def _pathology_index(
-        client: UlinkClient, pathologies: Sequence[str]
+        self, client: UlinkClient, pathologies: Sequence[str]
     ) -> dict[str, list[str]]:
         """Entry id to the diagnoses it is tagged with, by inverting one
-        filtered listing per diagnosis. Tags are what the site's own search
-        matches on, and far cleaner than its free-text diagnosis cell."""
+        filtered listing per diagnosis and status. Tags are what the site's own
+        search matches on, and far cleaner than its free-text diagnosis cell."""
+        queries = list(product(pathologies, self._statuses))
         listings = await asyncio.gather(
-            *(client.listing(pathology) for pathology in pathologies)
+            *(
+                client.listing(status=status, pathology=pathology)
+                for pathology, status in queries
+            )
         )
-        index: dict[str, list[str]] = {}
-        for pathology, pages in zip(pathologies, listings, strict=True):
+        index: dict[str, set[str]] = {}
+        for (pathology, _), pages in zip(queries, listings, strict=True):
             for nid in {nid for page in pages for nid in parse_nids(page)}:
-                index.setdefault(nid, []).append(pathology)
-        return index
+                index.setdefault(nid, set()).add(pathology)
+        return {nid: sorted(tags) for nid, tags in index.items()}
