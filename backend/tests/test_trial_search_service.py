@@ -177,6 +177,34 @@ async def test_semantic_search_drops_trials_with_no_matching_site() -> None:
     assert [c.trial_ref for c in result.trials] == ["CTC-0000MTCH"]
 
 
+async def test_a_source_filter_narrows_sites_but_the_citation_names_every_source() -> (
+    None
+):
+    """A merged trial keeps both codes on the citation so the UI can say where it
+    is listed, while the sites shown are the ones the filtered registry runs."""
+    merged = make_orm_trial(
+        "CTC-0000BOTH",
+        sites=[
+            ("Montréal", "Quebec", ("Sarcoma",)),
+            ("Toronto", "Ontario", ("Sarcoma",)),
+        ],
+    )
+    merged.sites[1].data_sources = ["ulc"]
+    adult_only = make_orm_trial("CTC-0000ADLT", sites=[("Toronto", "Ontario", ())])
+    service = TrialSearchService(
+        cast(Any, FakeSessionFactory([merged, adult_only])), embedder=StubEmbedder()
+    )
+
+    result = await service.semantic_search(
+        TrialFilter(data_sources=["ulc"]), query="sarcoma"
+    )
+
+    assert [c.trial_ref for c in result.trials] == ["CTC-0000BOTH"]
+    citation = result.trials[0]
+    assert citation.data_sources == ["ctc", "ulc"]
+    assert [(s.city, s.data_sources) for s in citation.sites] == [("Toronto", ["ulc"])]
+
+
 async def test_semantic_search_without_embedder_raises() -> None:
     service = TrialSearchService(cast(Any, FakeSessionFactory()))
     with pytest.raises(RuntimeError, match="embedder"):
