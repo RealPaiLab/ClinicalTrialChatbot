@@ -100,7 +100,6 @@ const yue = {
     addedToChatHint: '加咗喇，可以問 {{agent}} 任何嘢',
     viewOn: '喺 {{registry}} 上面睇',
     age: '年齡',
-    source: '收錄來源',
     close: '閂咗佢',
   },
   contact: {

@@ -48,8 +48,7 @@ def _merged_trial(
     theirs: ReadOnlyColumnCollection[str, KeyedColumnElement[object]],
     source: str,
 ) -> dict[str, ColumnElement[object]]:
-    """Keys and age always merge; only a higher-ranked source replaces the
-    narrative, and with it the ref, so a merged trial keeps that source's prefix."""
+    """Keys and age always merge; a higher-ranked source also wins narrative and ref."""
     merged: dict[str, ColumnElement[object]] = {
         "source_keys": ours.c.source_keys.op("||", return_type=JSONB)(
             theirs.source_keys

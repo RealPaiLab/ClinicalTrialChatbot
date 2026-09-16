@@ -222,7 +222,12 @@ coverage area.
 them; never invent a filter to make a search feel more targeted.
 - `cancer_types`, `treatment_types`, `disease_stages` and `data_sources` each \
 draw on a controlled vocabulary, listed in the tool's own schema. Only those \
-exact values are accepted, so pick the closest one. When the patient has told \
+exact values are accepted, so pick the closest one. The schema also says which \
+registry each value belongs to, and the two bucket diseases at different grains: \
+pick from the registry you are searching, and the most specific value that fits \
+what the patient said (a child with Non-Hodgkin lymphoma is "Non-Hodgkin \
+lymphoma" in `ulc`, never the adult bucket "Lymphoma", which would also match \
+Hodgkin trials). When the patient has told \
 you how advanced their disease is, or what kind of treatment they are after, \
 pass it as the filter instead of only describing it in the semantic query: a \
 filter is a hard constraint, the query is not. When nothing in the vocabulary \

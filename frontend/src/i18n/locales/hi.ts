@@ -106,7 +106,6 @@ const hi = {
     addedToChatHint: 'जोड़ा गया, {{agent}} से कुछ भी पूछें',
     viewOn: '{{registry}} पर देखें',
     age: 'आयु',
-    source: 'सूचीबद्ध करने वाला',
     close: 'बंद करें',
   },
   contact: {

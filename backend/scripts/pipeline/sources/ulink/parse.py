@@ -1,8 +1,4 @@
-"""Pure functions over one listing page's HTML.
-
-Every field of every entry is inline in the page (Drupal renders it all), so
-there is nothing to follow: the page is the record.
-"""
+"""Pure functions over one listing page: every field is inline in the HTML."""
 
 from __future__ import annotations
 
@@ -174,11 +170,7 @@ def _email(anchor: Node) -> str | None:
 
 
 def _contacts(body: Node) -> Iterator[UlinkContact]:
-    """A role heading, then names in bold each followed by a mailto link.
-
-    Pairing is positional: a name waits for the next address, and an address
-    with no name waiting stands alone.
-    """
+    """Role headings, then bold names each followed by a mailto link, in order."""
     role = ""
     waiting: str | None = None
     for child in body.iter(include_text=True):

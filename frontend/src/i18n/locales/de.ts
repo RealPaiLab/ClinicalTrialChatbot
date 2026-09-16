@@ -113,7 +113,6 @@ const de = {
     addedToChatHint: 'Hinzugefügt, fragen Sie {{agent}} alles dazu',
     viewOn: 'Auf {{registry}} ansehen',
     age: 'Alter',
-    source: 'Gelistet von',
     close: 'Schließen',
   },
   contact: {

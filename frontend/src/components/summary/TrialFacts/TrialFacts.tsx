@@ -10,7 +10,6 @@ import {
 } from '@/lib/trial';
 import Fact from '@/components/summary/Fact/Fact';
 import FactValues from '@/components/summary/FactValues/FactValues';
-import SourceBadge from '@/components/summary/SourceBadge/SourceBadge';
 import type { Trial } from '@/types/trial';
 
 const EMPTY_VALUE = '—';
@@ -63,17 +62,6 @@ function TrialFacts({ trial, selectedSiteName }: TrialFactsProps) {
       {trial.ageRangeText && <Fact label={t('summary.age')}>{trial.ageRangeText}</Fact>}
       <Fact label={t('summary.province')}>{site?.province ?? EMPTY_VALUE}</Fact>
       <Fact label={t('summary.city')}>{site?.city ?? EMPTY_VALUE}</Fact>
-      <Fact label={t('summary.source')}>
-        {trial.dataSources.length ? (
-          <span className="flex flex-wrap gap-1.5">
-            {trial.dataSources.map((source) => (
-              <SourceBadge key={source} source={source} />
-            ))}
-          </span>
-        ) : (
-          EMPTY_VALUE
-        )}
-      </Fact>
     </dl>
   );
 }

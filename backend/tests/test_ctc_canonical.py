@@ -59,9 +59,7 @@ def test_identity_is_derived_from_the_business_key() -> None:
 
 
 def test_a_registry_number_names_the_trial_whichever_source_lists_it() -> None:
-    """Two registries listing one NCT must land on one row, each stamping its
-    own ref prefix and URL key; a trial with no registry number falls back to
-    its protocol id."""
+    """One NCT from two registries is one row; no NCT falls back to the protocol id."""
     ctc = CanonicalTrial.model_validate(PAYLOAD)
     ulc = CanonicalTrial.model_validate(
         {**PAYLOAD, "acronymOrProtocolId": "SRC-8 (pediatric)", "sourceKey": "473"}

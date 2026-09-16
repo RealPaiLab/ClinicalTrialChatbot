@@ -103,7 +103,6 @@ const en = {
     addedToChatHint: 'Added, ask {{agent}} anything about it',
     viewOn: 'View on {{registry}}',
     age: 'Age',
-    source: 'Listed by',
     close: 'Close',
   },
   contact: {

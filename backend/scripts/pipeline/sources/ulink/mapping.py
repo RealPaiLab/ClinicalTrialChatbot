@@ -54,8 +54,7 @@ def _posted_at(day: str | None) -> datetime | None:
 
 
 def _site(centre: UlinkCentre, record: UlinkRecord) -> CanonicalSite:
-    """No address: the page ships a name and coordinates, and the geocode stage
-    reverse-geocodes the city and province from those."""
+    """No address: the page ships coordinates; geocode reverse-resolves the region."""
     return CanonicalSite.model_validate(
         {
             "name_en": centre.name,

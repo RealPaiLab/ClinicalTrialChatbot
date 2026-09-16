@@ -15,12 +15,18 @@ class VocabField(StrEnum):
 
 
 class Vocabulary(BaseModel):
-    """The allowed values per field, as the corpus currently holds them."""
+    """Allowed values per field, plus the same values split by listing registry."""
 
     values: dict[VocabField, tuple[str, ...]] = Field(default_factory=dict)
+    by_source: dict[VocabField, dict[str, tuple[str, ...]]] = Field(
+        default_factory=dict
+    )
 
     def allowed(self, field: VocabField) -> tuple[str, ...]:
         return self.values.get(field, ())
+
+    def per_source(self, field: VocabField) -> dict[str, tuple[str, ...]]:
+        return self.by_source.get(field, {})
 
 
 _current = Vocabulary()

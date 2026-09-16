@@ -5,7 +5,7 @@ from __future__ import annotations
 import functools
 import json
 import re
-from collections.abc import Awaitable, Callable, Iterator
+from collections.abc import Awaitable, Callable, Iterator, Mapping
 from dataclasses import replace
 
 from pydantic_ai import ModelRetry, RunContext
@@ -100,6 +100,12 @@ VOCAB_ARGUMENTS: dict[str, VocabField] = {
 }
 
 
+def _by_registry(per_source: Mapping[str, tuple[str, ...]]) -> str:
+    """Description suffix naming which registry lists each value."""
+    listed = "; ".join(f"{src}: {', '.join(vals)}" for src, vals in per_source.items())
+    return f" Values by registry ({listed})."
+
+
 def _with_enums(tool: ToolDefinition, vocabulary: Vocabulary) -> ToolDefinition:
     schema = tool.parameters_json_schema
     properties = schema.get("properties")
@@ -112,8 +118,17 @@ def _with_enums(tool: ToolDefinition, vocabulary: Vocabulary) -> ToolDefinition:
         if not allowed or not isinstance(prop, dict):
             continue
         items = prop.get("items")
-        if isinstance(items, dict):
-            patched[name] = {**prop, "items": {**items, "enum": list(allowed)}}
+        if not isinstance(items, dict):
+            continue
+        constrained: dict[str, object] = {
+            **prop,
+            "items": {**items, "enum": list(allowed)},
+        }
+        per_source = vocabulary.per_source(field)
+        if len(per_source) > 1:
+            description = str(prop.get("description") or "").rstrip()
+            constrained["description"] = description + _by_registry(per_source)
+        patched[name] = constrained
     if not patched:
         return tool
     return replace(

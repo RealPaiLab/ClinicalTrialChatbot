@@ -19,8 +19,7 @@ EMPTY_LISTING = "<html><body><div class='fiches-list'></div></body></html>"
 
 
 def test_every_entry_on_a_page_is_parsed_with_its_facts_and_centres() -> None:
-    """Facts come from the table, coordinates from the map script, and the
-    criteria keep their list structure as indented bullets."""
+    """Facts from the table, coordinates from the map script, bulleted criteria."""
     records = parse_listing(FIRST_PAGE)
 
     assert len(records) == 8
@@ -114,8 +113,7 @@ def _handler(request: httpx.Request) -> httpx.Response:
 
 
 async def test_every_listing_is_status_filtered_and_tags_come_from_the_index() -> None:
-    """The site filters by status server-side, so nothing else is ever read, and
-    a diagnosis is what its own filter says, not the free-text cell."""
+    """Every request is status-filtered, and tags come from the site's own filters."""
     statuses: set[str | None] = set()
 
     def handler(request: httpx.Request) -> httpx.Response:

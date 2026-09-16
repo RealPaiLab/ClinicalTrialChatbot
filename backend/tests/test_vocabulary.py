@@ -72,6 +72,37 @@ async def test_loaded_vocabulary_reaches_every_backed_argument() -> None:
     assert _items(prepared, "disease_stages")["enum"] == ["Metastatic"]
 
 
+async def test_values_are_attributed_to_their_registry_when_two_list_them() -> None:
+    """The enum stays the union; the description says which registry buckets what."""
+    set_vocabulary(
+        Vocabulary(
+            values={VocabField.CANCER_TYPE: ("Lymphoma", "Non-Hodgkin lymphoma")},
+            by_source={
+                VocabField.CANCER_TYPE: {
+                    "ctc": ("Lymphoma",),
+                    "ulc": ("Non-Hodgkin lymphoma",),
+                }
+            },
+        )
+    )
+    [prepared] = await inject_vocabulary(_ctx(), [_tool_definition()])
+
+    prop = prepared.parameters_json_schema["properties"]["cancer_types"]
+    assert prop["items"]["enum"] == ["Lymphoma", "Non-Hodgkin lymphoma"]
+    assert prop["description"].endswith(
+        "Values by registry (ctc: Lymphoma; ulc: Non-Hodgkin lymphoma)."
+    )
+
+    set_vocabulary(LOADED)
+    [single] = await inject_vocabulary(_ctx(), [_tool_definition()])
+    assert (
+        "by registry"
+        not in single.parameters_json_schema["properties"]["cancer_types"][
+            "description"
+        ]
+    )
+
+
 async def test_injection_does_not_mutate_the_original_definition() -> None:
     set_vocabulary(LOADED)
     original = _tool_definition()
@@ -104,7 +135,8 @@ async def test_refresh_is_a_no_op_while_the_ttl_is_warm() -> None:
     await service.refresh()
     await service.refresh()
 
-    assert factory.session.execute.await_count == len(VocabField)
+    # A distinct-values query per field, plus a by-source one for all but data_source.
+    assert factory.session.execute.await_count == 2 * len(VocabField) - 1
 
 
 async def test_a_failed_refresh_keeps_the_previous_vocabulary() -> None:

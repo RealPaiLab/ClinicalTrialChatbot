@@ -25,8 +25,7 @@ def test_unresolved_addresses_are_reported_not_hidden() -> None:
 
 
 def test_a_point_reverse_geocodes_to_its_city_and_province() -> None:
-    """A source that ships coordinates but no address still gets the region
-    filters work on."""
+    """Coordinates without an address still yield the region the filters need."""
     payload = {
         "features": [
             {

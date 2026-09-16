@@ -50,8 +50,7 @@ class UlinkScrapeSource:
         )
 
     async def load(self) -> SourceRecords:
-        """The site filters by status server-side, so only the allowlisted
-        statuses are ever fetched: one listing per status."""
+        """One status-filtered listing per allowlisted status; nothing else is read."""
         async with self._client() as http:
             client = UlinkClient(
                 http, base_url=self._base_url, concurrency=self._concurrency
@@ -88,9 +87,7 @@ class UlinkScrapeSource:
     async def _pathology_index(
         self, client: UlinkClient, pathologies: Sequence[str]
     ) -> dict[str, list[str]]:
-        """Entry id to the diagnoses it is tagged with, by inverting one
-        filtered listing per diagnosis and status. Tags are what the site's own
-        search matches on, and far cleaner than its free-text diagnosis cell."""
+        """Entry id to diagnosis tags, inverting one filtered listing per diagnosis."""
         queries = list(product(pathologies, self._statuses))
         listings = await asyncio.gather(
             *(

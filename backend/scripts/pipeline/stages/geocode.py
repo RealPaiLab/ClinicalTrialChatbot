@@ -1,5 +1,4 @@
-"""Fill what a location is missing: coordinates from its address, or the city
-and province from its coordinates, whichever the source did not ship."""
+"""Fill what a location lacks: coordinates from an address, or a region from them."""
 
 from __future__ import annotations
 

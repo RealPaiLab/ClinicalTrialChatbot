@@ -109,7 +109,6 @@ const es = {
     addedToChatHint: 'Añadido, pregunte a {{agent}} lo que quiera',
     viewOn: 'Ver en {{registry}}',
     age: 'Edad',
-    source: 'Publicado por',
     close: 'Cerrar',
   },
   contact: {

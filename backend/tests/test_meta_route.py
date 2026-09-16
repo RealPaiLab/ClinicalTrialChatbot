@@ -57,8 +57,7 @@ def test_the_badge_date_is_the_oldest_source_and_each_source_is_listed() -> None
 
 
 def test_a_corpus_that_was_never_ingested_is_200_with_a_null_not_404() -> None:
-    """The frontend hides the badge on a null. A 404 would read as a failure. A
-    source that has not run yet is listed with a null, not left out."""
+    """A null hides the badge, a 404 reads as failure; an unrun source is null."""
     response = make_client([]).get("/meta/data-freshness")
 
     assert response.status_code == 200

@@ -180,8 +180,7 @@ async def test_semantic_search_drops_trials_with_no_matching_site() -> None:
 async def test_a_source_filter_narrows_sites_but_the_citation_names_every_source() -> (
     None
 ):
-    """A merged trial keeps both codes on the citation so the UI can say where it
-    is listed, while the sites shown are the ones the filtered registry runs."""
+    """The citation keeps both codes; the sites shown are the filtered registry's."""
     merged = make_orm_trial(
         "CTC-0000BOTH",
         sites=[

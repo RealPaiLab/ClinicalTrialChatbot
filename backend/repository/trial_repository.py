@@ -110,8 +110,7 @@ def _province_restriction(province: str) -> ColumnElement[bool]:
 def _filter_conditions(
     flt: TrialFilter, restrict_province: str | None = None
 ) -> list[ColumnElement[bool]]:
-    """Combined same-site predicate (cancer/location/status/source/province) AND the
-    trial-level array predicates (phase, treatment type, disease stage)."""
+    """One same-site EXISTS (cancer/location/status/source/province) + trial arrays."""
     conditions: list[ColumnElement[bool]] = []
     site_match = _site_match_exists(flt, restrict_province)
     if site_match is not None:

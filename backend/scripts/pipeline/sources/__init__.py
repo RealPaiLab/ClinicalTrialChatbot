@@ -1,5 +1,4 @@
-"""Where records come from. `build_source` is the registry: one factory per
-config type, so a new source kind is a config class plus a registration here."""
+"""Where records come from; `build_source` maps each config type to its source."""
 
 from __future__ import annotations
 

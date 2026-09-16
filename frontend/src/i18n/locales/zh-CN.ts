@@ -100,7 +100,6 @@ const zhCn = {
     addedToChatHint: '已添加，可以向 {{agent}} 提出任何问题',
     viewOn: '在 {{registry}} 上查看',
     age: '年龄',
-    source: '收录来源',
     close: '关闭',
   },
   contact: {

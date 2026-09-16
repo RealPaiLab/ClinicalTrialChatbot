@@ -109,7 +109,6 @@ const frCa = {
     addedToChatHint: 'Ajouté, posez n’importe quelle question à {{agent}}',
     viewOn: 'Voir sur {{registry}}',
     age: 'Âge',
-    source: 'Répertorié par',
     close: 'Fermer',
   },
   contact: {
