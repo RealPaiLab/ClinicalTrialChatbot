@@ -90,6 +90,7 @@ def make_orm_trial(
         TrialSite(
             state="Recruiting",
             cancer_type_names=list(cancers),
+            data_sources=["ctc"],
             location=Location(name_en="Site", city=city, province=province),
         )
         for city, province, cancers in sites

@@ -101,7 +101,8 @@ const en = {
     askAbout: 'Ask {{agent}} about this trial',
     addedToChat: 'Added to your chat',
     addedToChatHint: 'Added, ask {{agent}} anything about it',
-    viewOnCtc: 'View on Cancer Trials Canada',
+    viewOn: 'View on {{registry}}',
+    age: 'Age',
     close: 'Close',
   },
   contact: {
@@ -143,6 +144,7 @@ const en = {
   },
   data: {
     lastUpdated: 'Data last updated {{date}}',
+    notYet: 'not yet',
     shortNotice: 'Trial data reflects the status as of the last update.',
     detailedNotice:
       'Trial data was last updated on {{date}} and may be out of date. Please reach out to your care team for more details.',

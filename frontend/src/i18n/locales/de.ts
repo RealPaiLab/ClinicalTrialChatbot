@@ -111,7 +111,8 @@ const de = {
     askAbout: '{{agent}} zu dieser Studie fragen',
     addedToChat: 'Zu Ihrem Chat hinzugefügt',
     addedToChatHint: 'Hinzugefügt, fragen Sie {{agent}} alles dazu',
-    viewOnCtc: 'Auf Cancer Trials Canada ansehen',
+    viewOn: 'Auf {{registry}} ansehen',
+    age: 'Alter',
     close: 'Schließen',
   },
   contact: {
@@ -155,6 +156,7 @@ const de = {
   },
   data: {
     lastUpdated: 'Daten zuletzt aktualisiert am {{date}}',
+    notYet: 'noch nicht',
     shortNotice: 'Die Daten geben den Stand der letzten Aktualisierung wieder.',
     detailedNotice:
       'Die Studiendaten wurden zuletzt am {{date}} aktualisiert und können veraltet sein. Wenden Sie sich für weitere Einzelheiten an Ihr Behandlungsteam.',

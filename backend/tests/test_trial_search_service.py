@@ -4,6 +4,7 @@ import pytest
 
 from core.embeddings import EmbeddingProvider
 from schemas.provinces import split_locations
+from schemas.source import SourceCode
 from schemas.trial import TrialFilter
 from services.trial_search_service import (
     TrialSearchService,
@@ -175,6 +176,33 @@ async def test_semantic_search_drops_trials_with_no_matching_site() -> None:
         TrialFilter(locations=["quebec"], cancer_types=["breast"]), query="breast"
     )
     assert [c.trial_ref for c in result.trials] == ["CTC-0000MTCH"]
+
+
+async def test_a_source_filter_narrows_sites_but_the_citation_names_every_source() -> (
+    None
+):
+    """The citation keeps both codes; the sites shown are the filtered registry's."""
+    merged = make_orm_trial(
+        "CTC-0000BOTH",
+        sites=[
+            ("Montréal", "Quebec", ("Sarcoma",)),
+            ("Toronto", "Ontario", ("Sarcoma",)),
+        ],
+    )
+    merged.sites[1].data_sources = ["ulc"]
+    adult_only = make_orm_trial("CTC-0000ADLT", sites=[("Toronto", "Ontario", ())])
+    service = TrialSearchService(
+        cast(Any, FakeSessionFactory([merged, adult_only])), embedder=StubEmbedder()
+    )
+
+    result = await service.semantic_search(
+        TrialFilter(data_sources=[SourceCode.ULC]), query="sarcoma"
+    )
+
+    assert [c.trial_ref for c in result.trials] == ["CTC-0000BOTH"]
+    citation = result.trials[0]
+    assert citation.data_sources == ["ctc", "ulc"]
+    assert [(s.city, s.data_sources) for s in citation.sites] == [("Toronto", ["ulc"])]
 
 
 async def test_semantic_search_without_embedder_raises() -> None:

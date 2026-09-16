@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy import Select, func, select
+from sqlalchemy import Select, func, select, true
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import InstrumentedAttribute
 
@@ -26,6 +26,26 @@ def _distinct_values(column: InstrumentedAttribute[list[str]]) -> Select[tuple[s
     )
 
 
+def _values_by_source(
+    column: InstrumentedAttribute[list[str]],
+) -> Select[tuple[str, str]]:
+    """Distinct (source, value) pairs; lateral, since a double unnest would zip."""
+    source = func.unnest(TrialSite.data_sources).table_valued("value")
+    sources = source.render_derived().lateral("src")
+    value = func.unnest(column).table_valued("value")
+    values = value.render_derived().lateral("val")
+    return (
+        select(sources.c.value, values.c.value)
+        .distinct()
+        .select_from(TrialSite)
+        .join(Trial, Trial.id == TrialSite.trial_id)
+        .join(sources, true())
+        .join(values, true())
+        .where(values.c.value.is_not(None), values.c.value != "")
+        .order_by(sources.c.value, values.c.value)
+    )
+
+
 class VocabularyRepository:
     """Reads the distinct values of every vocabulary-backed column."""
 
@@ -34,7 +54,12 @@ class VocabularyRepository:
 
     async def load(self) -> Vocabulary:
         values: dict[VocabField, tuple[str, ...]] = {}
+        by_source: dict[VocabField, dict[str, tuple[str, ...]]] = {}
         for field, column in VOCAB_COLUMNS.items():
             result = await self._session.execute(_distinct_values(column))
             values[field] = tuple(result.scalars().all())
-        return Vocabulary(values=values)
+            grouped: dict[str, list[str]] = {}
+            for source, value in await self._session.execute(_values_by_source(column)):
+                grouped.setdefault(source, []).append(value)
+            by_source[field] = {src: tuple(vals) for src, vals in grouped.items()}
+        return Vocabulary(values=values, by_source=by_source)

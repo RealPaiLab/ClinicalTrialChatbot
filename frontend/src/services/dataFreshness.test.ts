@@ -14,19 +14,31 @@ describe('dataFreshnessQuery', () => {
   it('maps the snake_case wire fields into camelCase', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () => Response.json({ published_at: '2026-09-02T13:04:22Z' }))
+      vi.fn(async () =>
+        Response.json({
+          published_at: '2026-09-02T13:04:22Z',
+          sources: [
+            { source: 'ctc', name: 'Cancer Trials Canada', published_at: '2026-09-02T13:04:22Z' },
+          ],
+        })
+      )
     );
 
-    await expect(run()).resolves.toEqual({ publishedAt: '2026-09-02T13:04:22Z' });
+    await expect(run()).resolves.toEqual({
+      publishedAt: '2026-09-02T13:04:22Z',
+      sources: [
+        { source: 'ctc', name: 'Cancer Trials Canada', publishedAt: '2026-09-02T13:04:22Z' },
+      ],
+    });
   });
 
   it('passes a corpus that was never ingested through as nulls', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () => Response.json({ published_at: null }))
+      vi.fn(async () => Response.json({ published_at: null, sources: [] }))
     );
 
-    await expect(run()).resolves.toEqual({ publishedAt: null });
+    await expect(run()).resolves.toEqual({ publishedAt: null, sources: [] });
   });
 
   it('throws on a failed response so the caller hides the date', async () => {

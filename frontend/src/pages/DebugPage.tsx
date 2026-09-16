@@ -13,12 +13,14 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { TRIAL_STATUS } from '@/lib/trialStatus';
+import { TRIAL_SOURCE_CODES, TRIAL_SOURCES } from '@/constants/trialSources';
 import { debugTrialsQuery, type DebugSearchParams } from '@/services/debug';
 import TrialTable from '@/components/debug/TrialTable/TrialTable';
 
 const PAGE_SIZE = 10;
 
 const ANY_STATUS = 'any';
+const ANY_SOURCE = 'any';
 
 const STATUS_OPTIONS = Object.entries(TRIAL_STATUS).map(([value, config]) => ({
   value,
@@ -65,6 +67,7 @@ function DebugPage() {
   const [cancerTypes, setCancerTypes] = useState('');
   const [locations, setLocations] = useState('');
   const [status, setStatus] = useState<string>(ANY_STATUS);
+  const [source, setSource] = useState<string>(ANY_SOURCE);
   const [phases, setPhases] = useState('');
   const [treatmentTypes, setTreatmentTypes] = useState('');
   const [diseaseStages, setDiseaseStages] = useState('');
@@ -88,6 +91,7 @@ function DebugPage() {
       cancerTypes: splitList(cancerTypes),
       locations: splitList(locations),
       statuses: status === ANY_STATUS ? [] : [status],
+      dataSources: source === ANY_SOURCE ? [] : [source],
       phases: splitList(phases),
       treatmentTypes: splitList(treatmentTypes),
       diseaseStages: splitList(diseaseStages),
@@ -140,6 +144,22 @@ function DebugPage() {
                 {STATUS_OPTIONS.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-eyebrow text-muted-foreground">Source</span>
+            <Select value={source} onValueChange={setSource}>
+              <SelectTrigger className="h-8 w-full text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ANY_SOURCE}>Any source</SelectItem>
+                {TRIAL_SOURCE_CODES.map((code) => (
+                  <SelectItem key={code} value={code}>
+                    {TRIAL_SOURCES[code].label}
                   </SelectItem>
                 ))}
               </SelectContent>

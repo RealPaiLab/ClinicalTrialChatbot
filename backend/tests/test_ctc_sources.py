@@ -4,7 +4,7 @@ from collections.abc import Callable
 
 import httpx
 
-from scripts.ctc.sources import CtcApiSource
+from scripts.pipeline.sources import CtcApiSource
 from tests.factories import make_source_trial
 
 BASE_URL = "https://api.example.test/api/studies"
@@ -62,7 +62,9 @@ async def test_every_page_is_fetched_and_parsed() -> None:
 async def test_the_raw_payload_is_kept_alongside_the_records() -> None:
     """Capture stays lossless: coordinators have no column but must survive."""
     served = trial("11111111-1111-1111-1111-111111111111", "NCT01", "A-1")
-    served["sites"][0]["coordinators"] = [{"email": "coordinator@example.org"}]  # type: ignore[index]
+    served["sites"][0]["coordinators"] = [  # type: ignore[index]
+        {"firstName": "Ada", "lastName": "Lovelace", "email": "coordinator@example.org"}
+    ]
 
     def handler(request: httpx.Request) -> httpx.Response:
         if request.url.path.endswith("/count"):
@@ -72,7 +74,11 @@ async def test_the_raw_payload_is_kept_alongside_the_records() -> None:
     records = await build_source(handler, []).load()
 
     assert records.raw == [served]
-    assert records.trials[0].sites[0].coordinators[0].email == "coordinator@example.org"
+    coordinator = records.trials[0].sites[0].coordinators[0]
+    assert (coordinator.full_name, coordinator.email) == (
+        "Ada Lovelace",
+        "coordinator@example.org",
+    )
 
 
 async def test_a_trial_served_on_two_pages_is_kept_once() -> None:

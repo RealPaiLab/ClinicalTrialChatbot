@@ -8,7 +8,7 @@ async def test_a_rolled_back_publish_is_not_a_candidate() -> None:
     """Rollback restores older data, so its run row must stop being the answer."""
     factory = FakeSessionFactory([])
     async with factory() as session:
-        await IngestionRunRepository(session).latest_published("ctc")
+        await IngestionRunRepository(session).latest_published_per_pipeline()
 
     compiled = str(factory.last_statement.compile(dialect=postgresql.dialect()))  # type: ignore[no-untyped-call]
 

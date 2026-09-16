@@ -10,8 +10,6 @@ from models.base import Base
 PUBLISHED = "published"
 ROLLED_BACK = "rolled_back"
 
-CTC_PIPELINE = "ctc"
-
 
 class IngestionRun(Base):
     __tablename__ = "ingestion_runs"

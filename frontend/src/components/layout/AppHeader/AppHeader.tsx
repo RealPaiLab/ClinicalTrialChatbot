@@ -5,6 +5,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/h
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import LanguagePicker from '@/components/layout/LanguagePicker/LanguagePicker';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
+import { TRIAL_SOURCES } from '@/constants/trialSources';
 
 interface AppHeaderProps {
   dark: boolean;
@@ -22,7 +23,7 @@ function AppHeader({
   onToggleTheme,
 }: AppHeaderProps) {
   const { t } = useTranslation();
-  const { updatedOn } = useDataFreshness();
+  const { updatedOn, sources } = useDataFreshness();
   const lastUpdated = updatedOn ? t('data.lastUpdated', { date: updatedOn.toUpperCase() }) : null;
   const notice = updatedOn ? t('data.detailedNotice', { date: updatedOn }) : t('data.shortNotice');
 
@@ -54,7 +55,19 @@ function AppHeader({
             </button>
           </HoverCardTrigger>
           <HoverCardContent align="end" className="w-72 text-sm leading-relaxed">
-            {notice}
+            <p>{notice}</p>
+            {sources.length > 0 && (
+              <ul className="border-border mt-2 space-y-1 border-t pt-2">
+                {sources.map(({ source, updatedOn: date }) => (
+                  <li key={source} className="flex justify-between gap-3">
+                    <span>{TRIAL_SOURCES[source].label}</span>
+                    <span className="text-muted-foreground shrink-0 font-mono text-xs">
+                      {date ?? t('data.notYet')}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </HoverCardContent>
         </HoverCard>
 

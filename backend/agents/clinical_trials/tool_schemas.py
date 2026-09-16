@@ -7,6 +7,7 @@ from typing import Annotated
 from pydantic import AfterValidator, BaseModel, Field
 
 from schemas.glossary import GlossarySource
+from schemas.source import SOURCE_NAMES, SourceCode
 from schemas.vocabulary import VocabField, current_vocabulary
 
 
@@ -46,6 +47,17 @@ _DISEASE_STAGES_DESC = (
 )
 
 
+_DATA_SOURCES_DESC = (
+    "Which registry to search: "
+    f'"{SourceCode.CTC}" is {SOURCE_NAMES[SourceCode.CTC]} (adult oncology), '
+    f'"{SourceCode.ULC}" is {SOURCE_NAMES[SourceCode.ULC]} (the C17 pediatric '
+    "oncology network: children, teenagers and young adults). Decided by the "
+    f'patient\'s age, which you ask for first: under 18 → ["{SourceCode.ULC}"], '
+    f'40 and over → ["{SourceCode.CTC}"], 18 to 39 or not given → empty, so both '
+    "are searched. A trial can be listed by both."
+)
+
+
 class ToolInput(BaseModel):
     """Base input shared by every tool."""
 
@@ -79,6 +91,9 @@ class SyntacticSearchInput(ToolInput):
     disease_stages: list[DiseaseStageValue] = Field(  # type: ignore[valid-type]
         default_factory=list,
         description=_DISEASE_STAGES_DESC,
+    )
+    data_sources: list[SourceCode] = Field(
+        default_factory=list, description=_DATA_SOURCES_DESC
     )
     locations: list[str] = Field(
         default_factory=list,
@@ -133,6 +148,9 @@ class SemanticSearchInput(ToolInput):
         default_factory=list,
         description=_DISEASE_STAGES_DESC,
     )
+    data_sources: list[SourceCode] = Field(
+        default_factory=list, description=_DATA_SOURCES_DESC
+    )
     locations: list[str] = Field(
         default_factory=list,
         description='Cities or provinces to require, e.g. ["Quebec", "Ontario"].',
@@ -156,7 +174,8 @@ class SemanticSearchInput(ToolInput):
 
 class GetTrialDetailsInput(ToolInput):
     trial_refs: list[str] = Field(
-        description='Trial refs to fetch full details for, e.g. ["CTC-7K2M4QX9"].'
+        description="Trial refs to fetch full details for, e.g. "
+        '["CTC-7K2M4QX9", "ULC-3520491B"].'
     )
     all_sites: bool = Field(
         default=False,
@@ -199,6 +218,11 @@ class TrialSearchHit(BaseModel):
     cities: list[str] = Field(default_factory=list)
     provinces: list[str] = Field(default_factory=list)
     recruiting_statuses: list[str] = Field(default_factory=list)
+    data_sources: list[str] = Field(default_factory=list)
+    age_range: str | None = Field(
+        default=None,
+        description="Age eligibility as the registry states it, when it does.",
+    )
 
 
 class TrialSearchResult(BaseModel):

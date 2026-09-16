@@ -3,8 +3,8 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ARRAY, ForeignKey, Index, Text
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy import ForeignKey, Index, Text
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from models.base import Base
@@ -18,6 +18,11 @@ class TrialSite(Base):
     __tablename__ = "trial_sites"
     __table_args__ = (
         Index("ix_trial_sites_state", "state"),
+        Index(
+            "ix_trial_sites_data_sources_gin",
+            "data_sources",
+            postgresql_using="gin",
+        ),
         Index(
             "ix_trial_sites_cancer_type_names_gin",
             "cancer_type_names",
@@ -34,6 +39,10 @@ class TrialSite(Base):
         UUID(as_uuid=True),
         ForeignKey("locations.id", ondelete="CASCADE"),
         primary_key=True,
+    )
+    # Which sources list this centre; both, when two corpora carry the same trial.
+    data_sources: Mapped[list[str]] = mapped_column(
+        ARRAY(Text), nullable=False, server_default="{ctc}"
     )
     state: Mapped[str | None] = mapped_column(Text, nullable=True)
     cancer_type_names: Mapped[list[str]] = mapped_column(
