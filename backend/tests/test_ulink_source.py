@@ -11,10 +11,6 @@ from scripts.pipeline.sources.ulink.parse import _contacts, parse_listing
 
 FIXTURES = Path(__file__).parent / "fixtures" / "ulink"
 FIRST_PAGE = (FIXTURES / "trials-page-0.html").read_text(encoding="utf-8")
-LAST_PAGE = (FIXTURES / "trials-page-14.html").read_text(encoding="utf-8")
-NEUROBLASTOMA = (FIXTURES / "trials-neuroblastoma-page-0.html").read_text(
-    encoding="utf-8"
-)
 EMPTY_LISTING = "<html><body><div class='fiches-list'></div></body></html>"
 
 
@@ -101,24 +97,15 @@ def test_the_record_maps_onto_the_canonical_shape() -> None:
     assert len(site.coordinators) == 3
 
 
-def _handler(request: httpx.Request) -> httpx.Response:
-    """Page 0 leads to the last page; the tail pages all serve the same entries."""
-    pathology = request.url.params.get("pathology")
-    if pathology == "Neuroblastoma":
-        return httpx.Response(200, text=NEUROBLASTOMA)
-    if pathology is not None:
-        return httpx.Response(200, text=EMPTY_LISTING)
-    page = int(request.url.params["page"])
-    return httpx.Response(200, text=FIRST_PAGE if page == 0 else LAST_PAGE)
-
-
 async def test_every_listing_is_status_filtered_and_tags_come_from_the_index() -> None:
-    """Every request is status-filtered, and tags come from the site's own filters."""
-    statuses: set[str | None] = set()
+    """Every page serves the same entries; two diagnoses list them, the rest none."""
+    requests: list[tuple[str | None, int]] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
-        statuses.add(request.url.params.get("statut"))
-        return _handler(request)
+        params = request.url.params
+        requests.append((params.get("statut"), int(params["page"])))
+        listed = params.get("pathology") in (None, "Neuroblastoma", "Wilms")
+        return httpx.Response(200, text=FIRST_PAGE if listed else EMPTY_LISTING)
 
     source = UlinkScrapeSource(
         base_url="https://u-link.test",
@@ -128,9 +115,11 @@ async def test_every_listing_is_status_filtered_and_tags_come_from_the_index() -
 
     records = await source.load()
 
-    assert statuses == {"Open"}
-    assert len(records.raw) == len(records.trials) == 13
-
+    assert {status for status, _ in requests} == {"Open"}
+    assert max(page for _, page in requests) == 14
+    assert len(records.raw) == len(records.trials) == 8
     by_nct = {trial.nct_number: trial for trial in records.trials}
-    assert by_nct["NCT07549321"].sites[0].cancer_type_names == ["Neuroblastoma"]
-    assert by_nct["NCT06666348"].sites[0].cancer_type_names == []
+    assert by_nct["NCT07549321"].sites[0].cancer_type_names == [
+        "Neuroblastoma",
+        "Wilms",
+    ]

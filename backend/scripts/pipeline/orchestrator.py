@@ -16,7 +16,9 @@ from rich.table import Table
 from core.database import AsyncSessionFactory
 from scripts.pipeline.canonical import CanonicalTrial, index_trials
 from scripts.pipeline.config import PipelineConfig
+from scripts.pipeline.db.lock import exclusive_run
 from scripts.pipeline.db.shadow import build_schema
+from scripts.pipeline.db.swap import rollback
 from scripts.pipeline.paths import latest_canonical_path
 from scripts.pipeline.sources import TrialSource, build_source
 from scripts.pipeline.stages.build import build
@@ -25,7 +27,6 @@ from scripts.pipeline.stages.embed import embed
 from scripts.pipeline.stages.geocode import geocode
 from scripts.pipeline.stages.ingest import ingest, load_canonical
 from scripts.pipeline.stages.publish import publish
-from scripts.pipeline.stages.publish import undo as rollback
 from scripts.pipeline.stages.validate import ValidationFailed, validate
 from scripts.pipeline.strategies import get_strategy
 
@@ -258,16 +259,19 @@ async def run(
     pipeline: str, config: PipelineConfig, stages: list[str] | None = None
 ) -> None:
     context = RunContext(name=pipeline, config=config)
-    for name in resolve(config, stages):
-        _render(await STAGES[name](context))
+    chosen = resolve(config, stages)
+    async with exclusive_run():
+        for name in chosen:
+            _render(await STAGES[name](context))
 
 
 async def undo(pipeline: str, config: PipelineConfig) -> str:
-    """Roll the pipeline's own publish back, leaving every other corpus alone."""
+    """Undo the newest publish, which must be this pipeline's since live holds all."""
     context = RunContext(name=pipeline, config=config)
-    return await rollback(
-        pipeline=pipeline,
-        build=context.build_schema,
-        live=config.build.source_schema,
-        lock_timeout=config.publish.lock_timeout,
-    )
+    async with exclusive_run():
+        return await rollback(
+            pipeline=pipeline,
+            build=context.build_schema,
+            live=config.build.source_schema,
+            lock_timeout=config.publish.lock_timeout,
+        )

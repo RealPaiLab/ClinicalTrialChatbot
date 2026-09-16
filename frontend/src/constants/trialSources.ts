@@ -20,7 +20,3 @@ export const TRIAL_SOURCES = {
 export type TrialSourceCode = keyof typeof TRIAL_SOURCES;
 
 export const TRIAL_SOURCE_CODES = Object.keys(TRIAL_SOURCES) as TrialSourceCode[];
-
-export function isTrialSourceCode(value: string): value is TrialSourceCode {
-  return value in TRIAL_SOURCES;
-}

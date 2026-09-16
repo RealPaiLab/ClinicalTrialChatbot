@@ -6,9 +6,8 @@ ingestion_unit_prefix: "{{ project_name }}-{{ deploy_slot }}-ingestion"
 ingestion_timeout_sec: 21600
 
 # One timer per pipeline in `backend/scripts/pipelines.yaml`, keyed by its name.
-# Opt in per environment. Both share one Postgres and each publish takes a
-# schema lock, so keep their calendars hours apart: a run that overlaps another
-# would race on `DROP SCHEMA <pipeline>_build`.
+# Opt in per environment. Both share one Postgres and one advisory lock, so a
+# run that overlaps another exits without publishing: keep the calendars apart.
 ingestion_pipelines:
   ctc:
     enabled: false

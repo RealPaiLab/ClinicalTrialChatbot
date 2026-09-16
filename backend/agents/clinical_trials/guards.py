@@ -96,14 +96,22 @@ VOCAB_ARGUMENTS: dict[str, VocabField] = {
     "cancer_types": VocabField.CANCER_TYPE,
     "treatment_types": VocabField.TREATMENT_TYPE,
     "disease_stages": VocabField.DISEASE_STAGE,
-    "data_sources": VocabField.DATA_SOURCE,
 }
 
 
 def _by_registry(per_source: Mapping[str, tuple[str, ...]]) -> str:
-    """Description suffix naming which registry lists each value."""
-    listed = "; ".join(f"{src}: {', '.join(vals)}" for src, vals in per_source.items())
-    return f" Values by registry ({listed})."
+    """Name the smaller registries' values; the enum already lists them all."""
+    largest = max(per_source, key=lambda source: len(per_source[source]))
+    listed = "; ".join(
+        f"{source}: "
+        + ", ".join(
+            f"{value} (also {largest})" if value in per_source[largest] else value
+            for value in values
+        )
+        for source, values in per_source.items()
+        if source != largest
+    )
+    return f" Values by registry ({listed}; every other value is {largest})."
 
 
 def _with_enums(tool: ToolDefinition, vocabulary: Vocabulary) -> ToolDefinition:

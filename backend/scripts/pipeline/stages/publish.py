@@ -10,7 +10,6 @@ from scripts.pipeline.db.swap import (
     DEFAULT_KEEP_GENERATIONS,
     DEFAULT_LOCK_TIMEOUT,
     generations,
-    rollback,
     swap,
 )
 
@@ -39,17 +38,4 @@ async def publish(
         published_at=published_at,
         pruned=pruned,
         retained=await generations(pipeline),
-    )
-
-
-async def undo(
-    *,
-    pipeline: str,
-    build: str,
-    live: str = LIVE_SCHEMA,
-    lock_timeout: str = DEFAULT_LOCK_TIMEOUT,
-) -> str:
-    """Restore the newest generation. What is live now moves back to the build."""
-    return await rollback(
-        pipeline=pipeline, build=build, live=live, lock_timeout=lock_timeout
     )

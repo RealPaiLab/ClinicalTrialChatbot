@@ -13,6 +13,7 @@ from models.trial_site import TrialSite
 from repository.trial_repository import TrialRepository
 from schemas.contact import SiteContact, SiteContacts, TrialContacts
 from schemas.provinces import split_locations
+from schemas.source import SourceCode
 from schemas.trial import (
     TrialCitation,
     TrialFilter,
@@ -76,7 +77,7 @@ def _site_matches_status(site: TrialSite, statuses: list[str]) -> bool:
     return any(fold(term) in haystack for term in statuses)
 
 
-def _site_matches_source(site: TrialSite, data_sources: list[str]) -> bool:
+def _site_matches_source(site: TrialSite, data_sources: list[SourceCode]) -> bool:
     return not data_sources or any(s in (site.data_sources or []) for s in data_sources)
 
 
@@ -85,7 +86,7 @@ def _to_citation(
     locations: list[str],
     cancer_types: list[str],
     statuses: list[str] | None = None,
-    data_sources: list[str] | None = None,
+    data_sources: list[SourceCode] | None = None,
     restrict_province: str | None = None,
 ) -> TrialCitation:
     """Map an ORM trial to a citation, keeping only sites matching the filters."""

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
+from schemas.source import SourceCode
+
 
 class TrialSiteInfo(BaseModel):
     """A trial site (joined to its Location)."""
@@ -61,4 +63,4 @@ class TrialFilter(BaseModel):
     phases: list[str] = Field(default_factory=list)
     treatment_types: list[str] = Field(default_factory=list)
     disease_stages: list[str] = Field(default_factory=list)
-    data_sources: list[str] = Field(default_factory=list)
+    data_sources: list[SourceCode] = Field(default_factory=list)

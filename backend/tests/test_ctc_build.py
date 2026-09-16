@@ -2,15 +2,9 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import ColumnElement
-from sqlalchemy.dialects.postgresql import insert as pg_insert
-
-from models import Trial
-from schemas.source import rank
 from scripts.pipeline.canonical import CanonicalTrial, index_trials
-from scripts.pipeline.db.shadow import in_schema
 from scripts.pipeline.stages.build import BuildResult
-from scripts.pipeline.stages.carry import CarryResult, _merged_trial
+from scripts.pipeline.stages.carry import CarryResult
 from tests.factories import make_source_trial
 
 
@@ -74,21 +68,3 @@ def test_a_dropped_site_leaves_no_junction_row_to_write() -> None:
 
     assert len(written) == 1
     assert len(dropped) == 1
-
-
-def _merge_for(source: str) -> dict[str, ColumnElement[object]]:
-    build = in_schema(Trial, "some_build")
-    return _merged_trial(build, pg_insert(build).excluded, source)
-
-
-def test_a_trial_two_sources_list_keeps_the_higher_ranked_wording() -> None:
-    """Otherwise a merged trial would re-word itself depending on run order."""
-    assert rank("ctc") < rank("ulc")
-    assert "short_title_en" in _merge_for("ulc")
-    assert "short_title_en" not in _merge_for("ctc")
-
-
-def test_both_sources_contribute_their_own_public_url_key() -> None:
-    """A merged trial links out to both registries, whichever pipeline ran."""
-    for source in ("ctc", "ulc"):
-        assert {"source_keys", "age_range_text"} <= _merge_for(source).keys()

@@ -71,8 +71,20 @@ async def _record_run(
 
 
 async def _retire_run(connection: AsyncConnection, live: str, pipeline: str) -> None:
-    """Mark the newest publish as undone, so the freshness date walks back."""
+    """Retire the newest publish, refusing if another pipeline published since."""
     scoped = await connection.execution_options(schema_translate_map={None: live})
+    latest = await scoped.execute(
+        select(IngestionRun.pipeline)
+        .where(IngestionRun.status == PUBLISHED)
+        .order_by(IngestionRun.published_at.desc(), IngestionRun.id.desc())
+        .limit(1)
+    )
+    publisher = latest.scalar_one_or_none()
+    if publisher is not None and publisher != pipeline:
+        raise RuntimeError(
+            f"{publisher} published after {pipeline} did and the live tables hold "
+            f"both corpora; roll {publisher} back first"
+        )
     await scoped.execute(
         update(IngestionRun)
         .where(IngestionRun.id == _newest_published(pipeline))
@@ -129,7 +141,7 @@ async def rollback(
     live: str = LIVE_SCHEMA,
     lock_timeout: str = DEFAULT_LOCK_TIMEOUT,
 ) -> str:
-    """Restore the newest archived generation; what was live moves to the build."""
+    """Restore the newest archive, which must be the newest publish of any pipeline."""
     available = await generations(pipeline)
     if not available:
         raise RuntimeError("no published generation to roll back to")
@@ -137,10 +149,10 @@ async def rollback(
 
     async with engine.begin() as connection:
         await connection.execute(text(f"SET LOCAL lock_timeout = '{lock_timeout}'"))
+        await _retire_run(connection, live, pipeline)
         await connection.execute(text(f'DROP SCHEMA IF EXISTS "{build}" CASCADE'))
         await connection.execute(text(f'CREATE SCHEMA "{build}"'))
         await _move(connection, live, build)
         await _move(connection, newest, live)
         await connection.execute(text(f'DROP SCHEMA "{newest}" CASCADE'))
-        await _retire_run(connection, live, pipeline)
     return newest

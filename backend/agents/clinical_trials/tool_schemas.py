@@ -29,7 +29,6 @@ def _vocab(field: VocabField) -> object:
 CancerTypeValue = _vocab(VocabField.CANCER_TYPE)
 TreatmentTypeValue = _vocab(VocabField.TREATMENT_TYPE)
 DiseaseStageValue = _vocab(VocabField.DISEASE_STAGE)
-DataSourceValue = _vocab(VocabField.DATA_SOURCE)
 
 _CANCER_TYPES_DESC = (
     "Cancer-type buckets to match, from the controlled vocabulary, e.g. "
@@ -93,9 +92,8 @@ class SyntacticSearchInput(ToolInput):
         default_factory=list,
         description=_DISEASE_STAGES_DESC,
     )
-    data_sources: list[DataSourceValue] = Field(  # type: ignore[valid-type]
-        default_factory=list,
-        description=_DATA_SOURCES_DESC,
+    data_sources: list[SourceCode] = Field(
+        default_factory=list, description=_DATA_SOURCES_DESC
     )
     locations: list[str] = Field(
         default_factory=list,
@@ -150,9 +148,8 @@ class SemanticSearchInput(ToolInput):
         default_factory=list,
         description=_DISEASE_STAGES_DESC,
     )
-    data_sources: list[DataSourceValue] = Field(  # type: ignore[valid-type]
-        default_factory=list,
-        description=_DATA_SOURCES_DESC,
+    data_sources: list[SourceCode] = Field(
+        default_factory=list, description=_DATA_SOURCES_DESC
     )
     locations: list[str] = Field(
         default_factory=list,

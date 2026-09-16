@@ -14,7 +14,6 @@ VOCAB_COLUMNS: dict[VocabField, InstrumentedAttribute[list[str]]] = {
     VocabField.CANCER_TYPE: TrialSite.cancer_type_names,
     VocabField.TREATMENT_TYPE: Trial.treatment_type_names,
     VocabField.DISEASE_STAGE: Trial.disease_stages,
-    VocabField.DATA_SOURCE: TrialSite.data_sources,
 }
 
 
@@ -59,8 +58,6 @@ class VocabularyRepository:
         for field, column in VOCAB_COLUMNS.items():
             result = await self._session.execute(_distinct_values(column))
             values[field] = tuple(result.scalars().all())
-            if field is VocabField.DATA_SOURCE:
-                continue
             grouped: dict[str, list[str]] = {}
             for source, value in await self._session.execute(_values_by_source(column)):
                 grouped.setdefault(source, []).append(value)

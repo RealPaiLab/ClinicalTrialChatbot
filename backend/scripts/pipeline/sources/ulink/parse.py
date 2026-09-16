@@ -145,7 +145,7 @@ def _title(entry: Node) -> tuple[str | None, str]:
     heading = entry.css_first("div.header h4")
     if heading is None:
         raise ParseError("entry has no title")
-    text = clean(heading.text().replace("​", ""))
+    text = clean(heading.text().replace("\u200b", ""))
     code, separator, title = text.partition(" - ")
     if not separator:
         return None, text

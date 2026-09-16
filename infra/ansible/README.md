@@ -107,4 +107,4 @@ sudo systemctl start ctc-app-ingestion-ulc.service     # force a run now
 Pipelines are declared in `ingestion_pipelines` in the environment's group_vars, keyed by the
 name in `backend/scripts/pipelines.yaml`. Set one to `enabled: false` and re-run `app.yml`; the
 role stops its timer and removes its units. Keep the calendars hours apart: the two share a
-database, and a run overlapping another would race on `DROP SCHEMA <pipeline>_build`.
+database and a Postgres advisory lock, so a run that overlaps another exits without publishing.

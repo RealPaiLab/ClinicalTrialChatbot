@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Sequence
 from typing import cast
 
 from sqlalchemy import ColumnElement, Select, func, or_, select
@@ -63,10 +64,10 @@ def _source_match(value: str) -> ColumnElement[bool]:
 def _site_match_exists(
     flt: TrialFilter, restrict_province: str | None
 ) -> ColumnElement[bool] | None:
-    group_terms = {
+    group_terms: dict[Callable[[str], ColumnElement[bool]], Sequence[str]] = {
         _cancer_match: [v for v in flt.cancer_types if v],
         _status_match: [v for v in flt.statuses if v],
-        _source_match: [v for v in flt.data_sources if v],
+        _source_match: flt.data_sources,
     }
     conditions = [
         or_(*(build(v) for v in terms)) for build, terms in group_terms.items() if terms

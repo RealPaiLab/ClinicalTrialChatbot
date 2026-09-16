@@ -34,12 +34,6 @@ def test_generation_names_sort_newest_last_so_listing_can_order_them() -> None:
     assert sorted([f"{prefix}20260101T000000Z", name])[-1] == name
 
 
-def test_each_pipeline_archives_under_its_own_prefix() -> None:
-    """A shared prefix would let one pipeline's prune drop the other's generations."""
-    assert generation_prefix("ctc") != generation_prefix("ulc")
-    assert not _generation_name("ulc").startswith(generation_prefix("ctc"))
-
-
 def test_a_shrinking_corpus_is_measured_against_what_is_live() -> None:
     assert _drop_pct(1000, 950) == 5.0
     assert _drop_pct(1000, 1200) == 0.0

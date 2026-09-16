@@ -4,6 +4,7 @@ import pytest
 
 from core.embeddings import EmbeddingProvider
 from schemas.provinces import split_locations
+from schemas.source import SourceCode
 from schemas.trial import TrialFilter
 from services.trial_search_service import (
     TrialSearchService,
@@ -195,7 +196,7 @@ async def test_a_source_filter_narrows_sites_but_the_citation_names_every_source
     )
 
     result = await service.semantic_search(
-        TrialFilter(data_sources=["ulc"]), query="sarcoma"
+        TrialFilter(data_sources=[SourceCode.ULC]), query="sarcoma"
     )
 
     assert [c.trial_ref for c in result.trials] == ["CTC-0000BOTH"]

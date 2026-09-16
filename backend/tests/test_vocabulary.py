@@ -73,14 +73,15 @@ async def test_loaded_vocabulary_reaches_every_backed_argument() -> None:
 
 
 async def test_values_are_attributed_to_their_registry_when_two_list_them() -> None:
-    """The enum stays the union; the description says which registry buckets what."""
+    """The enum stays the union; the description names the smaller registry's."""
+    values = ("Advanced", "Lymphoma", "Metastatic", "Non-Hodgkin lymphoma")
     set_vocabulary(
         Vocabulary(
-            values={VocabField.CANCER_TYPE: ("Lymphoma", "Non-Hodgkin lymphoma")},
+            values={VocabField.CANCER_TYPE: values},
             by_source={
                 VocabField.CANCER_TYPE: {
-                    "ctc": ("Lymphoma",),
-                    "ulc": ("Non-Hodgkin lymphoma",),
+                    "ctc": ("Advanced", "Lymphoma", "Metastatic"),
+                    "ulc": ("Advanced", "Non-Hodgkin lymphoma"),
                 }
             },
         )
@@ -88,9 +89,10 @@ async def test_values_are_attributed_to_their_registry_when_two_list_them() -> N
     [prepared] = await inject_vocabulary(_ctx(), [_tool_definition()])
 
     prop = prepared.parameters_json_schema["properties"]["cancer_types"]
-    assert prop["items"]["enum"] == ["Lymphoma", "Non-Hodgkin lymphoma"]
+    assert prop["items"]["enum"] == list(values)
     assert prop["description"].endswith(
-        "Values by registry (ctc: Lymphoma; ulc: Non-Hodgkin lymphoma)."
+        "Values by registry (ulc: Advanced (also ctc), Non-Hodgkin lymphoma; "
+        "every other value is ctc)."
     )
 
     set_vocabulary(LOADED)
@@ -135,8 +137,8 @@ async def test_refresh_is_a_no_op_while_the_ttl_is_warm() -> None:
     await service.refresh()
     await service.refresh()
 
-    # A distinct-values query per field, plus a by-source one for all but data_source.
-    assert factory.session.execute.await_count == 2 * len(VocabField) - 1
+    # A distinct-values query plus a by-source one per field.
+    assert factory.session.execute.await_count == 2 * len(VocabField)
 
 
 async def test_a_failed_refresh_keeps_the_previous_vocabulary() -> None:

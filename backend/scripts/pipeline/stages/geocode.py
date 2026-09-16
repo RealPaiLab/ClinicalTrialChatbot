@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import uuid
-from collections.abc import Awaitable, Callable, Sequence
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 import httpx
@@ -225,24 +225,6 @@ async def _write_regions(schema: str, resolved: Sequence[Region]) -> int:
     return len(resolved)
 
 
-async def _gather[T](
-    concurrency: int,
-    transport: httpx.AsyncBaseTransport | None,
-    run: Callable[
-        [httpx.AsyncClient, asyncio.Semaphore], Sequence[Awaitable[T | None]]
-    ],
-) -> list[T]:
-    semaphore = asyncio.Semaphore(concurrency)
-    async with build_retrying_client(
-        max_retries=MAX_RETRIES,
-        max_wait=MAX_WAIT_SECONDS,
-        read_timeout=READ_TIMEOUT_SECONDS,
-        wrapped=transport,
-    ) as client:
-        results = await asyncio.gather(*run(client, semaphore))
-    return [item for item in results if item is not None]
-
-
 async def geocode(
     *,
     schema: str,
@@ -262,25 +244,28 @@ async def geocode(
             "but MAPBOX_TOKEN is unset"
         )
 
-    coordinates = await _gather(
-        concurrency,
-        transport,
-        lambda client, semaphore: [
-            _forward(client, semaphore, location_id, address, access_token)
-            for location_id, address in addresses
-        ],
-    )
-    regions = await _gather(
-        concurrency,
-        transport,
-        lambda client, semaphore: [
-            _reverse(client, semaphore, location_id, lat, lon, access_token)
-            for location_id, lat, lon in points
-        ],
-    )
+    semaphore = asyncio.Semaphore(concurrency)
+    async with build_retrying_client(
+        max_retries=MAX_RETRIES,
+        max_wait=MAX_WAIT_SECONDS,
+        read_timeout=READ_TIMEOUT_SECONDS,
+        wrapped=transport,
+    ) as client:
+        coordinates = await asyncio.gather(
+            *(
+                _forward(client, semaphore, location_id, address, access_token)
+                for location_id, address in addresses
+            )
+        )
+        regions = await asyncio.gather(
+            *(
+                _reverse(client, semaphore, location_id, lat, lon, access_token)
+                for location_id, lat, lon in points
+            )
+        )
     return GeocodeResult(
         requested=len(addresses),
-        resolved=await _write_coordinates(schema, coordinates),
+        resolved=await _write_coordinates(schema, [c for c in coordinates if c]),
         regions_requested=len(points),
-        regions_resolved=await _write_regions(schema, regions),
+        regions_resolved=await _write_regions(schema, [r for r in regions if r]),
     )
