@@ -150,10 +150,6 @@ const frCa = {
     failed: 'Le PDF n’a pas pu être créé',
     failedHint: 'Réessayez, et dites-le-nous si le problème persiste.',
   },
-  sources: {
-    ctc: { label: 'Essais pour adultes', registry: 'Cancer Trials Canada' },
-    ulc: { label: 'Essais pédiatriques', registry: 'U-Link' },
-  },
   data: {
     lastUpdated: 'Données mises à jour le {{date}}',
     notYet: 'pas encore',

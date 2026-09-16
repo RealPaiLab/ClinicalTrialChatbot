@@ -60,7 +60,7 @@ function AppHeader({
               <ul className="border-border mt-2 space-y-1 border-t pt-2">
                 {sources.map(({ source, updatedOn: date }) => (
                   <li key={source} className="flex justify-between gap-3">
-                    <span>{t(TRIAL_SOURCES[source].labelKey)}</span>
+                    <span>{TRIAL_SOURCES[source].label}</span>
                     <span className="text-muted-foreground shrink-0 font-mono text-xs">
                       {date ?? t('data.notYet')}
                     </span>

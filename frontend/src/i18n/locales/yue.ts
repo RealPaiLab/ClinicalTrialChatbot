@@ -140,10 +140,6 @@ const yue = {
     failed: '整唔到個 PDF',
     failedHint: '再試多次；如果一直唔得，話我哋知。',
   },
-  sources: {
-    ctc: { label: '成人試驗', registry: 'Cancer Trials Canada' },
-    ulc: { label: '兒童試驗', registry: 'U-Link' },
-  },
   data: {
     lastUpdated: '資料最後更新於 {{date}}',
     notYet: '未有',

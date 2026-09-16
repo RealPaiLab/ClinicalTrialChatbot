@@ -139,10 +139,6 @@ const zhCn = {
     failed: '无法生成 PDF',
     failedHint: '请重试；如果一直失败，请告诉我们。',
   },
-  sources: {
-    ctc: { label: '成人试验', registry: 'Cancer Trials Canada' },
-    ulc: { label: '儿童试验', registry: 'U-Link' },
-  },
   data: {
     lastUpdated: '数据最后更新于 {{date}}',
     notYet: '尚未',

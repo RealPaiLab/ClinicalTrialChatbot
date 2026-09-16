@@ -1,15 +1,17 @@
 // One entry per ingestion source (mirrors backend schemas/source.py SourceCode).
+// `label` is the organisation behind the listing (the badge), `registry` the site
+// the outbound link opens; both are names, so they are not translated.
 // `href` builds the registry's public trial page from the key the backend stores.
 export const TRIAL_SOURCES = {
   ctc: {
-    labelKey: 'sources.ctc.label',
-    registryKey: 'sources.ctc.registry',
+    label: 'Q-CROC',
+    registry: 'Cancer Trials Canada',
     badgeClass: 'border-primary/40 bg-primary/10 text-primary',
     href: (key: string) => `https://www.cancertrialscanada.ca/trial/${encodeURIComponent(key)}`,
   },
   ulc: {
-    labelKey: 'sources.ulc.label',
-    registryKey: 'sources.ulc.registry',
+    label: 'U-Link',
+    registry: 'U-Link',
     badgeClass: 'border-active/70 bg-active/20 text-foreground',
     href: (key: string) => `https://u-link.care/trials?nid=${encodeURIComponent(key)}`,
   },

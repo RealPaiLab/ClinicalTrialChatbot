@@ -107,7 +107,7 @@ function TrialSummaryHeader({
           </TooltipProvider>
         )}
         {registryLinks.map(({ source, href }, index) => {
-          const label = t('summary.viewOn', { registry: t(TRIAL_SOURCES[source].registryKey) });
+          const label = t('summary.viewOn', { registry: TRIAL_SOURCES[source].registry });
           return (
             <TooltipProvider key={source}>
               <Tooltip>

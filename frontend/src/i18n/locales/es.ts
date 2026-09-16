@@ -149,10 +149,6 @@ const es = {
     failed: 'No se pudo crear el PDF',
     failedHint: 'Inténtelo de nuevo y avísenos si sigue fallando.',
   },
-  sources: {
-    ctc: { label: 'Ensayos para adultos', registry: 'Cancer Trials Canada' },
-    ulc: { label: 'Ensayos pediátricos', registry: 'U-Link' },
-  },
   data: {
     lastUpdated: 'Datos actualizados el {{date}}',
     notYet: 'todavía no',

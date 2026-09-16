@@ -146,10 +146,6 @@ const hi = {
     failed: 'PDF नहीं बनाई जा सकी',
     failedHint: 'फिर कोशिश करें, और बार-बार विफल हो तो हमें बताएं।',
   },
-  sources: {
-    ctc: { label: 'वयस्कों के परीक्षण', registry: 'Cancer Trials Canada' },
-    ulc: { label: 'बाल चिकित्सा परीक्षण', registry: 'U-Link' },
-  },
   data: {
     lastUpdated: 'डेटा अंतिम बार {{date}} को अपडेट हुआ',
     notYet: 'अभी नहीं',

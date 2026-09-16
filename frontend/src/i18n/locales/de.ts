@@ -155,10 +155,6 @@ const de = {
     failed: 'Das PDF konnte nicht erstellt werden',
     failedHint: 'Versuchen Sie es erneut und sagen Sie uns Bescheid, wenn es weiter fehlschlägt.',
   },
-  sources: {
-    ctc: { label: 'Studien für Erwachsene', registry: 'Cancer Trials Canada' },
-    ulc: { label: 'Pädiatrische Studien', registry: 'U-Link' },
-  },
   data: {
     lastUpdated: 'Daten zuletzt aktualisiert am {{date}}',
     notYet: 'noch nicht',

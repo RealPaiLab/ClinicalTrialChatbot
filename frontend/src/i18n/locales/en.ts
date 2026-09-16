@@ -143,10 +143,6 @@ const en = {
     failed: 'The PDF could not be built',
     failedHint: 'Try again, and let us know if it keeps failing.',
   },
-  sources: {
-    ctc: { label: 'Adult trials', registry: 'Cancer Trials Canada' },
-    ulc: { label: 'Pediatric trials', registry: 'U-Link' },
-  },
   data: {
     lastUpdated: 'Data last updated {{date}}',
     notYet: 'not yet',
