@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.10.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.9.0...backend-v0.10.0) (2026-09-23)
+
+
+### Features
+
+* pediatric trials from U-Link as a second data source ([5aa1304](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/5aa13042e74e6823d0905374f23867ffb1b79365))
+
+
+### Bug Fixes
+
+* **deps:** bump anyio to 4.14.2 for CVE-2026-63374 and CVE-2026-63349 ([#117](https://github.com/RealPaiLab/ClinicalTrialChatbot/issues/117)) ([0fe7529](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/0fe7529bffa25bb578849c44e435c9865f09ee72))
+
 ## [0.9.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.8.1...backend-v0.9.0) (2026-09-08)
 
 
