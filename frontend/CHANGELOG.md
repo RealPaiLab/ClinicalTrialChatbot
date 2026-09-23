@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.7.0...frontend-v0.8.0) (2026-09-23)
+
+
+### Features
+
+* pediatric trials from U-Link as a second data source ([5aa1304](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/5aa13042e74e6823d0905374f23867ffb1b79365))
+
 ## [0.7.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.6.1...frontend-v0.7.0) (2026-09-08)
 
 
