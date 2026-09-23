@@ -1,9 +1,14 @@
 from __future__ import annotations
 
-from scripts.ctc.db.shadow import _build_tables
-from scripts.ctc.db.swap import GENERATION_PREFIX, _generation_name, _move_order
-from scripts.ctc.db.tables import PIPELINE_TABLE_NAMES, PIPELINE_TABLES
-from scripts.ctc.stages.validate import Check, ValidationReport, _coverage, _drop_pct
+from scripts.pipeline.db.shadow import _build_tables
+from scripts.pipeline.db.swap import _generation_name, _move_order, generation_prefix
+from scripts.pipeline.db.tables import PIPELINE_TABLE_NAMES, PIPELINE_TABLES
+from scripts.pipeline.stages.validate import (
+    Check,
+    ValidationReport,
+    _coverage,
+    _drop_pct,
+)
 
 
 def test_dependents_move_before_what_they_reference() -> None:
@@ -22,10 +27,11 @@ def test_the_build_schema_only_holds_the_tables_the_swap_moves() -> None:
 
 
 def test_generation_names_sort_newest_last_so_listing_can_order_them() -> None:
-    name = _generation_name()
+    prefix = generation_prefix("ctc")
+    name = _generation_name("ctc")
 
-    assert name.startswith(GENERATION_PREFIX)
-    assert sorted([f"{GENERATION_PREFIX}20260101T000000Z", name])[-1] == name
+    assert name.startswith(prefix)
+    assert sorted([f"{prefix}20260101T000000Z", name])[-1] == name
 
 
 def test_a_shrinking_corpus_is_measured_against_what_is_live() -> None:

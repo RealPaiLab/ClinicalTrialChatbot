@@ -18,6 +18,9 @@ export const DEMO_TRIALS: Trial[] = [
     diseaseStages: ['Advanced'],
     interventionNames: ['Pembrolizumab', 'Paclitaxel'],
     treatmentLines: ['first-line'],
+    ageRangeText: null,
+    sourceKeys: { ctc: 'DEMO-1' },
+    dataSources: ['ctc'],
     sites: [
       {
         nameEn: 'Princess Margaret Cancer Centre',
@@ -46,6 +49,9 @@ export const DEMO_TRIALS: Trial[] = [
     diseaseStages: ['Metastatic'],
     interventionNames: ['Osimertinib'],
     treatmentLines: ['first-line'],
+    ageRangeText: null,
+    sourceKeys: { ctc: 'DEMO-2' },
+    dataSources: ['ctc'],
     sites: [
       {
         nameEn: 'BC Cancer — Vancouver Centre',

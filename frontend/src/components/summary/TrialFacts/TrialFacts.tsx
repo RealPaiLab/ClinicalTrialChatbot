@@ -59,6 +59,7 @@ function TrialFacts({ trial, selectedSiteName }: TrialFactsProps) {
           <FactValues key={treatments.join('|')} values={treatments} className="capitalize" />
         </Fact>
       )}
+      {trial.ageRangeText && <Fact label={t('summary.age')}>{trial.ageRangeText}</Fact>}
       <Fact label={t('summary.province')}>{site?.province ?? EMPTY_VALUE}</Fact>
       <Fact label={t('summary.city')}>{site?.city ?? EMPTY_VALUE}</Fact>
     </dl>

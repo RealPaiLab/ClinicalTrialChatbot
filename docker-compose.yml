@@ -70,7 +70,7 @@ services:
       start_period: 1s
 
   minio:
-    image: minio/minio
+    image: quay.io/minio/minio
     restart: always
     entrypoint: sh
     command: -c 'mkdir -p /data/langfuse && minio server --address ":9000" --console-address ":9001" /data'

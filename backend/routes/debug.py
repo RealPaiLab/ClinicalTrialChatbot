@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Query
 
 from core.dependencies import get_debug_trial_search
 from core.embeddings import EmbeddingProvider
+from schemas.source import SourceCode
 from schemas.trial import TrialCitation, TrialFilter
 from services.trial_search_service import TrialSearchService
 
@@ -21,6 +22,7 @@ async def search_trials(
     phases: Annotated[list[str] | None, Query()] = None,
     treatment_types: Annotated[list[str] | None, Query()] = None,
     disease_stages: Annotated[list[str] | None, Query()] = None,
+    data_sources: Annotated[list[SourceCode] | None, Query()] = None,
     query: str | None = None,
     semantic: str | None = None,
     embedding_provider: EmbeddingProvider | None = None,
@@ -35,6 +37,7 @@ async def search_trials(
         phases=phases or [],
         treatment_types=treatment_types or [],
         disease_stages=disease_stages or [],
+        data_sources=data_sources or [],
     )
     if semantic:
         page = await trial_search.semantic_search(

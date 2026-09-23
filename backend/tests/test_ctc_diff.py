@@ -3,14 +3,14 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 
-from scripts.ctc.canonical import CanonicalTrial, index_trials, to_location_rows
-from scripts.ctc.stages.diff import (
+from scripts.pipeline.canonical import CanonicalTrial, index_trials, to_location_rows
+from scripts.pipeline.stages.diff import (
     LiveLocation,
     LiveSnapshot,
     build_plan,
     site_changes,
 )
-from scripts.ctc.strategies import TimestampStrategy
+from scripts.pipeline.strategies import TimestampStrategy
 from tests.factories import make_source_trial
 
 MAY = datetime(2026, 5, 30, tzinfo=UTC)

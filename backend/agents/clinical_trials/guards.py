@@ -5,7 +5,7 @@ from __future__ import annotations
 import functools
 import json
 import re
-from collections.abc import Awaitable, Callable, Iterator
+from collections.abc import Awaitable, Callable, Iterator, Mapping
 from dataclasses import replace
 
 from pydantic_ai import ModelRetry, RunContext
@@ -99,6 +99,21 @@ VOCAB_ARGUMENTS: dict[str, VocabField] = {
 }
 
 
+def _by_registry(per_source: Mapping[str, tuple[str, ...]]) -> str:
+    """Name the smaller registries' values; the enum already lists them all."""
+    largest = max(per_source, key=lambda source: len(per_source[source]))
+    listed = "; ".join(
+        f"{source}: "
+        + ", ".join(
+            f"{value} (also {largest})" if value in per_source[largest] else value
+            for value in values
+        )
+        for source, values in per_source.items()
+        if source != largest
+    )
+    return f" Values by registry ({listed}; every other value is {largest})."
+
+
 def _with_enums(tool: ToolDefinition, vocabulary: Vocabulary) -> ToolDefinition:
     schema = tool.parameters_json_schema
     properties = schema.get("properties")
@@ -111,8 +126,17 @@ def _with_enums(tool: ToolDefinition, vocabulary: Vocabulary) -> ToolDefinition:
         if not allowed or not isinstance(prop, dict):
             continue
         items = prop.get("items")
-        if isinstance(items, dict):
-            patched[name] = {**prop, "items": {**items, "enum": list(allowed)}}
+        if not isinstance(items, dict):
+            continue
+        constrained: dict[str, object] = {
+            **prop,
+            "items": {**items, "enum": list(allowed)},
+        }
+        per_source = vocabulary.per_source(field)
+        if len(per_source) > 1:
+            description = str(prop.get("description") or "").rstrip()
+            constrained["description"] = description + _by_registry(per_source)
+        patched[name] = constrained
     if not patched:
         return tool
     return replace(

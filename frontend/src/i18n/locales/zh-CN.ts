@@ -98,7 +98,8 @@ const zhCn = {
     askAbout: '向 {{agent}} 询问这项试验',
     addedToChat: '已添加到您的对话',
     addedToChatHint: '已添加，可以向 {{agent}} 提出任何问题',
-    viewOnCtc: '在 Cancer Trials Canada 上查看',
+    viewOn: '在 {{registry}} 上查看',
+    age: '年龄',
     close: '关闭',
   },
   contact: {
@@ -139,6 +140,7 @@ const zhCn = {
   },
   data: {
     lastUpdated: '数据最后更新于 {{date}}',
+    notYet: '尚未',
     shortNotice: '数据反映的是最后一次更新时的状态。',
     detailedNotice: '试验数据最后更新于 {{date}}，可能已过时。详情请咨询您的医疗团队。',
   },

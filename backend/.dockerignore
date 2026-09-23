@@ -13,5 +13,5 @@ build/
 .git/
 .gitignore
 README.md
-scripts/data/*.json
+scripts/data/**/*.json
 scripts/data/*.xlsx

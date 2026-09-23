@@ -107,7 +107,8 @@ const frCa = {
     askAbout: 'Poser une question à {{agent}} sur cet essai',
     addedToChat: 'Ajouté à votre conversation',
     addedToChatHint: 'Ajouté, posez n’importe quelle question à {{agent}}',
-    viewOnCtc: 'Voir sur Cancer Trials Canada',
+    viewOn: 'Voir sur {{registry}}',
+    age: 'Âge',
     close: 'Fermer',
   },
   contact: {
@@ -150,6 +151,7 @@ const frCa = {
   },
   data: {
     lastUpdated: 'Données mises à jour le {{date}}',
+    notYet: 'pas encore',
     shortNotice: 'Les données reflètent le statut au moment de la dernière mise à jour.',
     detailedNotice:
       'Les données des essais ont été mises à jour le {{date}} et peuvent être périmées. Communiquez avec votre équipe de soins pour plus de détails.',

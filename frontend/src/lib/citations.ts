@@ -4,13 +4,14 @@ import {
   DEFINITION_HREF_PREFIX,
 } from '@/constants/chat';
 
-const TRIAL_REF_PATTERN = /CTC-[0-9A-HJ-NP-TV-Z]{8}/g;
-const TRIAL_REF_BRACKET = /\[(CTC-[0-9A-HJ-NP-TV-Z]{8})\]/g;
+// One prefix per source (mirrors backend schemas/trial_ref.py REF_PREFIXES).
+const TRIAL_REF_PATTERN = /(?:CTC|ULC)-[0-9A-HJ-NP-TV-Z]{8}/g;
+const TRIAL_REF_BRACKET = /\[((?:CTC|ULC)-[0-9A-HJ-NP-TV-Z]{8})\]/g;
 // A sentence (no terminator or newline inside) that cites at least one trial.
-const CITING_SENTENCE = /[^.!?\n]*\[CTC-[0-9A-HJ-NP-TV-Z]{8}\][^.!?\n]*[.!?]/g;
+const CITING_SENTENCE = /[^.!?\n]*\[(?:CTC|ULC)-[0-9A-HJ-NP-TV-Z]{8}\][^.!?\n]*[.!?]/g;
 // [contact:CTC-…] — the agent asking for the contact pill on its own, with no
 // trial citation attached. Distinct from [CTC-…], so it never renders a title.
-const CONTACT_TOKEN = /\[contact:(CTC-[0-9A-HJ-NP-TV-Z]{8})\]/g;
+const CONTACT_TOKEN = /\[contact:((?:CTC|ULC)-[0-9A-HJ-NP-TV-Z]{8})\]/g;
 // [[term||short definition]] — term holds no `||` or brackets; definition runs to `]]`.
 const DEFINITION_PATTERN = /\[\[([^[\]|]+?)\|\|([\s\S]+?)\]\]/g;
 

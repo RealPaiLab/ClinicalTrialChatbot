@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge';
+import SourceBadge from '@/components/summary/SourceBadge/SourceBadge';
 import { deriveTrialStatus, formatPhases, primarySite, uniqueCancerTypes } from '@/lib/trial';
 import { TRIAL_STATUS } from '@/lib/trialStatus';
 import { cn } from '@/lib/utils';
@@ -13,6 +14,9 @@ function TrialBadges({ trial }: { trial: Trial }) {
 
   return (
     <span className="flex flex-wrap items-center gap-1.5">
+      {trial.dataSources.map((source) => (
+        <SourceBadge key={source} source={source} />
+      ))}
       {status && (
         <Badge variant="secondary" className="gap-1.5 font-normal">
           <span className={cn('size-2 rounded-full', TRIAL_STATUS[status].badgeClass)} />

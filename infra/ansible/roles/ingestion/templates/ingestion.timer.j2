@@ -1,12 +1,12 @@
 # Managed by Ansible (ingestion role). A oneshot cannot overlap itself.
 [Unit]
-Description=Scheduled CTC trial ingestion ({{ app_environment }})
+Description=Scheduled {{ pipeline | upper }} trial ingestion ({{ app_environment }})
 
 [Timer]
-OnCalendar={{ ingestion_on_calendar }}
+OnCalendar={{ schedule.on_calendar }}
 Persistent=true
 AccuracySec=1min
-Unit={{ ingestion_unit_name }}.service
+Unit={{ ingestion_unit_prefix }}-{{ pipeline }}.service
 
 [Install]
 WantedBy=timers.target

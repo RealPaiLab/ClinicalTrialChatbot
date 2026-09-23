@@ -7,9 +7,8 @@ import ContactDialog from '@/components/contact/ContactDialog/ContactDialog';
 import TrialTitle from '@/components/summary/TrialTitle/TrialTitle';
 import { useAppLanguage } from '@/hooks/useAppLanguage';
 import { publicTrialId } from '@/lib/trial';
+import { TRIAL_SOURCE_CODES, TRIAL_SOURCES } from '@/constants/trialSources';
 import type { Trial } from '@/types/trial';
-
-const TRIAL_URL_BASE = 'https://www.cancertrialscanada.ca/trial/';
 
 interface TrialSummaryHeaderProps {
   trial: Trial;
@@ -34,9 +33,11 @@ function TrialSummaryHeader({
   const { language } = useAppLanguage();
   const [contactOpen, setContactOpen] = useState(false);
   const title = trial.officialTitleEn ?? trial.shortTitleEn ?? publicTrialId(trial) ?? 'Trial';
-  const trialUrl = trial.acronymOrProtocolId
-    ? `${TRIAL_URL_BASE}${encodeURIComponent(trial.acronymOrProtocolId)}`
-    : null;
+  // One outbound link per registry that lists the trial, in source order.
+  const registryLinks = TRIAL_SOURCE_CODES.flatMap((source) => {
+    const key = trial.sourceKeys[source];
+    return key ? [{ source, href: TRIAL_SOURCES[source].href(key) }] : [];
+  });
 
   return (
     <div className="border-border flex items-start justify-between gap-3 border-b p-4">
@@ -105,26 +106,29 @@ function TrialSummaryHeader({
             </Tooltip>
           </TooltipProvider>
         )}
-        {trialUrl && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  asChild
-                  variant="ghost"
-                  size="icon"
-                  data-tour="trial-link"
-                  aria-label={t('summary.viewOnCtc')}
-                >
-                  <a href={trialUrl} target="_blank" rel="noreferrer">
-                    <ExternalLink />
-                  </a>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>{t('summary.viewOnCtc')}</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
+        {registryLinks.map(({ source, href }, index) => {
+          const label = t('summary.viewOn', { registry: TRIAL_SOURCES[source].registry });
+          return (
+            <TooltipProvider key={source}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    asChild
+                    variant="ghost"
+                    size="icon"
+                    data-tour={index === 0 ? 'trial-link' : undefined}
+                    aria-label={label}
+                  >
+                    <a href={href} target="_blank" rel="noreferrer">
+                      <ExternalLink />
+                    </a>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{label}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          );
+        })}
         {onClose && (
           <Button variant="ghost" size="icon" aria-label={t('summary.close')} onClick={onClose}>
             <X />

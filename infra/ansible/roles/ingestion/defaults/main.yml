@@ -1,13 +1,17 @@
 ---
-# Opt in per environment.
-ingestion_enabled: false
-
 # deploy_slot keeps a co-hosted second environment from colliding.
-ingestion_unit_name: "{{ project_name }}-{{ deploy_slot }}-ingestion"
+ingestion_unit_prefix: "{{ project_name }}-{{ deploy_slot }}-ingestion"
 
-ingestion_on_calendar: "Sat *-*-* 13:00:00 UTC"
-
-# timeout for ingestion to complete, in seconds. 6 hours by default.
+# timeout for a run to complete, in seconds. 6 hours by default.
 ingestion_timeout_sec: 21600
 
-ingestion_command: "python -m scripts.run ctc"
+# One timer per pipeline in `backend/scripts/pipelines.yaml`, keyed by its name.
+# Opt in per environment. Both share one Postgres and one advisory lock, so a
+# run that overlaps another exits without publishing: keep the calendars apart.
+ingestion_pipelines:
+  ctc:
+    enabled: false
+    on_calendar: "Sat *-*-* 13:00:00 UTC"
+  ulc:
+    enabled: false
+    on_calendar: "Sat *-*-* 17:00:00 UTC"

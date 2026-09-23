@@ -107,7 +107,8 @@ const es = {
     askAbout: 'Preguntar a {{agent}} sobre este ensayo',
     addedToChat: 'Añadido a su conversación',
     addedToChatHint: 'Añadido, pregunte a {{agent}} lo que quiera',
-    viewOnCtc: 'Ver en Cancer Trials Canada',
+    viewOn: 'Ver en {{registry}}',
+    age: 'Edad',
     close: 'Cerrar',
   },
   contact: {
@@ -149,6 +150,7 @@ const es = {
   },
   data: {
     lastUpdated: 'Datos actualizados el {{date}}',
+    notYet: 'todavía no',
     shortNotice: 'Los datos reflejan el estado en la última actualización.',
     detailedNotice:
       'Los datos de los ensayos se actualizaron por última vez el {{date}} y pueden estar desactualizados. Consulte a su equipo médico para más detalles.',

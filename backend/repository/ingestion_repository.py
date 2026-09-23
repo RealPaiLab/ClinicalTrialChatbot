@@ -14,13 +14,15 @@ class IngestionRunRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def latest_published(self, pipeline: str) -> IngestionRun | None:
-        """The newest publish that has not been rolled back, or None."""
+    async def latest_published_per_pipeline(self) -> dict[str, IngestionRun]:
+        """Each pipeline's newest publish that has not been rolled back."""
         statement = (
             select(IngestionRun)
-            .where(IngestionRun.pipeline == pipeline, IngestionRun.status == PUBLISHED)
+            .where(IngestionRun.status == PUBLISHED)
             .order_by(IngestionRun.published_at.desc(), IngestionRun.id.desc())
-            .limit(1)
         )
         result = await self._session.execute(statement)
-        return result.scalar_one_or_none()
+        latest: dict[str, IngestionRun] = {}
+        for run in result.scalars().all():
+            latest.setdefault(run.pipeline, run)
+        return latest

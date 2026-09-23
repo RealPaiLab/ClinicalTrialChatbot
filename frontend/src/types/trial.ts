@@ -1,6 +1,7 @@
 import { StreamEventType } from '@/constants/chat';
 import type { ChatErrorKey, ChatRole } from '@/constants/chat';
 import type { LanguageCode, TranslationSource } from '@/constants/language';
+import type { TrialSourceCode } from '@/constants/trialSources';
 
 export type { ChatRole };
 
@@ -29,6 +30,12 @@ export interface Trial {
   diseaseStages: string[];
   interventionNames: string[];
   treatmentLines: string[];
+  // Age eligibility verbatim from the registry, when it states one.
+  ageRangeText: string | null;
+  // Source code to the token its public trial page is built from.
+  sourceKeys: Partial<Record<TrialSourceCode, string>>;
+  // Which registries list the trial; both when it is merged from two.
+  dataSources: TrialSourceCode[];
   sites: TrialSite[];
 }
 
@@ -91,6 +98,14 @@ export interface ChatMessage {
   error?: ChatError;
 }
 
-export interface DataFreshness {
+export interface SourceFreshness {
+  source: TrialSourceCode;
+  name: string;
   publishedAt: string | null;
+}
+
+export interface DataFreshness {
+  // The oldest published source, so the badge never overstates freshness.
+  publishedAt: string | null;
+  sources: SourceFreshness[];
 }

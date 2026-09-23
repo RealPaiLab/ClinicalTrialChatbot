@@ -12,64 +12,42 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-from collections.abc import Callable, Coroutine
-from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
 from dotenv import load_dotenv
 from rich.console import Console
 
-from scripts.ctc import orchestrator
-from scripts.ctc.config import CtcConfig
-from scripts.ctc.envsubst import expand
-from scripts.ctc.stages.publish import undo
+from scripts.pipeline import orchestrator
+from scripts.pipeline.config import STAGE_ORDER, PipelineConfig
+from scripts.pipeline.envsubst import expand
 
 DEFAULT_CONFIG = Path(__file__).resolve().parent / "pipelines.yaml"
 console = Console()
 
 
-# Each entry owns its whole run, so the registry never has to name a config type
-PipelineRunner = Callable[[object, list[str] | None], Coroutine[None, None, None]]
-Rollback = Callable[[], Coroutine[None, None, str]]
-
-
-@dataclass(frozen=True, slots=True)
-class Pipeline:
-    """A registry entry: how to run it, how to undo it, and what it is made of."""
-
-    run: PipelineRunner
-    rollback: Rollback
-    stages: tuple[str, ...]
-
-
-async def _run_ctc(block: object, stages: list[str] | None) -> None:
-    await orchestrator.run(CtcConfig.model_validate(block), stages)
-
-
-PIPELINES: dict[str, Pipeline] = {
-    "ctc": Pipeline(
-        run=_run_ctc,
-        rollback=undo,
-        stages=tuple(orchestrator.STAGES),
-    ),
-}
-
-
-def _load(path: Path, name: str) -> object:
+def _document(path: Path) -> dict[str, object]:
     if not path.exists():
         raise SystemExit(f"no pipeline config at {path}")
     raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    document: dict[str, object] = raw if isinstance(raw, dict) else {}
+    return raw if isinstance(raw, dict) else {}
+
+
+def _load(path: Path, name: str) -> PipelineConfig:
+    """The YAML is the registry: a top-level key is a pipeline."""
+    document = _document(path)
     if name not in document:
         known = ", ".join(sorted(document)) or "none"
         raise SystemExit(f"no {name!r} entry in {path} (found: {known})")
-    return expand(document[name]) or {}
+    return PipelineConfig.model_validate(expand(document[name]) or {})
 
 
-def _list() -> None:
-    for name, pipeline in PIPELINES.items():
-        console.print(f"[bold]{name}[/bold]  stages: {', '.join(pipeline.stages)}")
+def _list(path: Path) -> None:
+    """Reads the raw blocks: listing what exists must not need a pipeline's env vars."""
+    for name, block in sorted(_document(path).items()):
+        declared = block.get("stages") if isinstance(block, dict) else None
+        stages = declared if isinstance(declared, list) else list(STAGE_ORDER)
+        console.print(f"[bold]{name}[/bold]  stages: {', '.join(stages)}")
 
 
 def main() -> None:
@@ -94,19 +72,15 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.list:
-        _list()
+        _list(args.config)
         return
     if args.pipeline is None:
         parser.error("name a pipeline, or pass --list")
-    if args.pipeline not in PIPELINES:
-        parser.error(
-            f"unknown pipeline {args.pipeline!r} (known: {', '.join(PIPELINES)})"
-        )
 
-    pipeline = PIPELINES[args.pipeline]
     if args.rollback:
         try:
-            restored = asyncio.run(pipeline.rollback())
+            config = _load(args.config, args.pipeline)
+            restored = asyncio.run(orchestrator.undo(args.pipeline, config))
         except RuntimeError as error:
             raise SystemExit(f"[{args.pipeline}] {error}") from error
         console.print(f"restored [bold]{restored}[/bold]")
@@ -114,7 +88,7 @@ def main() -> None:
 
     try:
         config = _load(args.config, args.pipeline)
-        asyncio.run(pipeline.run(config, args.stages))
+        asyncio.run(orchestrator.run(args.pipeline, config, args.stages))
     except (RuntimeError, ValueError) as error:
         raise SystemExit(f"[{args.pipeline}] {error}") from error
 
