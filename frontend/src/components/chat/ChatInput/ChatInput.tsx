@@ -58,7 +58,8 @@ function ChatInput({
         </PromptInputHeader>
       )}
       <PromptInputBody>
-        <PromptInputTextarea placeholder={t('chat.placeholder')} className="min-h-14" />
+        {/* Clears the help icon pinned in the corner. */}
+        <PromptInputTextarea placeholder={t('chat.placeholder')} className="min-h-14 pr-8" />
       </PromptInputBody>
       <PromptInputFooter>
         <PromptInputTools>
