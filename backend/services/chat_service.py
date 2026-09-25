@@ -78,6 +78,7 @@ class ChatService:
             message=output.message,
             trials=trials,
             follow_up_questions=output.follow_up_questions,
+            conversation_title=deps.memory.title,
         )
 
     def _report_hallucination(
@@ -137,6 +138,8 @@ class ChatService:
                     output = await result.get_output()
                     messages = result.all_messages()
 
+                if deps.memory.title is None and output.conversation_title:
+                    deps.memory.title = output.conversation_title.strip() or None
                 await self._conversation_service.save_history(session_id, messages)
                 await self._conversation_service.save_memory(session_id, deps.memory)
                 chat_result = self._to_chat_result(output, deps)

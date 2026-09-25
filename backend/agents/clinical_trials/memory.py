@@ -14,6 +14,16 @@ patient's newest message contradicts a note, the message wins and you record the
 correction."""
 
 
+def render_title_lock(memory: ConversationMemory) -> str | None:
+    """Tell the agent the title is already set, so it stops producing one."""
+    if memory.title is None:
+        return None
+    return (
+        f'This conversation already has its title ("{memory.title}"). '
+        "Leave `conversation_title` null."
+    )
+
+
 def render_memory(memory: ConversationMemory) -> str | None:
     """Render the scratchpad as an instruction block, or None while it is empty."""
     if not memory.notes:

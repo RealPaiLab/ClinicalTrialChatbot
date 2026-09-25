@@ -18,6 +18,8 @@ class ConversationMemory(BaseModel):
     """Append-only notes; the newest note about a subject is the current one."""
 
     notes: list[MemoryNote] = Field(default_factory=list)
+    # Set once from the agent's first title, then served as-is until the session resets.
+    title: str | None = None
 
     def record(self, turn: int, text: str) -> None:
         """Append one note, ignoring blanks and notes already stored verbatim."""

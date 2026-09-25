@@ -46,3 +46,15 @@ class AgentResponse(BaseModel):
             "you ask them."
         ),
     )
+    conversation_title: str | None = Field(
+        default=None,
+        description=(
+            "OPTIONAL. A short title for the conversation, naming the trials being "
+            "looked for, in the patient's language, e.g. 'Stage II HER2-positive "
+            "breast cancer trials near Toronto' or 'Pediatric leukemia trials near "
+            "Montreal'. Leave it null until you know at least the cancer type and "
+            "where the patient is looking; the app shows a placeholder until then. "
+            "It is set once per conversation. It describes the search, never the "
+            "person: no ages, sex, names or trial refs."
+        ),
+    )

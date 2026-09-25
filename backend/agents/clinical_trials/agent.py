@@ -13,7 +13,7 @@ from agents.clinical_trials.guards import (
     inject_vocabulary,
     tools_available,
 )
-from agents.clinical_trials.memory import render_memory
+from agents.clinical_trials.memory import render_memory, render_title_lock
 from agents.clinical_trials.output import AgentResponse
 from agents.clinical_trials.prompts import get_clinical_trials_prompt
 from agents.clinical_trials.tools import (
@@ -65,6 +65,10 @@ def get_clinical_trials_agent() -> Agent[AgentDeps, AgentResponse]:
     @agent.instructions
     def _conversation_memory(ctx: RunContext[AgentDeps]) -> str:
         return render_memory(ctx.deps.memory) or ""
+
+    @agent.instructions
+    def _title_lock(ctx: RunContext[AgentDeps]) -> str:
+        return render_title_lock(ctx.deps.memory) or ""
 
     agent.output_validator(enforce_citations)
 
