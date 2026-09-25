@@ -27,6 +27,8 @@ interface MapPanelProps {
   selectedSiteKey?: string | null;
   onSelectTrial?: (trialRef: string, siteKey?: string | null) => void;
   dark?: boolean;
+  /** Opens a shared site's trial list when one of its trials is selected elsewhere. */
+  autoOpenClusters?: boolean;
 }
 
 function MapPanel({
@@ -35,6 +37,7 @@ function MapPanel({
   selectedSiteKey,
   onSelectTrial,
   dark,
+  autoOpenClusters = true,
 }: MapPanelProps) {
   const { t } = useTranslation();
   const mapRef = useRef<MapRef | null>(null);
@@ -42,7 +45,12 @@ function MapPanel({
   const [loaded, setLoaded] = useState(false);
 
   const { markers, units } = useTrialPins(trials);
-  const { openKey, toggle, close } = useClusterDisclosure(units, selectedTrialRef, selectedSiteKey);
+  const { openKey, toggle, close } = useClusterDisclosure(
+    units,
+    selectedTrialRef,
+    selectedSiteKey,
+    autoOpenClusters
+  );
   useMapViewSync({
     mapRef,
     containerRef,
@@ -130,7 +138,7 @@ function MapPanel({
         ))}
       </MapGL>
 
-      <div className="absolute top-3 left-3 z-10">
+      <div data-slot="map-info" className="absolute top-3 left-3 z-10">
         <HoverCard openDelay={100} closeDelay={0}>
           <HoverCardTrigger asChild>
             <button
