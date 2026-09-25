@@ -150,8 +150,8 @@ function MapPanel({
       {markers.length > 0 ? (
         <MapLegend />
       ) : (
-        <div className="text-muted-foreground pointer-events-none absolute inset-0 grid place-items-center">
-          <p className="bg-card/80 rounded-lg border px-3 py-2 text-sm backdrop-blur">
+        <div className="text-muted-foreground pointer-events-none absolute inset-0 grid place-items-center p-6">
+          <p className="bg-card/80 max-w-xs rounded-lg border px-3 py-2 text-center text-sm text-balance backdrop-blur">
             {t('map.emptyHint')}
           </p>
         </div>
