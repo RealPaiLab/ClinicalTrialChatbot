@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { LanguageCode } from '@/constants/language';
+import type { SheetSnap } from '@/constants/layout';
 import type { ChatMessage, Trial } from '@/types/trial';
 
 export type Theme = 'light' | 'dark';
@@ -19,9 +20,15 @@ interface AppState {
   hasSeenTour: boolean;
   tourMessages: ChatMessage[];
   conversationTitle: string | null;
+  /** Mobile chat sheet height; kept here so the tour can move it. */
+  sheetSnap: SheetSnap;
+  /** Mobile trial details drawer; kept here so the tour can open it. */
+  trialDrawerOpen: boolean;
 
   setTrials: (trials: Trial[]) => void;
   setConversationTitle: (conversationTitle: string | null) => void;
+  setSheetSnap: (sheetSnap: SheetSnap) => void;
+  setTrialDrawerOpen: (trialDrawerOpen: boolean) => void;
   selectTrial: (trialRef: string | null, siteKey?: string | null) => void;
   addToContext: (trialRef: string) => void;
   removeFromContext: (trialRef: string) => void;
@@ -54,10 +61,15 @@ export const useAppStore = create<AppState>()(
       hasSeenTour: false,
       tourMessages: [],
       conversationTitle: null,
+      // A fresh visit has nothing on the map yet, so it opens on the conversation.
+      sheetSnap: 'full',
+      trialDrawerOpen: false,
 
       // A chat turn owns the map: whatever a bookmark added is superseded by it.
       setTrials: (trials) => set({ trials, bookmarkTrialRefs: [] }),
       setConversationTitle: (conversationTitle) => set({ conversationTitle }),
+      setSheetSnap: (sheetSnap) => set({ sheetSnap }),
+      setTrialDrawerOpen: (trialDrawerOpen) => set({ trialDrawerOpen }),
       selectTrial: (selectedTrialRef, selectedSiteKey = null) =>
         set({ selectedTrialRef, selectedSiteKey }),
       addToContext: (trialRef) =>

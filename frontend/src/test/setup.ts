@@ -11,6 +11,18 @@ class ResizeObserverMock {
 
 vi.stubGlobal('ResizeObserver', ResizeObserverMock);
 
+// jsdom has no matchMedia; tests render the desktop layout.
+vi.stubGlobal(
+  'matchMedia',
+  (query: string) =>
+    ({
+      matches: false,
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }) as unknown as MediaQueryList
+);
+
 Element.prototype.scrollTo = (() => {}) as Element['scrollTo'];
 Element.prototype.scrollIntoView = (() => {}) as Element['scrollIntoView'];
 
