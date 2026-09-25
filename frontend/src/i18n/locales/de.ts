@@ -74,6 +74,21 @@ const de = {
     messageTooLong:
       'Ihre Nachricht ist zu lang. Bitte halten Sie sie unter {{limit}} Zeichen und versuchen Sie es erneut.',
   },
+  mobile: {
+    menu: 'Menü',
+    ask: 'Fragen',
+    backToMap: 'Zurück zur Karte',
+    searchPrompt: 'Beschreiben Sie Ihre Situation, um Studien zu finden',
+    chatPeek: 'Fragen zu diesen Studien stellen',
+    resizeChat: 'Ziehen, um die Chatgröße zu ändern',
+    save: 'Merken',
+    contact: 'Kontakt',
+    listing: 'Eintrag',
+    aboutAnswers: 'Über diese Antworten',
+    theme: 'Design',
+    themeLight: 'Hell',
+    themeDark: 'Dunkel',
+  },
   map: {
     trialCount_one: '{{count}} Studie',
     trialCount_other: '{{count}} Studien',
@@ -221,6 +236,41 @@ const de = {
         title: 'Ihre hinzugefügten Studien',
         description:
           'Studien, die Sie hinzufügen, erscheinen hier als Chips, bevor Sie eine Nachricht senden. Entfernen Sie sie mit dem ×, sobald Sie sie nicht mehr brauchen.',
+      },
+      mobileSearch: {
+        title: 'Ihre Suche',
+        description:
+          'Diese Zeile fasst zusammen, wonach Sie suchen. Tippen Sie jederzeit darauf, um den Chat zu öffnen und Ihre Suche zu verfeinern.',
+      },
+      mobileAnswer: {
+        title: 'Die Antwort lesen',
+        description:
+          'Antworten nennen echte Studien als Markierungen wie die oben. Tippen Sie auf eine, um sie auf der Karte zu sehen; ihre Kachel ist dann bereit zum Öffnen.',
+      },
+      mobileResize: {
+        title: 'Platz schaffen',
+        description:
+          'Ziehen Sie diesen Griff, um den Chat größer oder kleiner zu machen, oder tippen Sie darauf, um den Chat einzuklappen und die ganze Karte zu sehen.',
+      },
+      mobileCards: {
+        title: 'Durch Studien wischen',
+        description:
+          'Passende Studien erscheinen als Karten. Wischen Sie nach links oder rechts, um zwischen ihnen zu wechseln, die Karte folgt.',
+      },
+      mobileOpenTrial: {
+        title: 'Eine Studie öffnen',
+        description:
+          'Tippen Sie auf die hervorgehobene Karte oder wischen Sie sie nach oben, um die ganze Studie zu öffnen.',
+      },
+      mobileDetails: {
+        title: 'Studiendetails',
+        description:
+          'Alles zur Studie an einem Ort: Status, wer teilnehmen kann und wo sie stattfindet. Über die Leiste unten können Sie nachfragen, die Studie merken oder das Team kontaktieren. Zum Schließen nach unten wischen.',
+      },
+      mobileFinish: {
+        title: 'Alles bereit',
+        description:
+          'Beschreiben Sie zuerst Ihre Situation im Chat. Sie können diese Tour jederzeit über das Menü erneut öffnen.',
       },
       finish: {
         title: 'Alles bereit',

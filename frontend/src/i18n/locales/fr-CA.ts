@@ -70,6 +70,21 @@ const frCa = {
     generic: 'Une erreur est survenue. Veuillez réessayer.',
     messageTooLong: 'Votre message est trop long. Limitez-le à {{limit}} caractères et réessayez.',
   },
+  mobile: {
+    menu: 'Menu',
+    ask: 'Demander',
+    backToMap: 'Retour à la carte',
+    searchPrompt: 'Parlez-moi de votre situation pour trouver des essais',
+    chatPeek: 'Poser une question sur ces essais',
+    resizeChat: 'Faites glisser pour redimensionner la discussion',
+    save: 'Enregistrer',
+    contact: 'Contacter',
+    listing: 'Fiche',
+    aboutAnswers: 'À propos de ces réponses',
+    theme: 'Thème',
+    themeLight: 'Clair',
+    themeDark: 'Sombre',
+  },
   map: {
     trialCount_one: '{{count}} essai',
     trialCount_other: '{{count}} essais',
@@ -216,6 +231,41 @@ const frCa = {
         title: 'Vos essais ajoutés',
         description:
           'Les essais que vous ajoutez apparaissent ici sous forme de pastilles avant l’envoi de votre message. Retirez-les avec le × quand vous n’en avez plus besoin.',
+      },
+      mobileSearch: {
+        title: 'Votre recherche',
+        description:
+          'Cette ligne résume ce que vous cherchez. Touchez-la à tout moment pour ouvrir la discussion et préciser votre recherche.',
+      },
+      mobileAnswer: {
+        title: 'Lire la réponse',
+        description:
+          'Les réponses citent de vrais essais sous forme de pastilles comme celle ci-dessus. Touchez-en une pour la voir sur la carte, avec sa fiche prête à ouvrir.',
+      },
+      mobileResize: {
+        title: 'Faire de la place',
+        description:
+          'Faites glisser cette poignée pour agrandir ou réduire la discussion, ou touchez-la pour la ranger et voir toute la carte.',
+      },
+      mobileCards: {
+        title: 'Parcourir les essais',
+        description:
+          'Les essais correspondants apparaissent sous forme de cartes. Balayez vers la gauche ou la droite pour passer de l’un à l’autre, la carte suit.',
+      },
+      mobileOpenTrial: {
+        title: 'Ouvrir un essai',
+        description:
+          'Touchez la carte en surbrillance, ou balayez-la vers le haut, pour ouvrir l’essai complet.',
+      },
+      mobileDetails: {
+        title: 'Détails de l’essai',
+        description:
+          'Tout sur l’essai au même endroit : son statut, qui peut participer et où il a lieu. La barre du bas permet de poser une question, de l’enregistrer ou de contacter l’équipe. Balayez vers le bas pour fermer.',
+      },
+      mobileFinish: {
+        title: 'Vous êtes prêt',
+        description:
+          'Commencez par décrire votre situation dans la discussion. Vous pouvez relancer cette visite à tout moment depuis le menu.',
       },
       finish: {
         title: 'Tout est prêt',
