@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MessageResponse } from '@/components/ai-elements/message';
-import TrialSummaryHeader from '@/components/summary/TrialSummaryHeader/TrialSummaryHeader';
+import TrialSummaryHeader, {
+  TrialSummaryActions,
+} from '@/components/summary/TrialSummaryHeader/TrialSummaryHeader';
 import TrialFacts from '@/components/summary/TrialFacts/TrialFacts';
 import TrialCriteria from '@/components/summary/TrialCriteria/TrialCriteria';
 import { TranslationSource } from '@/constants/language';
@@ -18,6 +20,8 @@ interface TrialSummaryPanelProps {
   onToggleBookmark?: (trialRef: string) => void;
   isBookmarked?: boolean;
   selectedSiteName?: string | null;
+  /** Puts the trial actions in a bar pinned under the scrolling details. */
+  actionBar?: boolean;
 }
 
 function TranslationSkeleton() {
@@ -50,6 +54,7 @@ function TrialSummaryPanel({
   onToggleBookmark,
   isBookmarked,
   selectedSiteName,
+  actionBar,
 }: TrialSummaryPanelProps) {
   const { t } = useTranslation();
   const { trial: displayTrial, isPending, source } = useTrialTranslation(trial);
@@ -71,17 +76,18 @@ function TrialSummaryPanel({
         ? t('summary.unavailableNotice')
         : null;
 
+  const actions = {
+    trial: displayTrial,
+    onAddToContext,
+    isInContext,
+    onToggleBookmark,
+    isBookmarked,
+    selectedSiteName,
+  };
+
   return (
     <div className="bg-card flex h-full flex-col">
-      <TrialSummaryHeader
-        trial={displayTrial}
-        onClose={onClose}
-        onAddToContext={onAddToContext}
-        isInContext={isInContext}
-        onToggleBookmark={onToggleBookmark}
-        isBookmarked={isBookmarked}
-        selectedSiteName={selectedSiteName}
-      />
+      <TrialSummaryHeader {...actions} onClose={onClose} hideActions={actionBar} />
       <ScrollArea className="min-h-0 flex-1">
         {isPending ? (
           <TranslationSkeleton />
@@ -98,6 +104,11 @@ function TrialSummaryPanel({
           </div>
         )}
       </ScrollArea>
+      {actionBar && (
+        <div className="border-border flex items-stretch gap-1 border-t px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+          <TrialSummaryActions {...actions} labelled />
+        </div>
+      )}
     </div>
   );
 }
