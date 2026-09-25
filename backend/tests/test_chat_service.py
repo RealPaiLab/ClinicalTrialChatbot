@@ -206,6 +206,46 @@ async def test_scratchpad_persists_across_turns() -> None:
     assert after_second.notes == after_first.notes
 
 
+async def test_conversation_title_is_set_once_per_session() -> None:
+    conversation = ConversationService(
+        ConversationRepository(InMemoryKeyValueStore(), ttl_seconds=3600)
+    )
+    chat = _chat(StubTrialSearch(), conversation)
+
+    def titled(title: str | None) -> TestModel:
+        return make_test_model(
+            call_tools=[],
+            output={
+                "message": "hi",
+                "used_trial_refs": [],
+                "follow_up_questions": [],
+                "conversation_title": title,
+            },
+        )
+
+    async def turn(session: str, title: str | None) -> ChatResult:
+        with (
+            get_input_triage_agent().override(model=_allow_triage()),
+            get_clinical_trials_agent().override(model=titled(title)),
+        ):
+            items = [item async for item in chat.stream_chat(session, "message")]
+        final = items[-1]
+        assert isinstance(final, ChatResult)
+        return final
+
+    assert (await turn("s1", None)).conversation_title is None
+    assert (await turn("s1", "Breast cancer trials")).conversation_title == (
+        "Breast cancer trials"
+    )
+    # a later title is ignored, and a quiet turn still serves the saved one
+    assert (await turn("s1", "Lung cancer trials")).conversation_title == (
+        "Breast cancer trials"
+    )
+    assert (await turn("s1", None)).conversation_title == "Breast cancer trials"
+    # a new conversation is a new session, so it starts without a title
+    assert (await turn("s2", None)).conversation_title is None
+
+
 async def test_hallucinated_turn_is_flagged_in_langfuse() -> None:
     chat = _chat(StubTrialSearch())
     chat._langfuse = MagicMock()
