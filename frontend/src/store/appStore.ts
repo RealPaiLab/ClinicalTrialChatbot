@@ -18,8 +18,10 @@ interface AppState {
   hasChosenLanguage: boolean;
   hasSeenTour: boolean;
   tourMessages: ChatMessage[];
+  conversationTitle: string | null;
 
   setTrials: (trials: Trial[]) => void;
+  setConversationTitle: (conversationTitle: string | null) => void;
   selectTrial: (trialRef: string | null, siteKey?: string | null) => void;
   addToContext: (trialRef: string) => void;
   removeFromContext: (trialRef: string) => void;
@@ -51,9 +53,11 @@ export const useAppStore = create<AppState>()(
       hasChosenLanguage: false,
       hasSeenTour: false,
       tourMessages: [],
+      conversationTitle: null,
 
       // A chat turn owns the map: whatever a bookmark added is superseded by it.
       setTrials: (trials) => set({ trials, bookmarkTrialRefs: [] }),
+      setConversationTitle: (conversationTitle) => set({ conversationTitle }),
       selectTrial: (selectedTrialRef, selectedSiteKey = null) =>
         set({ selectedTrialRef, selectedSiteKey }),
       addToContext: (trialRef) =>
@@ -107,6 +111,7 @@ export const useAppStore = create<AppState>()(
           contextTrialRefs: [],
           bookmarkTrialRefs: [],
           tourMessages: [],
+          conversationTitle: null,
         }),
       toggleTheme: () => set((state) => ({ theme: state.theme === 'dark' ? 'light' : 'dark' })),
       setTheme: (theme) => set({ theme }),

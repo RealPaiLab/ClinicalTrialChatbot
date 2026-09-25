@@ -69,6 +69,8 @@ export interface ChatResult {
   trials: Trial[];
   followUpQuestions: string[];
   observationId: string;
+  // Short title naming the trials searched for; null until the agent knows enough.
+  conversationTitle?: string | null;
 }
 
 export interface AgentResponse {

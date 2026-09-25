@@ -9,6 +9,7 @@ import {
   StreamEventType,
 } from '@/constants/chat';
 import { chatError, chatErrorForCode, streamChat } from '@/services/chat';
+import { useAppStore } from '@/store/appStore';
 import type { ChatMessage, StreamEvent, Trial } from '@/types/trial';
 
 type CreateStream = (text: string, signal?: AbortSignal) => AsyncGenerator<StreamEvent>;
@@ -107,6 +108,9 @@ export function useChat({
             followUpQuestions: event.data.followUpQuestions,
             observationId: event.data.observationId,
           });
+          if (event.data.conversationTitle) {
+            useAppStore.getState().setConversationTitle(event.data.conversationTitle);
+          }
           if (event.data.trials.length > 0) {
             for (const trial of event.data.trials) {
               queryClient.setQueryData(['trial', trial.trialRef], trial);
