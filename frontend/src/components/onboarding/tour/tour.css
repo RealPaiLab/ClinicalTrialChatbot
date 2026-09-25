@@ -39,6 +39,12 @@
   padding: 1rem 1.1rem;
 }
 
+/* A modal the tour opens (the mobile trial drawer) locks pointer events on body; the card stays usable. */
+.driver-popover.ctc-tour,
+.driver-popover.ctc-tour * {
+  pointer-events: auto;
+}
+
 .driver-popover.ctc-tour .driver-popover-title {
   font-family: var(--font-display);
   font-size: 1rem;
@@ -127,4 +133,35 @@
 }
 .driver-popover.ctc-tour .driver-popover-arrow-side-right.driver-popover-arrow {
   border-right-color: var(--popover);
+}
+
+/* Phones: a narrower, tighter card so it covers less of the small screen (mirrors MOBILE_LAYOUT.query). */
+@media (max-width: 767px), (max-height: 500px) {
+  .driver-popover.ctc-tour {
+    max-width: min(15rem, calc(100vw - 2rem));
+    padding: 0.75rem 0.85rem;
+  }
+
+  .driver-popover.ctc-tour .driver-popover-title {
+    font-size: 0.85rem;
+  }
+
+  .driver-popover.ctc-tour .driver-popover-description {
+    font-size: 0.75rem;
+    line-height: 1.45;
+  }
+
+  .driver-popover.ctc-tour .driver-popover-progress-text {
+    font-size: 0.7rem;
+  }
+
+  .driver-popover.ctc-tour .driver-popover-navigation-btns button {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.7rem;
+  }
+
+  .driver-popover.ctc-tour .driver-popover-close-btn {
+    top: 0.5rem;
+    right: 0.5rem;
+  }
 }

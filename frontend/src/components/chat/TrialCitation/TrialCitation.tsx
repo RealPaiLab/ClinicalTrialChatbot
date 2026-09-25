@@ -57,6 +57,7 @@ function TrialCitation({ trialRef, fetchTrial, onSelect, compact }: TrialCitatio
             type="button"
             variant={compact ? 'outline' : 'secondary'}
             size="sm"
+            data-tour="citation"
             aria-label={`Show ${title} on the map`}
             onClick={() => onSelect?.(trialRef)}
             className="mx-0.5 inline-flex h-5 max-w-full rounded-full px-2 align-baseline text-[0.7rem] font-medium"

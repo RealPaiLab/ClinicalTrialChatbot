@@ -1,6 +1,7 @@
-import type { DriveStep, Driver } from 'driver.js';
+import type { DriveStep, Driver, Popover } from 'driver.js';
 import i18n from '@/i18n';
 import type en from '@/i18n/locales/en';
+import type { SheetSnap } from '@/constants/layout';
 import { useAppStore } from '@/store/appStore';
 import { DEMO_TRIALS } from './demoTrials';
 
@@ -194,5 +195,95 @@ export function buildTourSteps(getTour: () => Driver): DriveStep[] {
     {
       popover: step('finish'),
     },
+  ];
+}
+
+// Waits out the chat sheet's height transition before the next step measures its target.
+const SHEET_SETTLE_MS = 340;
+const DRAWER_SETTLE_MS = 550;
+// driver.js places a card 'over' its element at runtime, but its Side type omits the value.
+const OVER_ELEMENT = 'over' as unknown as NonNullable<Popover['side']>;
+
+/** The same tour for the phone layout: the chat is a sheet the steps raise and lower. */
+export function buildMobileTourSteps(getTour: () => Driver): DriveStep[] {
+  // Moves the sheet first, so the next step is positioned against where things settle.
+  const thenMove =
+    (snap: SheetSnap, move: 'moveNext' | 'movePrevious', prepare?: () => void) => () => {
+      prepare?.();
+      useAppStore.getState().setSheetSnap(snap);
+      window.setTimeout(() => getTour()[move](), SHEET_SETTLE_MS);
+    };
+  // Opens or closes the trial drawer, then moves once its slide has finished.
+  const toggleDrawer = (open: boolean, move: 'moveNext' | 'movePrevious') => () => {
+    useAppStore.getState().setTrialDrawerOpen(open);
+    window.setTimeout(() => getTour()[move](), DRAWER_SETTLE_MS);
+  };
+
+  return [
+    { popover: step('welcome') },
+    {
+      element: '[data-tour="mobile-search"]',
+      popover: {
+        ...step('mobileSearch'),
+        side: 'bottom',
+        align: 'center',
+        onNextClick: thenMove('full', 'moveNext'),
+      },
+    },
+    {
+      element: '[data-tour="chat-input"]',
+      popover: { ...step('message'), side: 'top', align: 'center' },
+    },
+    {
+      element: '[data-tour="citation"]',
+      popover: { ...step('mobileAnswer'), side: 'top', align: 'start' },
+    },
+    {
+      element: '[data-tour="feedback"]',
+      popover: { ...step('feedback'), side: 'top', align: 'start' },
+    },
+    {
+      element: '[data-tour="mobile-sheet-handle"]',
+      popover: {
+        ...step('mobileResize'),
+        side: 'top',
+        align: 'center',
+        // Sample cards appear only once the tour reaches them.
+        onNextClick: thenMove('peek', 'moveNext', () => {
+          useAppStore.getState().setTrials(DEMO_TRIALS);
+          useAppStore.getState().selectTrial(DEMO_NCT);
+        }),
+      },
+    },
+    {
+      element: '[data-tour="mobile-cards"]',
+      popover: {
+        ...step('mobileCards'),
+        side: 'top',
+        align: 'center',
+        onPrevClick: thenMove('full', 'movePrevious'),
+      },
+    },
+    {
+      element: '[data-tour="mobile-cards"] [data-selected="true"]',
+      popover: {
+        ...step('mobileOpenTrial'),
+        side: 'top',
+        align: 'center',
+        onNextClick: toggleDrawer(true, 'moveNext'),
+      },
+    },
+    {
+      element: '[data-tour="mobile-trial"]',
+      popover: {
+        ...step('mobileDetails'),
+        // The drawer fills the screen, so the card sits over its middle.
+        side: OVER_ELEMENT,
+        align: 'center',
+        onPrevClick: toggleDrawer(false, 'movePrevious'),
+        onNextClick: toggleDrawer(false, 'moveNext'),
+      },
+    },
+    { popover: step('mobileFinish') },
   ];
 }

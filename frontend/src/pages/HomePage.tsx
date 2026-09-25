@@ -8,6 +8,7 @@ import AppHeader from '@/components/layout/AppHeader/AppHeader';
 import AppFooter from '@/components/layout/AppFooter/AppFooter';
 import BookmarksSheet from '@/components/bookmarks/BookmarksSheet/BookmarksSheet';
 import { useOnboardingTour } from '@/components/onboarding/tour/useOnboardingTour';
+import { buildMobileTourSteps, buildTourSteps } from '@/components/onboarding/tourSteps';
 import { useCachedTrialTranslations } from '@/hooks/useCachedTranslation';
 import { useTrialPdfExport } from '@/hooks/useTrialPdfExport';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -48,7 +49,7 @@ function HomePage() {
   const summaryPanelRef = usePanelRef();
   const splitGroupRef = useRef<HTMLDivElement | null>(null);
 
-  const { startTour } = useOnboardingTour();
+  const { startTour } = useOnboardingTour(isMobile ? buildMobileTourSteps : buildTourSteps);
   const languageChosenOnLoad = useRef(hasChosenLanguage);
 
   useEffect(() => {
@@ -70,7 +71,7 @@ function HomePage() {
   }, [dark]);
 
   useEffect(() => {
-    if (!hasChosenLanguage || isMobile) return;
+    if (!hasChosenLanguage) return;
     if (useAppStore.getState().hasSeenTour) return;
 
     if (languageChosenOnLoad.current) {
@@ -78,7 +79,7 @@ function HomePage() {
       return () => window.clearTimeout(timer);
     }
     startTour({ driveDelayMs: LANGUAGE_GATE_EXIT_MS });
-  }, [hasChosenLanguage, isMobile, startTour]);
+  }, [hasChosenLanguage, startTour]);
 
   // A bookmark can outlive the conversation that surfaced it, so opening one
   // puts the trial back on the map before selecting it.
