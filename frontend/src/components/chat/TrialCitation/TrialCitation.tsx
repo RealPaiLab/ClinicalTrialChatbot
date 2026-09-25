@@ -8,6 +8,7 @@ import {
   InlineCitationSource,
 } from '@/components/ai-elements/inline-citation';
 import { useCachedTrialTranslation } from '@/hooks/useCachedTranslation';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { publicTrialId } from '@/lib/trial';
 import type { TrialSummary } from '@/types/trial';
 
@@ -27,6 +28,7 @@ interface TrialCitationProps {
 }
 
 function TrialCitation({ trialRef, fetchTrial, onSelect, compact }: TrialCitationProps) {
+  const isMobile = useIsMobile();
   const { data: trial } = useQuery({
     queryKey: ['trial', trialRef],
     queryFn: ({ signal }) => fetchTrial(trialRef, signal),
@@ -48,7 +50,8 @@ function TrialCitation({ trialRef, fetchTrial, onSelect, compact }: TrialCitatio
 
   return (
     <InlineCitation>
-      <InlineCitationCard>
+      {/* Touch taps also fire hover, so the preview would stick; the tap already shows the trial. */}
+      <InlineCitationCard open={isMobile ? false : undefined}>
         <HoverCardTrigger asChild>
           <Button
             type="button"
