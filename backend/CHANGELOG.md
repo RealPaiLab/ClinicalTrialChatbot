@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.11.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.10.0...backend-v0.11.0) (2026-10-08)
+
+
+### Features
+
+* **conversation:** add conversation title handling and rendering logic ([a26f92f](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/a26f92f4d4dcf68b9436be78c5b5efc32db6c4c0))
+* **conversation:** implement test for conversation title persistence across sessions ([cf6fece](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/cf6fece3909bad0d46f889b8d6c110ef1e2a9608))
+
+
+### Bug Fixes
+
+* **deps:** bump fsspec and urllib3 to clear three HIGH CVEs flagged by the dependency scan ([032995c](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/032995c2345ec134e1bf90247ff5714e758bc632))
+* **deps:** bump pyjwt to 2.15.1 to clear one CRITICAL and five HIGH CVEs flagged by the dependency scan ([09f2a34](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/09f2a34872b0d7f61b898185f795711c0e7757fb))
+
 ## [0.10.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.9.0...backend-v0.10.0) (2026-09-23)
 
 
