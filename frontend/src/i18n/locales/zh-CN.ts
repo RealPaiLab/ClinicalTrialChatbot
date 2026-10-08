@@ -2,8 +2,7 @@ import type en from './en';
 
 const zhCn = {
   app: {
-    title: '癌症临床试验导航',
-    shortTitle: '试验导航',
+    tagline: '癌症试验聊天助手',
     preRelease: '预发布版本',
   },
   header: {
@@ -166,7 +165,7 @@ const zhCn = {
     skip: '跳过',
     steps: {
       welcome: {
-        title: '欢迎使用试验导航',
+        title: '欢迎使用 {{agent}}',
         description:
           '这个简短导览会告诉您如何通过对话查找癌症临床试验、浏览地图，并就您感兴趣的试验提问。只需片刻。',
       },

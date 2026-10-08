@@ -1,59 +1,48 @@
-import { Plus } from 'lucide-react';
+import { AGENT_NAME } from '@/constants/chat';
 
-// Scattered marks. Amber is the "active" trial status and navy/blue is "recruiting",
-// so the confetti is built from the same tokens the map pins use.
-const DOTS = [
-  { top: '16%', left: '44%', tone: 'bg-primary/30', size: 'size-2' },
-  { top: '24%', left: '30%', tone: 'bg-amber/28', size: 'size-1.5' },
-  { top: '30%', left: '62%', tone: 'bg-amber/24', size: 'size-1' },
-  { top: '62%', left: '78%', tone: 'bg-primary/35', size: 'size-2.5' },
-  { top: '70%', left: '18%', tone: 'bg-amber/24', size: 'size-1' },
-  { top: '46%', left: '88%', tone: 'bg-amber/28', size: 'size-1.5' },
+// Rays of the OICR-style sunburst: angle in degrees, length as a share of the panel, tone token.
+const RAYS = [
+  { angle: -4, length: 'h-36', tone: 'bg-highlight/70' },
+  { angle: -18, length: 'h-24', tone: 'bg-foreground/10' },
+  { angle: -32, length: 'h-40', tone: 'bg-active/80' },
+  { angle: -46, length: 'h-28', tone: 'bg-foreground/8' },
+  { angle: -60, length: 'h-36', tone: 'bg-highlight/50' },
+  { angle: -74, length: 'h-24', tone: 'bg-foreground/10' },
+  { angle: -88, length: 'h-32', tone: 'bg-active/55' },
 ] as const;
 
 function ConsentArtwork() {
   return (
-    <div className="bg-secondary relative isolate hidden overflow-hidden sm:flex sm:flex-col sm:justify-center">
-      {/* Warm top-left to cool bottom-right, the panel's whole mood in one wash. */}
-      <div
-        aria-hidden
-        className="from-amber/30 to-primary/45 absolute inset-0 bg-gradient-to-br via-transparent"
-      />
-
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        {/* Ring outlines: concentric at the cool corner, one arc catching the warm one. */}
-        <div className="border-foreground/4 absolute -top-10 left-4 size-40 rounded-full border" />
-        <div className="border-primary/5 absolute -right-16 -bottom-20 size-72 rounded-full border" />
-        <div className="border-primary/4 absolute -right-4 -bottom-8 size-52 rounded-full border" />
-
-        {/* Dot grid + plus marks, the quiet "map graticule" texture. */}
-        <div className="absolute top-12 right-6 h-14 w-20 [background-image:radial-gradient(circle,var(--primary)_1.2px,transparent_1.2px)] [background-size:13px_13px] opacity-8" />
-        <Plus className="text-primary/12 absolute top-[9%] right-[12%] size-3" />
-        <Plus className="text-primary/10 absolute bottom-[8%] left-[14%] size-3" />
-
-        {DOTS.map((dot) => (
+    <div className="bg-secondary text-foreground relative isolate overflow-hidden sm:flex sm:flex-col sm:justify-center">
+      <div aria-hidden className="pointer-events-none absolute inset-0 hidden sm:block">
+        {RAYS.map((ray) => (
           <span
-            key={`${dot.top}-${dot.left}`}
-            style={{ top: dot.top, left: dot.left }}
-            className={`${dot.tone} ${dot.size} absolute rounded-full`}
+            key={ray.angle}
+            style={{ transform: `rotate(${ray.angle}deg)` }}
+            className={`${ray.tone} ${ray.length} absolute -right-4 -bottom-4 w-4 origin-bottom`}
           />
         ))}
+        <div className="bg-secondary absolute -right-12 -bottom-12 size-28 rounded-full" />
+        <div className="border-foreground/10 absolute -right-12 -bottom-12 size-28 rounded-full border-[10px]" />
       </div>
 
-      <div className="relative translate-y-8 px-8">
-        <p className="text-foreground font-display text-[clamp(2.75rem,5.5vw,4rem)] leading-none font-extrabold tracking-[-0.045em]">
-          C3TMC
+      <div className="relative px-6 py-6 sm:-translate-y-4 sm:px-8 sm:py-0">
+        <p className="text-muted-foreground hidden text-sm font-semibold sm:block">Introducing</p>
+        <p className="font-display text-[clamp(2.25rem,5.5vw,3.75rem)] leading-none font-extrabold tracking-[-0.03em] uppercase sm:mt-2">
+          {AGENT_NAME}
         </p>
-        <p className="text-foreground/70 mt-5 text-base leading-snug">
-          Canadian Cancer Clinical Trials
-          <br />
-          Map and Chatbot
+        <p className="text-muted-foreground mt-2 text-sm leading-snug font-semibold sm:mt-4 sm:text-base">
+          The Cancer Trial Chatbot
         </p>
-        <div aria-hidden className="bg-foreground/25 mt-8 h-px w-14" />
-        <p className="text-eyebrow text-primary bg-primary/10 mt-6 inline-block rounded-full px-4 py-1.5 font-bold">
+        <p className="text-eyebrow bg-foreground/8 mt-4 inline-block rounded-full px-3 py-1 font-bold sm:mt-6 sm:px-4 sm:py-1.5">
           Pre-Release Version
         </p>
+        <p className="text-muted-foreground mt-6 hidden max-w-[16rem] text-[11px] leading-relaxed sm:block">
+          A project from the Ontario Institute for Cancer Research.
+        </p>
       </div>
+
+      <div aria-hidden className="bg-highlight absolute inset-x-0 bottom-0 h-1" />
     </div>
   );
 }

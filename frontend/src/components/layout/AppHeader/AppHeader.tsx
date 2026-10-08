@@ -5,6 +5,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/h
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import LanguagePicker from '@/components/layout/LanguagePicker/LanguagePicker';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
+import { AGENT_NAME } from '@/constants/chat';
 import { TRIAL_SOURCES } from '@/constants/trialSources';
 
 interface AppHeaderProps {
@@ -28,9 +29,14 @@ function AppHeader({
   const notice = updatedOn ? t('data.detailedNotice', { date: updatedOn }) : t('data.shortNotice');
 
   return (
-    <header className="bg-header text-header-foreground border-border after:bg-amber relative flex h-12 shrink-0 items-center justify-between border-b px-4 after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:content-['']">
-      <div className="flex items-center gap-2.5">
-        <span className="text-eyebrow">{t('app.title')}</span>
+    <header className="bg-header text-header-foreground border-border after:bg-highlight relative flex h-12 shrink-0 items-center justify-between border-b px-4 after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:content-['']">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <span className="font-display text-lg leading-none font-extrabold tracking-[-0.03em]">
+          {AGENT_NAME}
+        </span>
+        <span className="text-muted-foreground hidden truncate text-sm lg:inline">
+          {t('app.tagline')}
+        </span>
         <span className="text-eyebrow text-primary bg-primary/10 rounded-full px-2 py-0.5 font-bold">
           {t('app.preRelease')}
         </span>

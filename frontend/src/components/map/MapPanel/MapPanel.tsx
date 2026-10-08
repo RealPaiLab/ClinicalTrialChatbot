@@ -95,15 +95,15 @@ function MapPanel({
             id="canada-fill"
             type="fill"
             paint={{
-              'fill-color': dark ? '#7e9ce6' : '#2f3f7b',
-              'fill-opacity': ['interpolate', ['linear'], ['zoom'], 4, dark ? 0.08 : 0.05, 6, 0],
+              'fill-color': dark ? '#f2f2f0' : '#141414',
+              'fill-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.05, 6, 0],
             }}
           />
           <Layer
             id="canada-line"
             type="line"
             paint={{
-              'line-color': dark ? '#7e9ce6' : '#2f3f7b',
+              'line-color': dark ? '#a3a3a0' : '#5f5f5b',
               'line-width': 1.5,
               'line-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.6, 6, 0],
             }}

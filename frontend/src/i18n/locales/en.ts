@@ -1,7 +1,6 @@
 const en = {
   app: {
-    title: 'Cancer Clinical Trial Navigator',
-    shortTitle: 'Cancer Trial Navigator',
+    tagline: 'The Cancer Trial Chatbot',
     preRelease: 'Pre-Release Version',
   },
   header: {
@@ -171,7 +170,7 @@ const en = {
     skip: 'Skip',
     steps: {
       welcome: {
-        title: 'Welcome to Cancer Trial Navigator',
+        title: 'Welcome to {{agent}}',
         description:
           'This quick tour shows you how to find cancer clinical trials by chatting, exploring the map, and asking about the ones that interest you. It only takes a moment.',
       },

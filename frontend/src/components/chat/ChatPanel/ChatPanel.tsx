@@ -79,7 +79,7 @@ function ChatPanel({
         onCitationClick={onCitationClick}
         onAskAi={handleAskAi}
       />
-      <div className="border-border bg-secondary/60 before:bg-amber/80 relative flex flex-col gap-3 border-t p-2 before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:content-['']">
+      <div className="border-border bg-secondary/60 relative flex flex-col gap-3 border-t p-2">
         <FollowUpChips questions={suggestions} onSelect={handleSend} />
         <ChatInput
           onSend={handleSend}
