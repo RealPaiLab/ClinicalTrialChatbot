@@ -2,8 +2,7 @@ import type en from './en';
 
 const zhCn = {
   app: {
-    title: '癌症临床试验导航',
-    shortTitle: '试验导航',
+    tagline: '癌症试验聊天助手',
     preRelease: '预发布版本',
   },
   header: {
@@ -63,6 +62,21 @@ const zhCn = {
     turnstileFailed: '我们无法验证您是真人。请刷新页面后重试。',
     generic: '出了点问题，请重试。',
     messageTooLong: '您的消息过长。请控制在 {{limit}} 个字符以内后重试。',
+  },
+  mobile: {
+    menu: '菜单',
+    ask: '提问',
+    backToMap: '返回地图',
+    searchPrompt: '告诉我您的情况，帮您查找临床试验',
+    chatPeek: '询问这些试验',
+    resizeChat: '拖动以调整聊天窗口大小',
+    save: '收藏',
+    contact: '联系',
+    listing: '详情页',
+    aboutAnswers: '关于这些回答',
+    theme: '主题',
+    themeLight: '浅色',
+    themeDark: '深色',
   },
   map: {
     trialCount_one: '{{count}} 项试验',
@@ -151,7 +165,7 @@ const zhCn = {
     skip: '跳过',
     steps: {
       welcome: {
-        title: '欢迎使用试验导航',
+        title: '欢迎使用 {{agent}}',
         description:
           '这个简短导览会告诉您如何通过对话查找癌症临床试验、浏览地图，并就您感兴趣的试验提问。只需片刻。',
       },
@@ -201,6 +215,36 @@ const zhCn = {
       addedTrials: {
         title: '您添加的试验',
         description: '您添加的试验会在发送消息前以标签形式显示在这里。不需要时点击 × 即可移除。',
+      },
+      mobileSearch: {
+        title: '您的搜索',
+        description: '这一行概括了您要找的内容。随时点击它即可打开聊天并调整搜索。',
+      },
+      mobileAnswer: {
+        title: '阅读回答',
+        description:
+          '回答会像上面那样以标签形式引用真实试验。点击一个即可在地图上查看，它的卡片也会准备好供您打开。',
+      },
+      mobileResize: {
+        title: '腾出空间',
+        description: '拖动这个把手可以放大或缩小聊天窗口，点击它可以收起聊天，查看整张地图。',
+      },
+      mobileCards: {
+        title: '滑动浏览试验',
+        description: '匹配的试验以卡片形式显示。向左或向右滑动在试验之间切换，地图会随之移动。',
+      },
+      mobileOpenTrial: {
+        title: '打开试验',
+        description: '点击高亮的卡片或向上滑动，即可打开完整的试验信息。',
+      },
+      mobileDetails: {
+        title: '试验详情',
+        description:
+          '试验的全部信息集中在这里：状态、谁可以参加以及在哪里进行。底部栏可用于提问、收藏或联系研究团队。向下滑动即可关闭。',
+      },
+      mobileFinish: {
+        title: '一切就绪',
+        description: '先在聊天中描述您的情况。您随时可以从菜单重新打开本导览。',
       },
       finish: {
         title: '一切就绪',

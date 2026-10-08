@@ -25,3 +25,4 @@ class ChatResult(BaseModel):
     trials: list[TrialCitation] = Field(default_factory=list)
     follow_up_questions: list[str] = Field(default_factory=list)
     observation_id: str = ""
+    conversation_title: str | None = None

@@ -5,7 +5,8 @@ import type { PinUnit } from '@/types/map';
 export function useClusterDisclosure(
   units: PinUnit[],
   selectedTrialRef?: string | null,
-  selectedSiteKey?: string | null
+  selectedSiteKey?: string | null,
+  autoOpen = true
 ) {
   const selectionKey = `${selectedTrialRef ?? ''}@${selectedSiteKey ?? ''}`;
   const [openKey, setOpenKey] = useState<string | null>(null);
@@ -14,7 +15,7 @@ export function useClusterDisclosure(
   if (selectionKey !== autoOpenedFor) {
     setAutoOpenedFor(selectionKey);
     const unit = findSelectedUnit(units, selectedTrialRef, selectedSiteKey);
-    setOpenKey(unit && unit.items.length > 1 ? unit.key : null);
+    setOpenKey(autoOpen && unit && unit.items.length > 1 ? unit.key : null);
   }
 
   const toggle = (key: string) => setOpenKey((prev) => (prev === key ? null : key));

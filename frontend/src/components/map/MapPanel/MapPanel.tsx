@@ -27,6 +27,8 @@ interface MapPanelProps {
   selectedSiteKey?: string | null;
   onSelectTrial?: (trialRef: string, siteKey?: string | null) => void;
   dark?: boolean;
+  /** Opens a shared site's trial list when one of its trials is selected elsewhere. */
+  autoOpenClusters?: boolean;
 }
 
 function MapPanel({
@@ -35,6 +37,7 @@ function MapPanel({
   selectedSiteKey,
   onSelectTrial,
   dark,
+  autoOpenClusters = true,
 }: MapPanelProps) {
   const { t } = useTranslation();
   const mapRef = useRef<MapRef | null>(null);
@@ -42,7 +45,12 @@ function MapPanel({
   const [loaded, setLoaded] = useState(false);
 
   const { markers, units } = useTrialPins(trials);
-  const { openKey, toggle, close } = useClusterDisclosure(units, selectedTrialRef, selectedSiteKey);
+  const { openKey, toggle, close } = useClusterDisclosure(
+    units,
+    selectedTrialRef,
+    selectedSiteKey,
+    autoOpenClusters
+  );
   useMapViewSync({
     mapRef,
     containerRef,
@@ -87,15 +95,15 @@ function MapPanel({
             id="canada-fill"
             type="fill"
             paint={{
-              'fill-color': dark ? '#7e9ce6' : '#2f3f7b',
-              'fill-opacity': ['interpolate', ['linear'], ['zoom'], 4, dark ? 0.08 : 0.05, 6, 0],
+              'fill-color': dark ? '#f2f2f0' : '#141414',
+              'fill-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.05, 6, 0],
             }}
           />
           <Layer
             id="canada-line"
             type="line"
             paint={{
-              'line-color': dark ? '#7e9ce6' : '#2f3f7b',
+              'line-color': dark ? '#a3a3a0' : '#5f5f5b',
               'line-width': 1.5,
               'line-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.6, 6, 0],
             }}
@@ -130,7 +138,7 @@ function MapPanel({
         ))}
       </MapGL>
 
-      <div className="absolute top-3 left-3 z-10">
+      <div data-slot="map-info" className="absolute top-3 left-3 z-10">
         <HoverCard openDelay={100} closeDelay={0}>
           <HoverCardTrigger asChild>
             <button
@@ -150,8 +158,8 @@ function MapPanel({
       {markers.length > 0 ? (
         <MapLegend />
       ) : (
-        <div className="text-muted-foreground pointer-events-none absolute inset-0 grid place-items-center">
-          <p className="bg-card/80 rounded-lg border px-3 py-2 text-sm backdrop-blur">
+        <div className="text-muted-foreground pointer-events-none absolute inset-0 grid place-items-center p-6">
+          <p className="bg-card/80 max-w-xs rounded-lg border px-3 py-2 text-center text-sm text-balance backdrop-blur">
             {t('map.emptyHint')}
           </p>
         </div>

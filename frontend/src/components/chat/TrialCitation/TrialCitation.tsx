@@ -8,7 +8,9 @@ import {
   InlineCitationSource,
 } from '@/components/ai-elements/inline-citation';
 import { useCachedTrialTranslation } from '@/hooks/useCachedTranslation';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { publicTrialId } from '@/lib/trial';
+import { cn } from '@/lib/utils';
 import type { TrialSummary } from '@/types/trial';
 
 const CITATION_TITLE_MAX_LENGTH = 50;
@@ -27,6 +29,7 @@ interface TrialCitationProps {
 }
 
 function TrialCitation({ trialRef, fetchTrial, onSelect, compact }: TrialCitationProps) {
+  const isMobile = useIsMobile();
   const { data: trial } = useQuery({
     queryKey: ['trial', trialRef],
     queryFn: ({ signal }) => fetchTrial(trialRef, signal),
@@ -48,15 +51,20 @@ function TrialCitation({ trialRef, fetchTrial, onSelect, compact }: TrialCitatio
 
   return (
     <InlineCitation>
-      <InlineCitationCard>
+      {/* Touch taps also fire hover, so the preview would stick; the tap already shows the trial. */}
+      <InlineCitationCard open={isMobile ? false : undefined}>
         <HoverCardTrigger asChild>
           <Button
             type="button"
             variant={compact ? 'outline' : 'secondary'}
             size="sm"
+            data-tour="citation"
             aria-label={`Show ${title} on the map`}
             onClick={() => onSelect?.(trialRef)}
-            className="mx-0.5 inline-flex h-5 max-w-full rounded-full px-2 align-baseline text-[0.7rem] font-medium"
+            className={cn(
+              'mx-0.5 inline-flex h-5 max-w-full rounded-full px-2 align-baseline text-[0.7rem] font-medium',
+              !compact && 'bg-highlight/15 text-foreground hover:bg-highlight/25'
+            )}
           >
             <span className="truncate">{title}</span>
           </Button>

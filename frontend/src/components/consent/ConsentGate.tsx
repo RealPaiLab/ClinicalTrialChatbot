@@ -4,6 +4,7 @@ import ConsentArtwork from '@/components/consent/ConsentArtwork';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
+import { AGENT_NAME } from '@/constants/chat';
 import { hasConsented, recordConsent } from '@/lib/consent';
 
 interface ConsentGateProps {
@@ -33,7 +34,7 @@ function ConsentGate({ children }: ConsentGateProps) {
 
           <div className="bg-card flex flex-col p-8">
             <DialogTitle className="text-subhead leading-snug">
-              Welcome to the Canadian Cancer Clinical Trials Map and Chatbot (C3TMC)
+              Welcome to {AGENT_NAME}, the Cancer Trial Chatbot
             </DialogTitle>
 
             <DialogDescription className="mt-4 text-xs leading-relaxed">
@@ -52,7 +53,7 @@ function ConsentGate({ children }: ConsentGateProps) {
             <label className="border-border hover:bg-secondary/40 mt-5 flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors">
               <Checkbox checked={checked} onCheckedChange={(value) => setChecked(value === true)} />
               <span className="text-xs font-semibold">
-                I have read and agree to the C3TMC terms and conditions
+                I have read and agree to the {AGENT_NAME} terms and conditions
               </span>
             </label>
 
@@ -68,7 +69,10 @@ function ConsentGate({ children }: ConsentGateProps) {
             <hr className="border-border mt-6" />
             <div className="text-muted-foreground mt-5 flex items-center gap-2.5 text-[11px] leading-relaxed">
               <Lock aria-hidden className="size-4 shrink-0" />
-              <p>C3TMC is an alpha version. Information may be incomplete and subject to change.</p>
+              <p>
+                {AGENT_NAME} is an alpha version. Information may be incomplete and subject to
+                change.
+              </p>
             </div>
           </div>
         </DialogContent>

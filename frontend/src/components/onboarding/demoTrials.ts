@@ -3,7 +3,7 @@ import type { ChatMessage, Trial } from '@/types/trial';
 
 export const DEMO_TRIALS: Trial[] = [
   {
-    trialRef: 'CTC-DEMO0001',
+    trialRef: 'CTC-DEM00001',
     nctNumber: 'NCT00000001',
     acronymOrProtocolId: 'DEMO-1',
     shortTitleEn: 'Immunotherapy for Advanced Breast Cancer',
@@ -35,7 +35,7 @@ export const DEMO_TRIALS: Trial[] = [
     ],
   },
   {
-    trialRef: 'CTC-DEMO0002',
+    trialRef: 'CTC-DEM00002',
     nctNumber: 'NCT00000002',
     acronymOrProtocolId: 'DEMO-2',
     shortTitleEn: 'Targeted Therapy for Lung Cancer',
@@ -77,7 +77,7 @@ export const DEMO_MESSAGES: ChatMessage[] = [
     id: 'demo-assistant',
     role: ChatRole.Assistant,
     content:
-      'Good news, I found a match. **[CTC-DEMO0001]** is a Phase II trial adding [[immunotherapy||A treatment that helps your own immune system find and fight cancer cells.]] to standard chemotherapy, and it is currently **recruiting** in Toronto. It may be a fit if your cancer is [[metastatic||Cancer that has spread from where it started to other parts of the body.]].',
+      'Good news, I found a match. **[CTC-DEM00001]** is a Phase II trial adding [[immunotherapy||A treatment that helps your own immune system find and fight cancer cells.]] to standard chemotherapy, and it is currently **recruiting** in Toronto. It may be a fit if your cancer is [[metastatic||Cancer that has spread from where it started to other parts of the body.]].',
     trials: [DEMO_TRIALS[0]],
     followUpQuestions: [
       'What are the eligibility requirements?',

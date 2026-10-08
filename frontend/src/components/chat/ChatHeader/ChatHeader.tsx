@@ -1,6 +1,7 @@
 import { SquarePen, Stethoscope } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
+import { AGENT_NAME } from '@/constants/chat';
 
 interface ChatHeaderProps {
   onNewConversation?: () => void;
@@ -15,9 +16,7 @@ function ChatHeader({ onNewConversation }: ChatHeaderProps) {
         <div className="bg-primary/10 text-primary flex size-7 shrink-0 items-center justify-center rounded-md">
           <Stethoscope className="size-4" />
         </div>
-        <span className="font-display text-sm leading-tight font-semibold">
-          {t('app.shortTitle')}
-        </span>
+        <span className="font-display text-sm leading-tight font-semibold">{AGENT_NAME}</span>
       </div>
       <Button
         variant="ghost"

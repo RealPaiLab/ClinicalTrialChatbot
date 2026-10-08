@@ -1,7 +1,6 @@
 const en = {
   app: {
-    title: 'Cancer Clinical Trial Navigator',
-    shortTitle: 'Cancer Trial Navigator',
+    tagline: 'The Cancer Trial Chatbot',
     preRelease: 'Pre-Release Version',
   },
   header: {
@@ -65,6 +64,21 @@ const en = {
     generic: 'Something went wrong. Please try again.',
     messageTooLong:
       'Your message is too long. Please keep it under {{limit}} characters and try again.',
+  },
+  mobile: {
+    menu: 'Menu',
+    ask: 'Ask',
+    backToMap: 'Back to the map',
+    searchPrompt: 'Tell me about your situation to find trials',
+    chatPeek: 'Ask about these trials',
+    resizeChat: 'Drag to resize the chat',
+    save: 'Save',
+    contact: 'Contact',
+    listing: 'Listing',
+    aboutAnswers: 'About these answers',
+    theme: 'Theme',
+    themeLight: 'Light',
+    themeDark: 'Dark',
   },
   map: {
     trialCount_one: '{{count}} trial',
@@ -156,7 +170,7 @@ const en = {
     skip: 'Skip',
     steps: {
       welcome: {
-        title: 'Welcome to Cancer Trial Navigator',
+        title: 'Welcome to {{agent}}',
         description:
           'This quick tour shows you how to find cancer clinical trials by chatting, exploring the map, and asking about the ones that interest you. It only takes a moment.',
       },
@@ -209,6 +223,40 @@ const en = {
         title: 'Your added trials',
         description:
           'Trials you add show up here as chips before you send a message. Remove any of them with the × when you no longer need it.',
+      },
+      mobileSearch: {
+        title: 'Your search',
+        description:
+          'This line sums up what you are looking for. Tap it any time to open the chat and refine your search.',
+      },
+      mobileAnswer: {
+        title: 'Reading the answer',
+        description:
+          'Answers cite real trials as pills like the one above. Tap one to see it on the map, with its card ready to open.',
+      },
+      mobileResize: {
+        title: 'Make room',
+        description:
+          'Drag this handle to make the chat bigger or smaller, or tap it to tuck the chat away and see the whole map.',
+      },
+      mobileCards: {
+        title: 'Swipe through trials',
+        description:
+          'Matching trials appear as cards. Swipe left or right to move between them and the map follows.',
+      },
+      mobileOpenTrial: {
+        title: 'Open a trial',
+        description: 'Tap the highlighted card, or swipe it up, to open the full trial.',
+      },
+      mobileDetails: {
+        title: 'Trial details',
+        description:
+          'Everything about the trial in one place: its status, who can join and where it runs. The bar at the bottom lets you ask about it, save it or contact the team. Swipe down to close.',
+      },
+      mobileFinish: {
+        title: "You're all set",
+        description:
+          'Start by describing your situation in the chat. You can reopen this tour anytime from the menu.',
       },
       finish: {
         title: "You're all set",

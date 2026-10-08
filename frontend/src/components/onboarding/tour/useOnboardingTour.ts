@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { driver, type Driver } from 'driver.js';
+import { driver, type DriveStep, type Driver } from 'driver.js';
 import 'driver.js/dist/driver.css';
 import './tour.css';
 import i18n from '@/i18n';
@@ -13,7 +13,9 @@ export interface StartTourOptions {
   driveDelayMs?: number;
 }
 
-export function useOnboardingTour() {
+type BuildSteps = (getTour: () => Driver) => DriveStep[];
+
+export function useOnboardingTour(buildSteps: BuildSteps = buildTourSteps) {
   const queryClient = useQueryClient();
 
   const startTour = useCallback(
@@ -26,6 +28,7 @@ export function useOnboardingTour() {
         selectedSiteKey: store.selectedSiteKey,
         contextTrialRefs: store.contextTrialRefs,
         tourMessages: store.tourMessages,
+        sheetSnap: store.sheetSnap,
       };
       const isDark = store.theme === 'dark';
 
@@ -40,6 +43,8 @@ export function useOnboardingTour() {
         current.setTourMessages(snapshot.tourMessages);
         current.setTrials(snapshot.trials);
         current.selectTrial(snapshot.selectedTrialRef, snapshot.selectedSiteKey);
+        current.setSheetSnap(snapshot.sheetSnap);
+        current.setTrialDrawerOpen(false);
         current.clearContext();
         snapshot.contextTrialRefs.forEach((nct) => current.addToContext(nct));
         DEMO_TRIALS.forEach((trial) => {
@@ -55,7 +60,7 @@ export function useOnboardingTour() {
       const tour: Driver = driver({
         showProgress: true,
         popoverClass: 'ctc-tour',
-        overlayColor: isDark ? '#000518' : '#ffffff',
+        overlayColor: isDark ? '#0b0b0b' : '#ffffff',
         overlayOpacity: 0,
         stagePadding: 6,
         stageRadius: 10,
@@ -63,7 +68,7 @@ export function useOnboardingTour() {
         nextBtnText: i18n.t('tour.next'),
         prevBtnText: i18n.t('tour.back'),
         doneBtnText: i18n.t('tour.done'),
-        steps: buildTourSteps(() => tour),
+        steps: buildSteps(() => tour),
         onHighlighted: (element) => syncBlur(element),
         onDestroyed: () => {
           blur.destroy();
@@ -80,7 +85,7 @@ export function useOnboardingTour() {
       if (driveDelay > 0) window.setTimeout(() => tour.drive(), driveDelay);
       else tour.drive();
     },
-    [queryClient]
+    [queryClient, buildSteps]
   );
 
   return { startTour };

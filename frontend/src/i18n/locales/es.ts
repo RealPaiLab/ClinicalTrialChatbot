@@ -2,8 +2,7 @@ import type en from './en';
 
 const es = {
   app: {
-    title: 'Navegador de ensayos clínicos oncológicos',
-    shortTitle: 'Navegador de ensayos',
+    tagline: 'El chatbot de ensayos sobre el cáncer',
     preRelease: 'Versión preliminar',
   },
   header: {
@@ -69,6 +68,21 @@ const es = {
     generic: 'Algo salió mal. Inténtelo de nuevo.',
     messageTooLong:
       'Su mensaje es demasiado largo. Manténgalo por debajo de {{limit}} caracteres e inténtelo de nuevo.',
+  },
+  mobile: {
+    menu: 'Menú',
+    ask: 'Preguntar',
+    backToMap: 'Volver al mapa',
+    searchPrompt: 'Cuénteme su situación para encontrar ensayos',
+    chatPeek: 'Pregunte sobre estos ensayos',
+    resizeChat: 'Arrastre para cambiar el tamaño del chat',
+    save: 'Guardar',
+    contact: 'Contactar',
+    listing: 'Ficha',
+    aboutAnswers: 'Sobre estas respuestas',
+    theme: 'Tema',
+    themeLight: 'Claro',
+    themeDark: 'Oscuro',
   },
   map: {
     trialCount_one: '{{count}} ensayo',
@@ -162,7 +176,7 @@ const es = {
     skip: 'Omitir',
     steps: {
       welcome: {
-        title: 'Bienvenido al Navegador de ensayos',
+        title: 'Le damos la bienvenida a {{agent}}',
         description:
           'Este breve recorrido le muestra cómo encontrar ensayos clínicos oncológicos conversando, explorando el mapa y preguntando por los que le interesen. Solo toma un momento.',
       },
@@ -215,6 +229,41 @@ const es = {
         title: 'Sus ensayos añadidos',
         description:
           'Los ensayos que añade aparecen aquí como etiquetas antes de enviar el mensaje. Quite cualquiera de ellos con la × cuando ya no lo necesite.',
+      },
+      mobileSearch: {
+        title: 'Su búsqueda',
+        description:
+          'Esta línea resume lo que busca. Tóquela en cualquier momento para abrir el chat y afinar su búsqueda.',
+      },
+      mobileAnswer: {
+        title: 'Leer la respuesta',
+        description:
+          'Las respuestas citan ensayos reales como etiquetas como la de arriba. Toque una para verla en el mapa, con su tarjeta lista para abrir.',
+      },
+      mobileResize: {
+        title: 'Hacer espacio',
+        description:
+          'Arrastre este control para agrandar o reducir el chat, o tóquelo para ocultar el chat y ver todo el mapa.',
+      },
+      mobileCards: {
+        title: 'Deslice entre ensayos',
+        description:
+          'Los ensayos que coinciden aparecen como tarjetas. Deslice a la izquierda o a la derecha para pasar de uno a otro y el mapa lo sigue.',
+      },
+      mobileOpenTrial: {
+        title: 'Abrir un ensayo',
+        description:
+          'Toque la tarjeta resaltada, o deslícela hacia arriba, para abrir el ensayo completo.',
+      },
+      mobileDetails: {
+        title: 'Detalles del ensayo',
+        description:
+          'Todo sobre el ensayo en un solo lugar: su estado, quién puede participar y dónde se realiza. La barra inferior le permite preguntar sobre él, guardarlo o contactar al equipo. Deslice hacia abajo para cerrar.',
+      },
+      mobileFinish: {
+        title: 'Todo listo',
+        description:
+          'Empiece describiendo su situación en el chat. Puede volver a abrir esta guía en cualquier momento desde el menú.',
       },
       finish: {
         title: 'Todo listo',

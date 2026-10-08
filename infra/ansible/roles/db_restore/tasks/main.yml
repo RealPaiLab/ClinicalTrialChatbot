@@ -23,7 +23,7 @@
       ansible.builtin.shell:
         cmd: >-
           docker compose exec -T postgres
-          pg_restore --no-owner --no-privileges --clean --if-exists
+          pg_restore --no-owner --no-privileges --clean --if-exists -n public
           -U {{ postgres_user }} -d {{ postgres_db }} < {{ app_dir }}/ctc_seed.dump
         chdir: "{{ app_dir }}"
       become: true

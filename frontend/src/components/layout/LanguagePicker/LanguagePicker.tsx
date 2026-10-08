@@ -8,15 +8,55 @@ import { LANGUAGE_TARGETS, LanguageCode } from '@/constants/language';
 import { useAppLanguage } from '@/hooks/useAppLanguage';
 import { cn } from '@/lib/utils';
 
-function LanguagePicker() {
+/** The language grid, shared by the header popover and the mobile menu. */
+export function LanguageOptions({ onSelect }: { onSelect?: () => void }) {
   const { t } = useTranslation();
   const { language, setLanguage } = useAppLanguage();
-  const [open, setOpen] = useState(false);
 
   const select = (next: LanguageCode) => {
     setLanguage(next);
-    setOpen(false);
+    onSelect?.();
   };
+
+  return (
+    <>
+      <div className="grid grid-cols-3 gap-1">
+        {LANGUAGE_TARGETS.map((option) => (
+          <button
+            key={option.code}
+            type="button"
+            lang={option.code}
+            onClick={() => select(option.code)}
+            className={cn(
+              'hover:bg-accent flex flex-col items-center gap-1 rounded-md px-1 py-2 transition-colors',
+              language === option.code && 'bg-accent text-primary'
+            )}
+          >
+            <span aria-hidden className="text-lg leading-none">
+              {option.flag}
+            </span>
+            <span className="text-caption text-center leading-tight">{option.endonym}</span>
+          </button>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={() => select(LanguageCode.En)}
+        className={cn(
+          'text-caption hover:bg-accent mt-1 w-full cursor-pointer rounded-md py-1.5 text-center transition-colors',
+          language === LanguageCode.En ? 'text-primary' : 'text-muted-foreground'
+        )}
+      >
+        {t('header.useEnglish')}
+      </button>
+    </>
+  );
+}
+
+function LanguagePicker() {
+  const { t } = useTranslation();
+  const { language } = useAppLanguage();
+  const [open, setOpen] = useState(false);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -39,35 +79,7 @@ function LanguagePicker() {
         </Tooltip>
       </TooltipProvider>
       <PopoverContent align="end" className="w-64 p-2">
-        <div className="grid grid-cols-3 gap-1">
-          {LANGUAGE_TARGETS.map((option) => (
-            <button
-              key={option.code}
-              type="button"
-              lang={option.code}
-              onClick={() => select(option.code)}
-              className={cn(
-                'hover:bg-accent flex flex-col items-center gap-1 rounded-md px-1 py-2 transition-colors',
-                language === option.code && 'bg-accent text-primary'
-              )}
-            >
-              <span aria-hidden className="text-lg leading-none">
-                {option.flag}
-              </span>
-              <span className="text-caption text-center leading-tight">{option.endonym}</span>
-            </button>
-          ))}
-        </div>
-        <button
-          type="button"
-          onClick={() => select(LanguageCode.En)}
-          className={cn(
-            'text-caption hover:bg-accent mt-1 w-full cursor-pointer rounded-md py-1.5 text-center transition-colors',
-            language === LanguageCode.En ? 'text-primary' : 'text-muted-foreground'
-          )}
-        >
-          {t('header.useEnglish')}
-        </button>
+        <LanguageOptions onSelect={() => setOpen(false)} />
       </PopoverContent>
     </Popover>
   );

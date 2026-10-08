@@ -2,8 +2,7 @@ import type en from './en';
 
 const yue = {
   app: {
-    title: '癌症臨床試驗導航',
-    shortTitle: '試驗導航',
+    tagline: '癌症試驗聊天助手',
     preRelease: '預發佈版本',
   },
   header: {
@@ -63,6 +62,21 @@ const yue = {
     turnstileFailed: '我哋確認唔到你係真人。請重新整理個頁面再試。',
     generic: '出咗啲問題，再試多次。',
     messageTooLong: '你嘅訊息太長喇。請控制喺 {{limit}} 個字以內再試。',
+  },
+  mobile: {
+    menu: '選單',
+    ask: '問',
+    backToMap: '返回地圖',
+    searchPrompt: '話我知你嘅情況，幫你搵臨床試驗',
+    chatPeek: '問下呢啲試驗',
+    resizeChat: '拖動嚟調整傾偈視窗大細',
+    save: '收藏',
+    contact: '聯絡',
+    listing: '詳情頁',
+    aboutAnswers: '關於呢啲回答',
+    theme: '主題',
+    themeLight: '淺色',
+    themeDark: '深色',
   },
   map: {
     trialCount_one: '{{count}} 個臨床試驗',
@@ -152,7 +166,7 @@ const yue = {
     skip: '跳過',
     steps: {
       welcome: {
-        title: '歡迎使用試驗導航',
+        title: '歡迎使用 {{agent}}',
         description:
           '呢個簡短導覽會話畀你知點樣傾偈搵癌症臨床試驗、睇地圖，同埋問你有興趣嘅試驗。好快就睇完。',
       },
@@ -202,6 +216,36 @@ const yue = {
       addedTrials: {
         title: '你加咗嘅試驗',
         description: '你加咗嘅試驗會喺你send訊息前喺呢度以標籤顯示。唔使嘅時候撳 × 就移走。',
+      },
+      mobileSearch: {
+        title: '你嘅搜尋',
+        description: '呢一行總結咗你想搵乜。隨時㩒一下就可以打開傾偈，再調整搜尋。',
+      },
+      mobileAnswer: {
+        title: '睇回答',
+        description:
+          '回答會好似上面咁用標籤引用真實試驗。㩒其中一個就可以喺地圖上睇到，佢張卡片亦會準備好俾你打開。',
+      },
+      mobileResize: {
+        title: '騰出空間',
+        description: '拖動呢個把手可以放大或縮細傾偈視窗，㩒一下就可以收埋傾偈，睇晒成張地圖。',
+      },
+      mobileCards: {
+        title: '碌下試驗',
+        description: '啱你嘅試驗會以卡片顯示。向左或向右掃就可以轉試驗，地圖會跟住郁。',
+      },
+      mobileOpenTrial: {
+        title: '打開試驗',
+        description: '㩒一下亮咗嘅卡片，或者向上掃，就可以打開完整試驗資料。',
+      },
+      mobileDetails: {
+        title: '試驗詳情',
+        description:
+          '試驗嘅所有資料都喺度：狀態、邊個可以參加同喺邊度進行。底部嘅欄可以用嚟發問、收藏或者聯絡研究團隊。向下掃就可以閂返。',
+      },
+      mobileFinish: {
+        title: '準備好喇',
+        description: '先喺傾偈度講下你嘅情況。你隨時都可以喺選單重新打開呢個導覽。',
       },
       finish: {
         title: '一切準備好',

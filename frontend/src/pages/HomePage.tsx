@@ -8,8 +8,11 @@ import AppHeader from '@/components/layout/AppHeader/AppHeader';
 import AppFooter from '@/components/layout/AppFooter/AppFooter';
 import BookmarksSheet from '@/components/bookmarks/BookmarksSheet/BookmarksSheet';
 import { useOnboardingTour } from '@/components/onboarding/tour/useOnboardingTour';
+import { buildMobileTourSteps, buildTourSteps } from '@/components/onboarding/tourSteps';
 import { useCachedTrialTranslations } from '@/hooks/useCachedTranslation';
 import { useTrialPdfExport } from '@/hooks/useTrialPdfExport';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import MobileLayout from '@/components/mobile/MobileLayout/MobileLayout';
 import { useAppStore } from '@/store/appStore';
 import { PANEL_SPLIT } from '@/constants/layout';
 import type { Trial } from '@/types/trial';
@@ -40,12 +43,13 @@ function HomePage() {
   const [bookmarksOpen, setBookmarksOpen] = useState(false);
   const { exportTrials, isExporting } = useTrialPdfExport();
 
+  const isMobile = useIsMobile();
   const dark = theme === 'dark';
   const hasSelection = Boolean(selectedTrialRef);
   const summaryPanelRef = usePanelRef();
   const splitGroupRef = useRef<HTMLDivElement | null>(null);
 
-  const { startTour } = useOnboardingTour();
+  const { startTour } = useOnboardingTour(isMobile ? buildMobileTourSteps : buildTourSteps);
   const languageChosenOnLoad = useRef(hasChosenLanguage);
 
   useEffect(() => {
@@ -113,6 +117,39 @@ function HomePage() {
         `${site.lat.toFixed(5)},${site.lon.toFixed(5)}` === selectedSiteKey
     )?.nameEn ?? null;
 
+  const bookmarksSheet = (
+    <BookmarksSheet
+      open={bookmarksOpen}
+      onOpenChange={setBookmarksOpen}
+      bookmarkedTrialRefs={bookmarkedTrialRefs}
+      onRemove={removeBookmark}
+      onSelect={handleOpenBookmark}
+      onExport={exportTrials}
+      isExporting={isExporting}
+    />
+  );
+
+  if (isMobile) {
+    return (
+      <MobileLayout
+        dark={dark}
+        trials={labelledTrials}
+        selectedTrial={selectedTrial}
+        selectedSiteKey={selectedSiteKey}
+        selectedSiteName={selectedSiteName}
+        selectedInContext={selectedInContext}
+        selectedIsBookmarked={selectedIsBookmarked}
+        contextTrials={contextTrials}
+        bookmarkCount={bookmarkedTrialRefs.length}
+        onRemoveContext={handleRemoveContext}
+        onOpenBookmarks={() => setBookmarksOpen(true)}
+        onStartTour={() => startTour()}
+      >
+        {bookmarksSheet}
+      </MobileLayout>
+    );
+  }
+
   return (
     <div
       data-tour="app"
@@ -126,15 +163,7 @@ function HomePage() {
         onToggleTheme={toggleTheme}
       />
 
-      <BookmarksSheet
-        open={bookmarksOpen}
-        onOpenChange={setBookmarksOpen}
-        bookmarkedTrialRefs={bookmarkedTrialRefs}
-        onRemove={removeBookmark}
-        onSelect={handleOpenBookmark}
-        onExport={exportTrials}
-        isExporting={isExporting}
-      />
+      {bookmarksSheet}
 
       <ResizablePanelGroup orientation="horizontal" className="min-h-0 flex-1">
         <ResizablePanel defaultSize="37%" minSize="22%" maxSize="50%">
