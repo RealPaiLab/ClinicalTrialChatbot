@@ -2,8 +2,7 @@ import type en from './en';
 
 const es = {
   app: {
-    title: 'Navegador de ensayos clínicos oncológicos',
-    shortTitle: 'Navegador de ensayos',
+    tagline: 'El chatbot de ensayos sobre el cáncer',
     preRelease: 'Versión preliminar',
   },
   header: {
@@ -177,7 +176,7 @@ const es = {
     skip: 'Omitir',
     steps: {
       welcome: {
-        title: 'Bienvenido al Navegador de ensayos',
+        title: 'Le damos la bienvenida a {{agent}}',
         description:
           'Este breve recorrido le muestra cómo encontrar ensayos clínicos oncológicos conversando, explorando el mapa y preguntando por los que le interesen. Solo toma un momento.',
       },

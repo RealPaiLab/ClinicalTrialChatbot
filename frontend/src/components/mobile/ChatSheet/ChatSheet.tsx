@@ -1,6 +1,7 @@
 import { useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { ChevronUp, MessageCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { AGENT_NAME } from '@/constants/chat';
 import { MOBILE_LAYOUT, SHEET_SNAPS, type SheetSnap } from '@/constants/layout';
 import { cn } from '@/lib/utils';
 
@@ -63,7 +64,7 @@ function ChatSheet({ snap, heights, peekLabel, onSnapChange, children }: ChatShe
 
   return (
     <section
-      aria-label={t('app.shortTitle')}
+      aria-label={AGENT_NAME}
       style={{ height: dragHeight ?? heights[snap] }}
       className={cn(
         'bg-card border-border absolute inset-x-0 bottom-0 z-20 flex flex-col overflow-hidden rounded-t-2xl border-t shadow-2xl',

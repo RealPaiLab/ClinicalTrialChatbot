@@ -60,7 +60,7 @@ export function useOnboardingTour(buildSteps: BuildSteps = buildTourSteps) {
       const tour: Driver = driver({
         showProgress: true,
         popoverClass: 'ctc-tour',
-        overlayColor: isDark ? '#000518' : '#ffffff',
+        overlayColor: isDark ? '#0b0b0b' : '#ffffff',
         overlayOpacity: 0,
         stagePadding: 6,
         stageRadius: 10,

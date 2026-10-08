@@ -10,6 +10,7 @@ import {
 import { useCachedTrialTranslation } from '@/hooks/useCachedTranslation';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { publicTrialId } from '@/lib/trial';
+import { cn } from '@/lib/utils';
 import type { TrialSummary } from '@/types/trial';
 
 const CITATION_TITLE_MAX_LENGTH = 50;
@@ -60,7 +61,10 @@ function TrialCitation({ trialRef, fetchTrial, onSelect, compact }: TrialCitatio
             data-tour="citation"
             aria-label={`Show ${title} on the map`}
             onClick={() => onSelect?.(trialRef)}
-            className="mx-0.5 inline-flex h-5 max-w-full rounded-full px-2 align-baseline text-[0.7rem] font-medium"
+            className={cn(
+              'mx-0.5 inline-flex h-5 max-w-full rounded-full px-2 align-baseline text-[0.7rem] font-medium',
+              !compact && 'bg-highlight/15 text-foreground hover:bg-highlight/25'
+            )}
           >
             <span className="truncate">{title}</span>
           </Button>

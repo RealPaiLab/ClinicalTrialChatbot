@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Streamdown } from 'streamdown';
+import { AGENT_NAME } from '@/constants/chat';
 import termsMarkdown from '@/content/terms.md?raw';
 import { TERMS_VERSION } from '@/lib/consent';
 
@@ -34,7 +35,7 @@ function TermsPage() {
     <div className="bg-background text-foreground grain min-h-screen">
       <article className="mx-auto max-w-3xl px-6 py-16">
         <header className="pt-8 pb-10">
-          <p className="text-eyebrow text-primary text-center">C3TMC Alpha Testing</p>
+          <p className="text-eyebrow text-primary text-center">{AGENT_NAME} Alpha Testing</p>
           <h1 className="text-display mt-6 text-center font-bold">{TERMS_TITLE}</h1>
           <div className="border-border mt-24 flex items-baseline justify-between gap-4 border-b pb-4">
             <p className="text-sm font-semibold">Effective {effectiveDate}</p>
@@ -42,7 +43,7 @@ function TermsPage() {
               href="/"
               className="text-sm font-semibold underline underline-offset-4 hover:no-underline"
             >
-              Back to C3TMC
+              Back to {AGENT_NAME}
             </a>
           </div>
         </header>

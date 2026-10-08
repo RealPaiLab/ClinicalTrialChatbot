@@ -4,17 +4,16 @@ import type { TrialStatus } from '@/types/trial';
 
 /** The light-mode design tokens, as literals: the PDF never follows the theme. */
 export const PDF_COLOR = {
-  ink: '#16203f',
-  navy: '#2f3f7b',
-  muted: '#5d6b8a',
-  border: '#d8e0ef',
-  amber: '#fbd813',
+  ink: '#141414',
+  muted: '#5f5f5b',
+  border: '#e5e5e2',
+  highlight: '#64bc46',
   paper: '#ffffff',
 } as const;
 
 export const STATUS_COLOR = {
-  recruiting: '#2f3f7b',
-  opening_soon: '#fbd813',
+  recruiting: '#3c8c2a',
+  opening_soon: '#f2c230',
 } as const satisfies Record<TrialStatus, string>;
 
 export const styles = StyleSheet.create({
@@ -48,7 +47,7 @@ export const styles = StyleSheet.create({
     fontSize: 6,
     fontWeight: 700,
     letterSpacing: 1.8,
-    color: PDF_COLOR.navy,
+    color: PDF_COLOR.ink,
     opacity: 0.55,
   },
 
@@ -58,7 +57,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingBottom: 7,
     borderBottomWidth: 1.5,
-    borderBottomColor: PDF_COLOR.navy,
+    borderBottomColor: PDF_COLOR.ink,
     marginBottom: 18,
   },
   mastTail: {
@@ -67,7 +66,7 @@ export const styles = StyleSheet.create({
     bottom: -1.5,
     width: 52,
     height: 1.5,
-    backgroundColor: PDF_COLOR.amber,
+    backgroundColor: PDF_COLOR.highlight,
   },
   mastBrand: {
     fontFamily: PDF_FONT.display,
@@ -89,7 +88,7 @@ export const styles = StyleSheet.create({
     fontWeight: 600,
     fontSize: 7.5,
     letterSpacing: 0.6,
-    color: PDF_COLOR.navy,
+    color: PDF_COLOR.ink,
   },
   title: {
     fontFamily: PDF_FONT.display,
@@ -124,13 +123,13 @@ export const styles = StyleSheet.create({
 
   section: { marginBottom: 14 },
   // The gap below the rule belongs to this wrapper, not to the title, so the
-  // amber accent can sit exactly on the rule rather than floating under it.
+  // highlight accent can sit exactly on the rule rather than floating under it.
   sectionHead: { position: 'relative', marginBottom: 7 },
   sectionTitle: {
     fontSize: 8.5,
     fontWeight: 700,
     letterSpacing: 1.1,
-    color: PDF_COLOR.navy,
+    color: PDF_COLOR.ink,
     paddingBottom: 4,
     borderBottomWidth: 0.5,
     borderBottomColor: PDF_COLOR.border,
@@ -141,14 +140,14 @@ export const styles = StyleSheet.create({
     bottom: 0,
     width: 26,
     height: 1.2,
-    backgroundColor: PDF_COLOR.amber,
+    backgroundColor: PDF_COLOR.highlight,
   },
   // lineHeight lives on the prose styles, never on the Page: an inherited
   // unitless lineHeight makes the renderer drop dynamically rendered text
   // (the page-number footer).
   paragraph: { marginBottom: 6, lineHeight: 1.5 },
   bulletRow: { flexDirection: 'row', marginBottom: 5, paddingRight: 4 },
-  bulletMark: { width: 10, color: PDF_COLOR.navy },
+  bulletMark: { width: 10, color: PDF_COLOR.ink },
   bulletText: { flex: 1, lineHeight: 1.5 },
 
   site: {
@@ -166,12 +165,12 @@ export const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 7,
     borderTopWidth: 1,
-    borderTopColor: PDF_COLOR.navy,
+    borderTopColor: PDF_COLOR.ink,
     fontSize: 7.5,
     lineHeight: 1.45,
     color: PDF_COLOR.muted,
   },
-  link: { color: PDF_COLOR.navy, fontWeight: 700, textDecoration: 'none' },
+  link: { color: PDF_COLOR.ink, fontWeight: 700, textDecoration: 'none' },
 
   // The running footer is pinned Texts rather than one flex row: absolute
   // children need a resolved width, and a bare fixed Text is the pattern the

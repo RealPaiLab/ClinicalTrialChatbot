@@ -2,8 +2,7 @@ import type en from './en';
 
 const yue = {
   app: {
-    title: '癌症臨床試驗導航',
-    shortTitle: '試驗導航',
+    tagline: '癌症試驗聊天助手',
     preRelease: '預發佈版本',
   },
   header: {
@@ -167,7 +166,7 @@ const yue = {
     skip: '跳過',
     steps: {
       welcome: {
-        title: '歡迎使用試驗導航',
+        title: '歡迎使用 {{agent}}',
         description:
           '呢個簡短導覽會話畀你知點樣傾偈搵癌症臨床試驗、睇地圖，同埋問你有興趣嘅試驗。好快就睇完。',
       },

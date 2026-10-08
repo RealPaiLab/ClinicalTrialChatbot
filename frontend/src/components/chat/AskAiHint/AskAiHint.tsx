@@ -20,7 +20,7 @@ function AskAiHint() {
         <Trans
           i18nKey="chat.askAiHintBody"
           components={{
-            mark: <mark className="bg-amber/40 text-foreground rounded px-1" />,
+            mark: <mark className="bg-highlight/40 text-foreground rounded px-1" />,
             ask: (
               <span className="text-foreground inline-flex items-center gap-0.5 align-baseline font-medium underline underline-offset-2">
                 <Sparkles className="size-3" />

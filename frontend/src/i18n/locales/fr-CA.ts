@@ -2,8 +2,7 @@ import type en from './en';
 
 const frCa = {
   app: {
-    title: 'Navigateur d’essais cliniques en oncologie',
-    shortTitle: 'Navigateur d’essais',
+    tagline: 'L’agent conversationnel des essais sur le cancer',
     preRelease: 'Version préliminaire',
   },
   header: {
@@ -178,7 +177,7 @@ const frCa = {
     skip: 'Passer',
     steps: {
       welcome: {
-        title: 'Bienvenue dans le Navigateur d’essais',
+        title: 'Bienvenue dans {{agent}}',
         description:
           'Cette courte visite vous montre comment trouver des essais cliniques en oncologie en discutant, en explorant la carte et en posant des questions sur ceux qui vous intéressent. Ce sera bref.',
       },

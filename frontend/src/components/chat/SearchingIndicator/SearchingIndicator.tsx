@@ -30,7 +30,7 @@ function SearchingIndicator() {
 
   return (
     <div className="text-muted-foreground flex items-center gap-2 font-mono text-xs tracking-tight">
-      <Spinner className="text-amber text-base" />
+      <Spinner className="text-highlight text-base" />
       <span role="status" aria-live="polite">
         {t(key)}
       </span>

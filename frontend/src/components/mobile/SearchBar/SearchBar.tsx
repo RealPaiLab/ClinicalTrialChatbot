@@ -30,6 +30,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { LanguageOptions } from '@/components/layout/LanguagePicker/LanguagePicker';
+import { AGENT_NAME } from '@/constants/chat';
 import { LANGUAGE_TARGETS } from '@/constants/language';
 import { useAppLanguage } from '@/hooks/useAppLanguage';
 import { cn } from '@/lib/utils';
@@ -46,8 +47,8 @@ interface SearchBarProps {
 }
 
 const MENU_ROW = 'h-11 justify-start gap-3 px-3 text-sm';
-const AMBER_EDGE =
-  "after:bg-amber relative overflow-hidden after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:content-['']";
+const HIGHLIGHT_EDGE =
+  "after:bg-highlight relative overflow-hidden after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:content-['']";
 
 /** Hand-drawn corner mark hugging a top-right edge: two strokes that cross in a small square. */
 function CornerMark({ className }: { className: string }) {
@@ -59,13 +60,13 @@ function CornerMark({ className }: { className: string }) {
       strokeLinecap="round"
       className={cn('pointer-events-none absolute -z-10 size-[240px]', className)}
     >
-      <path d="M8 11C70 10 150 9 236 7" className="stroke-ring/70" strokeWidth="1.4" />
-      <path d="M70 18C120 17 170 16 232 15" className="stroke-amber/50" strokeWidth="1" />
-      <path d="M229 4C230 70 231 150 233 236" className="stroke-amber/70" strokeWidth="1.4" />
-      <path d="M222 40C223 100 224 160 226 226" className="stroke-ring/40" strokeWidth="1" />
+      <path d="M8 11C70 10 150 9 236 7" className="stroke-highlight/70" strokeWidth="1.4" />
+      <path d="M70 18C120 17 170 16 232 15" className="stroke-highlight/40" strokeWidth="1" />
+      <path d="M229 4C230 70 231 150 233 236" className="stroke-highlight/70" strokeWidth="1.4" />
+      <path d="M222 40C223 100 224 160 226 226" className="stroke-highlight/40" strokeWidth="1" />
       <path
         d="M216 3C222 2 229 1 238 0C238 7 237 13 239 21L220 23C219 16 219 9 216 3Z"
-        className="fill-amber/20 stroke-amber/70"
+        className="fill-highlight/20 stroke-highlight/70"
         strokeWidth="1.2"
       />
     </svg>
@@ -91,10 +92,13 @@ function SearchBar({
       <Sheet>
         <SheetTrigger asChild>
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
             aria-label={t('mobile.menu')}
-            className={cn('bg-card size-14 shrink-0 rounded-xl shadow-md', AMBER_EDGE)}
+            className={cn(
+              'bg-card border-border size-14 shrink-0 rounded-xl border shadow-md',
+              HIGHLIGHT_EDGE
+            )}
           >
             <Menu />
           </Button>
@@ -108,7 +112,7 @@ function SearchBar({
               <Stethoscope className="size-5" />
             </span>
             <SheetTitle className="font-display line-clamp-2 min-w-0 flex-1 text-base leading-tight">
-              {t('app.shortTitle')}
+              {AGENT_NAME}
             </SheetTitle>
             <SheetClose asChild>
               <Button variant="ghost" size="icon" aria-label={t('summary.close')}>
@@ -186,7 +190,7 @@ function SearchBar({
         onClick={onOpenChat}
         className={cn(
           'bg-card border-border flex h-14 min-w-0 flex-1 items-center rounded-xl border px-3.5 text-left shadow-md',
-          AMBER_EDGE
+          HIGHLIGHT_EDGE
         )}
       >
         <span

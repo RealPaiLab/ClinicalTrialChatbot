@@ -2,8 +2,7 @@ import type en from './en';
 
 const de = {
   app: {
-    title: 'Navigator für klinische Krebsstudien',
-    shortTitle: 'Studien-Navigator',
+    tagline: 'Der Chatbot für Krebsstudien',
     preRelease: 'Vorabversion',
   },
   header: {
@@ -183,7 +182,7 @@ const de = {
     skip: 'Überspringen',
     steps: {
       welcome: {
-        title: 'Willkommen beim Studien-Navigator',
+        title: 'Willkommen bei {{agent}}',
         description:
           'Dieser kurze Rundgang zeigt Ihnen, wie Sie klinische Krebsstudien im Gespräch finden, die Karte erkunden und zu den Studien nachfragen, die Sie interessieren. Es dauert nur einen Moment.',
       },
