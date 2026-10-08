@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.9.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.8.0...frontend-v0.9.0) (2026-10-08)
+
+
+### Features
+
+* **chat:** enhance ChatDisclaimer with dialog for mobile layout ([032add8](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/032add81ff83c6ab1da33b65a35614187ac53563))
+* **chat:** keep the conversation title from the chat result ([02ff9ee](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/02ff9eeaedc86436e34d6e3e54cd78b33d150b34))
+* **deps:** add 'cn' and 'vaul' dependencies to package.json ([869fa53](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/869fa53b91938ebeebcfebc7db274de648777433))
+* **frontend:** rebrand the app as Camille ([#129](https://github.com/RealPaiLab/ClinicalTrialChatbot/issues/129)) ([7177c80](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/7177c80598e26e3924ad1d12ec852269784677e6))
+* **i18n:** add strings for the mobile layout and tour ([0c641f9](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/0c641f94a4c7df2a701510024d13bc40b4e5057f))
+* **map:** support a compact overlay layout ([2af0caa](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/2af0caab9b33c25dc594e3e90bae09a308a1910d))
+* **mobile:** implement mobile layout with chat and map integration ([3554f55](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/3554f55ac0f62644c65fcf22fca74b672f7b49c8))
+* **onboarding:** add the mobile tour ([b43cf91](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/b43cf919c1da8623db21eb4b44911d44c9a6be79))
+* **ui:** add the shadcn Drawer ([538d0fc](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/538d0fcdf320a68aca98a0beceaf8b8674107831))
+
+
+### Bug Fixes
+
+* **chat:** keep input text clear of the help icon ([97ca487](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/97ca487f1879f7db2053d9f4a887a9c5a600ef05))
+* **deps:** bump brace-expansion and undici to clear four HIGH CVEs flagged by the dependency scan ([ea4c85c](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/ea4c85cd3b3ab8763ae364071c95cee940ae216a))
+* **frontend:** pin libexpat to 2.8.5-r0 to clear a HIGH CVE in the image scan ([033ec25](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/033ec25239a2e99441b587c86883975ac8856067))
+* **map:** keep the empty-state hint inside the map ([075de06](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/075de06d92c8640c7afd2e56c423b4726ca788f3))
+* **onboarding:** use valid refs for the tour's sample trials ([74bcff5](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/74bcff55439c0bb9d8a42499ed6c7fc59e20f240))
+
 ## [0.8.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.7.0...frontend-v0.8.0) (2026-09-23)
 
 
