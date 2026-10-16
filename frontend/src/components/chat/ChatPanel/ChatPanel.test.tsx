@@ -124,26 +124,29 @@ describe('ChatPanel', () => {
     expect(onReset).toHaveBeenCalledTimes(1);
   });
 
-  it('appends selected-trial NCTs to the sent payload and clears the tray', async () => {
+  it('sends the added trials with every message until they are removed', async () => {
     const createStream = vi.fn<(text: string, signal?: AbortSignal) => AsyncGenerator<StreamEvent>>(
       () => streamWithTrials()
     );
-    const onClearContext = vi.fn();
     renderWithClient(
       <ChatPanel
         createStream={createStream}
         fetchTrial={fetchTrial}
         contextTrials={[mockTrials[0]]}
-        onClearContext={onClearContext}
       />
     );
 
     await userEvent.type(screen.getByRole('textbox'), 'what are the side effects?');
     await userEvent.click(screen.getByRole('button', { name: /submit/i }));
+    await waitFor(() => expect(screen.getByRole('textbox')).toBeEnabled());
+    await userEvent.type(screen.getByRole('textbox'), 'how long does it last?');
+    await userEvent.click(screen.getByRole('button', { name: /submit/i }));
 
-    const sentText = createStream.mock.calls[0][0];
-    expect(sentText).toContain('what are the side effects?');
-    expect(sentText).toContain('CTC-4267848A');
-    expect(onClearContext).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(createStream).toHaveBeenCalledTimes(2));
+    const [first, second] = createStream.mock.calls.map(([text]) => text);
+    expect(first).toContain('what are the side effects?');
+    expect(first).toContain('CTC-4267848A');
+    expect(second).toContain('how long does it last?');
+    expect(second).toContain('CTC-4267848A');
   });
 });
