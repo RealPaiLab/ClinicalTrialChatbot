@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import LanguagePicker from '@/components/layout/LanguagePicker/LanguagePicker';
+import OicrLogo from '@/components/layout/OicrLogo/OicrLogo';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
 import { AGENT_NAME } from '@/constants/chat';
 import { TRIAL_SOURCES } from '@/constants/trialSources';
@@ -31,6 +32,8 @@ function AppHeader({
   return (
     <header className="bg-header text-header-foreground border-border after:bg-highlight relative flex h-12 shrink-0 items-center justify-between border-b px-4 after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:content-['']">
       <div className="flex min-w-0 items-center gap-2.5">
+        <OicrLogo className="h-9" />
+        <span aria-hidden className="bg-border h-6 w-px" />
         <span className="font-display text-lg leading-none font-extrabold tracking-[-0.03em]">
           {AGENT_NAME}
         </span>
