@@ -199,7 +199,7 @@ const de = {
       answer: {
         title: 'Die Antwort lesen',
         description:
-          'Antworten zitieren echte Studien als Chips wie oben: Klicken Sie einen an, um ihn auf der Karte hervorzuheben, oder fahren Sie mit der Maus darüber für eine Vorschau. Unterstrichene Fachbegriffe zeigen beim Überfahren eine verständliche Erklärung.',
+          'Jede Studie, die eine Antwort erwähnt, erscheint als kleines grünes Etikett mit ihrem Namen, wie in der hervorgehobenen Antwort. Klicken Sie auf ein Etikett, um die Studie auf der Karte zu finden, oder fahren Sie mit der Maus darüber für eine Vorschau. Unterstrichene Fachbegriffe zeigen beim Überfahren eine verständliche Erklärung.',
       },
       askAi: {
         title: 'Fragen Sie alles',
@@ -234,7 +234,7 @@ const de = {
       addedTrials: {
         title: 'Ihre hinzugefügten Studien',
         description:
-          'Studien, die Sie hinzufügen, erscheinen hier als Chips, bevor Sie eine Nachricht senden. Entfernen Sie sie mit dem ×, sobald Sie sie nicht mehr brauchen.',
+          'Studien, die Sie hinzufügen, erscheinen als kleine Etiketten oben im Nachrichtenfeld, damit der Assistent weiß, nach welchen Sie fragen. Entfernen Sie sie mit dem ×, sobald Sie sie nicht mehr brauchen.',
       },
       mobileSearch: {
         title: 'Ihre Suche',
@@ -244,7 +244,7 @@ const de = {
       mobileAnswer: {
         title: 'Die Antwort lesen',
         description:
-          'Antworten nennen echte Studien als Markierungen wie die oben. Tippen Sie auf eine, um sie auf der Karte zu sehen; ihre Kachel ist dann bereit zum Öffnen.',
+          'Jede Studie, die eine Antwort erwähnt, erscheint als kleines grünes Etikett mit ihrem Namen, wie das hervorgehobene. Tippen Sie auf ein Etikett, um die Studie auf der Karte zu sehen; ihre Kachel ist dann bereit zum Öffnen.',
       },
       mobileResize: {
         title: 'Platz schaffen',

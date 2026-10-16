@@ -193,7 +193,7 @@ const es = {
       answer: {
         title: 'Leer la respuesta',
         description:
-          'Las respuestas citan ensayos reales como las etiquetas de arriba: haga clic en una para enfocarla en el mapa, o pase el cursor para verla en resumen. Los términos médicos subrayados muestran una definición sencilla al pasar el cursor.',
+          'Cada ensayo que menciona una respuesta aparece como una pequeña etiqueta verde con su nombre, como la de la respuesta resaltada. Haga clic en una etiqueta para ubicar ese ensayo en el mapa, o pase el cursor sobre ella para ver un resumen. Los términos médicos subrayados muestran una definición sencilla al pasar el cursor.',
       },
       askAi: {
         title: 'Pregunte lo que quiera',
@@ -228,7 +228,7 @@ const es = {
       addedTrials: {
         title: 'Sus ensayos añadidos',
         description:
-          'Los ensayos que añade aparecen aquí como etiquetas antes de enviar el mensaje. Quite cualquiera de ellos con la × cuando ya no lo necesite.',
+          'Los ensayos que añade aparecen como pequeñas etiquetas en la parte superior del cuadro de mensaje, para que el asistente sepa por cuáles pregunta. Quite cualquiera de ellos con la × cuando ya no lo necesite.',
       },
       mobileSearch: {
         title: 'Su búsqueda',
@@ -238,7 +238,7 @@ const es = {
       mobileAnswer: {
         title: 'Leer la respuesta',
         description:
-          'Las respuestas citan ensayos reales como etiquetas como la de arriba. Toque una para verla en el mapa, con su tarjeta lista para abrir.',
+          'Cada ensayo que menciona una respuesta aparece como una pequeña etiqueta verde con su nombre, como la resaltada. Toque una etiqueta para ver ese ensayo en el mapa, con su tarjeta lista para abrir.',
       },
       mobileResize: {
         title: 'Hacer espacio',

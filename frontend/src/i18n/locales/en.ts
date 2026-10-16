@@ -187,7 +187,7 @@ const en = {
       answer: {
         title: 'Reading the answer',
         description:
-          'Answers cite real trials as pills like the one above: click one to focus it on the map, or hover to preview it. Underlined medical terms show a plain-language definition on hover.',
+          'Each trial an answer mentions shows up as a small green label with its name, like the one in the highlighted answer. Click a label to find that trial on the map, or hover over it for a preview. Underlined medical terms show a plain-language definition on hover.',
       },
       askAi: {
         title: 'Ask about anything',
@@ -222,7 +222,7 @@ const en = {
       addedTrials: {
         title: 'Your added trials',
         description:
-          'Trials you add show up here as chips before you send a message. Remove any of them with the × when you no longer need it.',
+          'Trials you add show up as small labels at the top of the message box, so the assistant knows which ones you are asking about. Remove any of them with the × when you no longer need it.',
       },
       mobileSearch: {
         title: 'Your search',
@@ -232,7 +232,7 @@ const en = {
       mobileAnswer: {
         title: 'Reading the answer',
         description:
-          'Answers cite real trials as pills like the one above. Tap one to see it on the map, with its card ready to open.',
+          'Each trial an answer mentions shows up as a small green label with its name, like the highlighted one. Tap a label to see that trial on the map, with its card ready to open.',
       },
       mobileResize: {
         title: 'Make room',
