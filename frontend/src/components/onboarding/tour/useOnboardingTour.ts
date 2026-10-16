@@ -27,6 +27,7 @@ export function useOnboardingTour(buildSteps: BuildSteps = buildTourSteps) {
         selectedTrialRef: store.selectedTrialRef,
         selectedSiteKey: store.selectedSiteKey,
         contextTrialRefs: store.contextTrialRefs,
+        pinnedTrialRefs: store.pinnedTrialRefs,
         tourMessages: store.tourMessages,
         sheetSnap: store.sheetSnap,
       };
@@ -36,17 +37,22 @@ export function useOnboardingTour(buildSteps: BuildSteps = buildTourSteps) {
         if (trial.trialRef) queryClient.setQueryData(['trial', trial.trialRef], trial);
       });
       store.setTourMessages(DEMO_MESSAGES);
+      // Kept trials would otherwise ride along onto the demo map.
+      store.clearContext();
 
       const restore = () => {
         teardownAskAi();
         const current = useAppStore.getState();
         current.setTourMessages(snapshot.tourMessages);
-        current.setTrials(snapshot.trials);
+        // Written directly: setTrials would keep the demo's added trial on the user's map.
+        useAppStore.setState({
+          trials: snapshot.trials,
+          pinnedTrialRefs: snapshot.pinnedTrialRefs,
+          contextTrialRefs: snapshot.contextTrialRefs,
+        });
         current.selectTrial(snapshot.selectedTrialRef, snapshot.selectedSiteKey);
         current.setSheetSnap(snapshot.sheetSnap);
         current.setTrialDrawerOpen(false);
-        current.clearContext();
-        snapshot.contextTrialRefs.forEach((nct) => current.addToContext(nct));
         DEMO_TRIALS.forEach((trial) => {
           if (trial.trialRef) queryClient.removeQueries({ queryKey: ['trial', trial.trialRef] });
         });

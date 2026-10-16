@@ -32,11 +32,10 @@ function HomePage() {
   const selectTrial = useAppStore((state) => state.selectTrial);
   const addToContext = useAppStore((state) => state.addToContext);
   const removeFromContext = useAppStore((state) => state.removeFromContext);
-  const clearContext = useAppStore((state) => state.clearContext);
   const toggleBookmark = useAppStore((state) => state.toggleBookmark);
   const removeBookmark = useAppStore((state) => state.removeBookmark);
-  const addBookmarkTrial = useAppStore((state) => state.addBookmarkTrial);
-  const dropBookmarkTrial = useAppStore((state) => state.dropBookmarkTrial);
+  const pinTrial = useAppStore((state) => state.pinTrial);
+  const unpinTrial = useAppStore((state) => state.unpinTrial);
   const reset = useAppStore((state) => state.reset);
   const toggleTheme = useAppStore((state) => state.toggleTheme);
 
@@ -86,16 +85,16 @@ function HomePage() {
   const handleOpenBookmark = (trial: Trial) => {
     const trialRef = trial.trialRef;
     if (!trialRef) return;
-    addBookmarkTrial(trial);
+    pinTrial(trial);
     selectTrial(trialRef);
     addToContext(trialRef);
   };
 
-  // Dropping a bookmark-opened trial from the chat context takes its pin with
-  // it: nothing in the conversation put it there, so nothing should keep it.
+  // Dropping a pinned trial from the chat context takes its pin with it: the
+  // latest chat turn did not return it, so nothing else keeps it on the map.
   const handleRemoveContext = (trialRef: string) => {
     removeFromContext(trialRef);
-    dropBookmarkTrial(trialRef);
+    unpinTrial(trialRef);
   };
 
   // Pins and context chips read a translation only if one already exists; the
@@ -173,7 +172,6 @@ function HomePage() {
             onReset={reset}
             contextTrials={contextTrials}
             onRemoveContext={handleRemoveContext}
-            onClearContext={clearContext}
           />
         </ResizablePanel>
 

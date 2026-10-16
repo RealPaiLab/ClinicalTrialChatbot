@@ -12,8 +12,8 @@ interface AppState {
   selectedSiteKey: string | null;
   contextTrialRefs: string[];
   bookmarkedTrialRefs: string[];
-  /** Trials put on the map from the saved list rather than by a chat turn. */
-  bookmarkTrialRefs: string[];
+  /** Trials on the map that the latest chat turn did not return (opened from bookmarks or kept in context). */
+  pinnedTrialRefs: string[];
   theme: Theme;
   language: LanguageCode;
   hasChosenLanguage: boolean;
@@ -35,8 +35,8 @@ interface AppState {
   clearContext: () => void;
   toggleBookmark: (trialRef: string) => void;
   removeBookmark: (trialRef: string) => void;
-  addBookmarkTrial: (trial: Trial) => void;
-  dropBookmarkTrial: (trialRef: string) => void;
+  pinTrial: (trial: Trial) => void;
+  unpinTrial: (trialRef: string) => void;
   reset: () => void;
   toggleTheme: () => void;
   setTheme: (theme: Theme) => void;
@@ -54,7 +54,7 @@ export const useAppStore = create<AppState>()(
       selectedSiteKey: null,
       contextTrialRefs: [],
       bookmarkedTrialRefs: [],
-      bookmarkTrialRefs: [],
+      pinnedTrialRefs: [],
       theme: 'light',
       language: LanguageCode.En,
       hasChosenLanguage: false,
@@ -65,8 +65,19 @@ export const useAppStore = create<AppState>()(
       sheetSnap: 'peek',
       trialDrawerOpen: false,
 
-      // A chat turn owns the map: whatever a bookmark added is superseded by it.
-      setTrials: (trials) => set({ trials, bookmarkTrialRefs: [] }),
+      // A chat turn owns the map, except trials still in the chat context: they stay pinned until removed.
+      setTrials: (trials) =>
+        set((state) => {
+          const returned = new Set(trials.map((trial) => trial.trialRef));
+          const kept = state.trials.filter(
+            (trial) =>
+              state.contextTrialRefs.includes(trial.trialRef) && !returned.has(trial.trialRef)
+          );
+          return {
+            trials: [...trials, ...kept],
+            pinnedTrialRefs: kept.map((trial) => trial.trialRef),
+          };
+        }),
       setConversationTitle: (conversationTitle) => set({ conversationTitle }),
       setSheetSnap: (sheetSnap) => set({ sheetSnap }),
       setTrialDrawerOpen: (trialDrawerOpen) => set({ trialDrawerOpen }),
@@ -93,7 +104,7 @@ export const useAppStore = create<AppState>()(
         set((state) => ({
           bookmarkedTrialRefs: state.bookmarkedTrialRefs.filter((ref) => ref !== trialRef),
         })),
-      addBookmarkTrial: (trial) =>
+      pinTrial: (trial) =>
         set((state) => {
           const trialRef = trial.trialRef;
           if (!trialRef) return state;
@@ -101,16 +112,16 @@ export const useAppStore = create<AppState>()(
           if (state.trials.some((candidate) => candidate.trialRef === trialRef)) return state;
           return {
             trials: [...state.trials, trial],
-            bookmarkTrialRefs: [...state.bookmarkTrialRefs, trialRef],
+            pinnedTrialRefs: [...state.pinnedTrialRefs, trialRef],
           };
         }),
-      dropBookmarkTrial: (trialRef) =>
+      unpinTrial: (trialRef) =>
         set((state) => {
-          if (!state.bookmarkTrialRefs.includes(trialRef)) return state;
+          if (!state.pinnedTrialRefs.includes(trialRef)) return state;
           const wasSelected = state.selectedTrialRef === trialRef;
           return {
             trials: state.trials.filter((trial) => trial.trialRef !== trialRef),
-            bookmarkTrialRefs: state.bookmarkTrialRefs.filter((ref) => ref !== trialRef),
+            pinnedTrialRefs: state.pinnedTrialRefs.filter((ref) => ref !== trialRef),
             selectedTrialRef: wasSelected ? null : state.selectedTrialRef,
             selectedSiteKey: wasSelected ? null : state.selectedSiteKey,
           };
@@ -121,7 +132,7 @@ export const useAppStore = create<AppState>()(
           selectedTrialRef: null,
           selectedSiteKey: null,
           contextTrialRefs: [],
-          bookmarkTrialRefs: [],
+          pinnedTrialRefs: [],
           tourMessages: [],
           conversationTitle: null,
         }),
