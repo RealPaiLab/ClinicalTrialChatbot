@@ -194,7 +194,7 @@ const frCa = {
       answer: {
         title: 'Lire la réponse',
         description:
-          'Les réponses citent de vrais essais sous forme de pastilles comme celle ci-dessus : cliquez sur l’une d’elles pour la mettre en évidence sur la carte, ou survolez-la pour un aperçu. Les termes médicaux soulignés affichent une définition en langage clair au survol.',
+          'Chaque essai mentionné dans une réponse apparaît sous forme de petite étiquette verte portant son nom, comme celle de la réponse mise en évidence. Cliquez sur une étiquette pour repérer cet essai sur la carte, ou survolez-la pour un aperçu. Les termes médicaux soulignés affichent une définition en langage clair au survol.',
       },
       askAi: {
         title: 'Posez n’importe quelle question',
@@ -229,7 +229,7 @@ const frCa = {
       addedTrials: {
         title: 'Vos essais ajoutés',
         description:
-          'Les essais que vous ajoutez apparaissent ici sous forme de pastilles avant l’envoi de votre message. Retirez-les avec le × quand vous n’en avez plus besoin.',
+          'Les essais que vous ajoutez apparaissent sous forme de petites étiquettes en haut de la zone de message, pour que l’assistant sache de quels essais vous parlez. Retirez-les avec le × quand vous n’en avez plus besoin.',
       },
       mobileSearch: {
         title: 'Votre recherche',
@@ -239,7 +239,7 @@ const frCa = {
       mobileAnswer: {
         title: 'Lire la réponse',
         description:
-          'Les réponses citent de vrais essais sous forme de pastilles comme celle ci-dessus. Touchez-en une pour la voir sur la carte, avec sa fiche prête à ouvrir.',
+          'Chaque essai mentionné dans une réponse apparaît sous forme de petite étiquette verte portant son nom, comme celle mise en évidence. Touchez une étiquette pour voir cet essai sur la carte, avec sa fiche prête à ouvrir.',
       },
       mobileResize: {
         title: 'Faire de la place',
