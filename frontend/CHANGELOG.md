@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.10.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.9.0...frontend-v0.10.0) (2026-10-16)
+
+
+### Features
+
+* **frontend:** add OICR logo, green Canada map overlay, menu-style consent and map-first mobile start ([#134](https://github.com/RealPaiLab/ClinicalTrialChatbot/issues/134)) ([c6d1fbc](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/c6d1fbc4cd1be9775db0dcdda313b03e24840e28))
+
+
+### Bug Fixes
+
+* **frontend:** clarify the onboarding tour wording for trial labels ([#135](https://github.com/RealPaiLab/ClinicalTrialChatbot/issues/135)) ([65403d2](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/65403d2990de465a75b44d932a9244089ce1999e))
+* **frontend:** keep added trials in the chat context until the user removes them ([#136](https://github.com/RealPaiLab/ClinicalTrialChatbot/issues/136)) ([76f10e4](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/76f10e4df19d0f41e600d92687693fc6e7704240))
+
 ## [0.9.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.8.0...frontend-v0.9.0) (2026-10-08)
 
 
