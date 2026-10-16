@@ -1,15 +1,5 @@
 import { useState } from 'react';
-import {
-  Bookmark,
-  Compass,
-  FileText,
-  Languages,
-  Menu,
-  Moon,
-  Stethoscope,
-  Sun,
-  X,
-} from 'lucide-react';
+import { Bookmark, Compass, FileText, Languages, Menu, Moon, Sun, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
@@ -29,7 +19,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import CornerMark from '@/components/layout/CornerMark/CornerMark';
 import { LanguageOptions } from '@/components/layout/LanguagePicker/LanguagePicker';
+import OicrLogo from '@/components/layout/OicrLogo/OicrLogo';
 import { AGENT_NAME } from '@/constants/chat';
 import { LANGUAGE_TARGETS } from '@/constants/language';
 import { useAppLanguage } from '@/hooks/useAppLanguage';
@@ -49,29 +41,6 @@ interface SearchBarProps {
 const MENU_ROW = 'h-11 justify-start gap-3 px-3 text-sm';
 const HIGHLIGHT_EDGE =
   "after:bg-highlight relative overflow-hidden after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:content-['']";
-
-/** Hand-drawn corner mark hugging a top-right edge: two strokes that cross in a small square. */
-function CornerMark({ className }: { className: string }) {
-  return (
-    <svg
-      aria-hidden
-      viewBox="0 0 240 240"
-      fill="none"
-      strokeLinecap="round"
-      className={cn('pointer-events-none absolute -z-10 size-[240px]', className)}
-    >
-      <path d="M8 11C70 10 150 9 236 7" className="stroke-highlight/70" strokeWidth="1.4" />
-      <path d="M70 18C120 17 170 16 232 15" className="stroke-highlight/40" strokeWidth="1" />
-      <path d="M229 4C230 70 231 150 233 236" className="stroke-highlight/70" strokeWidth="1.4" />
-      <path d="M222 40C223 100 224 160 226 226" className="stroke-highlight/40" strokeWidth="1" />
-      <path
-        d="M216 3C222 2 229 1 238 0C238 7 237 13 239 21L220 23C219 16 219 9 216 3Z"
-        className="fill-highlight/20 stroke-highlight/70"
-        strokeWidth="1.2"
-      />
-    </svg>
-  );
-}
 
 function SearchBar({
   title,
@@ -108,9 +77,8 @@ function SearchBar({
           <CornerMark className="bottom-0 left-0 rotate-180" />
 
           <SheetHeader className="relative flex-row items-center gap-3 px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-3">
-            <span className="bg-primary/10 text-primary flex size-9 shrink-0 items-center justify-center rounded-lg">
-              <Stethoscope className="size-5" />
-            </span>
+            <OicrLogo className="h-11" />
+            <span aria-hidden className="bg-border h-7 w-px shrink-0" />
             <SheetTitle className="font-display line-clamp-2 min-w-0 flex-1 text-base leading-tight">
               {AGENT_NAME}
             </SheetTitle>

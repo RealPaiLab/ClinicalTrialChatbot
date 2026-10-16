@@ -17,7 +17,6 @@ interface ChatPanelProps {
   onReset?: () => void;
   contextTrials?: Trial[];
   onRemoveContext?: (trialRef: string) => void;
-  onClearContext?: () => void;
   createStream?: (text: string, signal?: AbortSignal) => AsyncGenerator<StreamEvent>;
   fetchTrial?: (trialRef: string, signal?: AbortSignal) => Promise<TrialSummary>;
 }
@@ -28,7 +27,6 @@ function ChatPanel({
   onReset,
   contextTrials = [],
   onRemoveContext,
-  onClearContext,
   createStream,
   fetchTrial = getTrial,
 }: ChatPanelProps) {
@@ -45,12 +43,12 @@ function ChatPanel({
   const tourMessages = useAppStore((state) => state.tourMessages);
   const displayMessages = tourMessages.length > 0 ? tourMessages : messages;
 
+  // Added trials stay in the tray across turns until the user removes them.
   const handleSend = (text: string) => {
     const contextTrialRefs = contextTrials
       .map((trial) => trial.trialRef)
       .filter((nct): nct is string => Boolean(nct));
     void sendMessage(text, contextTrialRefs);
-    onClearContext?.();
   };
 
   const handleNewConversation = () => {

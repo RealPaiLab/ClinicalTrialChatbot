@@ -56,7 +56,7 @@ function MobileLayout({
 }: MobileLayoutProps) {
   const { t } = useTranslation();
   const conversationTitle = useAppStore((state) => state.conversationTitle);
-  const { setTrials, selectTrial, reset, addToContext, clearContext, toggleBookmark, toggleTheme } =
+  const { setTrials, selectTrial, reset, addToContext, toggleBookmark, toggleTheme } =
     useAppStore.getState();
 
   const snap = useAppStore((state) => state.sheetSnap);
@@ -142,7 +142,6 @@ function MobileLayout({
           onReset={reset}
           contextTrials={contextTrials}
           onRemoveContext={onRemoveContext}
-          onClearContext={clearContext}
         />
       </ChatSheet>
 

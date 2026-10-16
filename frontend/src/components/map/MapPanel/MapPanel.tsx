@@ -20,6 +20,8 @@ const DARK_STYLE = config.mapboxStyleDark;
 const INITIAL_VIEW = { longitude: CANADA_CENTER[0], latitude: CANADA_CENTER[1], zoom: 2.5 };
 const MIN_ZOOM = 2;
 const MAX_ZOOM = 16;
+// Mirrors the `--highlight` token (OICR logo green).
+const CANADA_GREEN = '#64bc46';
 
 interface MapPanelProps {
   trials: Trial[];
@@ -95,15 +97,15 @@ function MapPanel({
             id="canada-fill"
             type="fill"
             paint={{
-              'fill-color': dark ? '#f2f2f0' : '#141414',
-              'fill-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.05, 6, 0],
+              'fill-color': CANADA_GREEN,
+              'fill-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.12, 6, 0],
             }}
           />
           <Layer
             id="canada-line"
             type="line"
             paint={{
-              'line-color': dark ? '#a3a3a0' : '#5f5f5b',
+              'line-color': CANADA_GREEN,
               'line-width': 1.5,
               'line-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.6, 6, 0],
             }}
