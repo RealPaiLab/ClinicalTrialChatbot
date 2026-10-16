@@ -61,8 +61,8 @@ export const useAppStore = create<AppState>()(
       hasSeenTour: false,
       tourMessages: [],
       conversationTitle: null,
-      // A fresh visit has nothing on the map yet, so it opens on the conversation.
-      sheetSnap: 'full',
+      // A fresh phone visit opens on the map; the search bar or peek bar opens the chat.
+      sheetSnap: 'peek',
       trialDrawerOpen: false,
 
       // A chat turn owns the map: whatever a bookmark added is superseded by it.
