@@ -144,7 +144,7 @@ const de = {
     phoneExtension: 'Durchwahl {{ext}}',
     unnamed: 'Studienkontakt',
     emptyBody:
-      'Für diese Studie sind keine Kontaktdaten hinterlegt. Auf der Studienseite von Cancer Trials Canada finden Sie möglicherweise einen anderen Weg zur Kontaktaufnahme.',
+      'Für diese Studie sind keine Kontaktdaten verfügbar. Auf der Registerseite der Studie finden Sie möglicherweise einen anderen Weg zur Kontaktaufnahme.',
     loadError: 'Die Kontaktdaten konnten nicht geladen werden. Bitte versuchen Sie es erneut.',
   },
   bookmarks: {

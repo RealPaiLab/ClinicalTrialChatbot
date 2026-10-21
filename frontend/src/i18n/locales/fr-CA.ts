@@ -140,7 +140,7 @@ const frCa = {
     phoneExtension: 'poste {{ext}}',
     unnamed: 'Personne-ressource de l’étude',
     emptyBody:
-      'Aucune coordonnée n’est inscrite pour cet essai. La page de l’essai sur Essais cliniques Canada peut indiquer un autre moyen de communication.',
+      'Aucune coordonnée n’est disponible pour cet essai. La page de l’essai dans son registre peut indiquer un autre moyen de communication.',
     loadError: 'Impossible de charger les coordonnées. Veuillez réessayer.',
   },
   bookmarks: {

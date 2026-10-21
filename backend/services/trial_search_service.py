@@ -38,6 +38,16 @@ def _to_site_info(site: TrialSite) -> TrialSiteInfo:
     )
 
 
+# Sites these sources list serve no coordinators (a shared row's are unattributed).
+_CONTACTS_WITHHELD_FROM: frozenset[str] = frozenset({SourceCode.CTC})
+
+
+def _site_contacts(site: TrialSite) -> list[SiteContact]:
+    if _CONTACTS_WITHHELD_FROM.intersection(site.data_sources or []):
+        return []
+    return [SiteContact.model_validate(c) for c in site.coordinators]
+
+
 def _site_matches_location(site: TrialSite, locations: list[str]) -> bool:
     if not locations:
         return True
@@ -246,12 +256,7 @@ class TrialSearchService:
             return TrialContacts(
                 trial_ref=trial_ref,
                 sites=[
-                    SiteContacts(
-                        site=_to_site_info(s),
-                        contacts=[
-                            SiteContact.model_validate(c) for c in s.coordinators
-                        ],
-                    )
+                    SiteContacts(site=_to_site_info(s), contacts=_site_contacts(s))
                     for s in sites
                 ],
             )

@@ -11,7 +11,7 @@ interface ContactSiteStepProps {
 function ContactSiteStep({ sites, onSelect }: ContactSiteStepProps) {
   const { t } = useTranslation();
 
-  if (sites.length === 0) {
+  if (sites.every(({ contacts }) => contacts.length === 0)) {
     return <p className="text-caption text-muted-foreground">{t('contact.emptyBody')}</p>;
   }
 

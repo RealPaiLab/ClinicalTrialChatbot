@@ -8,6 +8,7 @@ from schemas.source import SourceCode
 from schemas.trial import TrialFilter
 from services.trial_search_service import (
     TrialSearchService,
+    _site_contacts,
     _site_matches_cancer,
     _site_matches_location,
     _site_matches_status,
@@ -68,6 +69,19 @@ def test_to_citation_city_and_province_keeps_only_that_city() -> None:
     )
     citation = _to_citation(trial, ["Ottawa", "Ontario"], [])
     assert [s.city for s in citation.sites] == ["Ottawa"]
+
+
+@pytest.mark.parametrize(
+    ("data_sources", "served"),
+    [(["ctc"], 0), (["ctc", "ulc"], 0), (["ulc"], 1)],
+)
+def test_site_contacts_are_served_only_for_sites_ctc_does_not_list(
+    data_sources: list[str], served: int
+) -> None:
+    site = make_orm_trial("CTC-00000001").sites[0]
+    site.data_sources = data_sources
+    site.coordinators = [{"full_name": "Coordinator", "email": "c@example.org"}]
+    assert len(_site_contacts(site)) == served
 
 
 def test_site_matches_cancer() -> None:

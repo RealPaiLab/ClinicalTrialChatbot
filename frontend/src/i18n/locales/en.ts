@@ -134,7 +134,7 @@ const en = {
     phoneExtension: 'ext. {{ext}}',
     unnamed: 'Study contact',
     emptyBody:
-      'This trial has no coordinator details on record. The Cancer Trials Canada page for the trial may list another way to get in touch.',
+      'No contact information is available for this trial. Its registry page may list another way to get in touch.',
     loadError: 'Contact details could not be loaded. Please try again.',
   },
   bookmarks: {

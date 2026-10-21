@@ -130,8 +130,7 @@ const yue = {
     showPhone: '顯示電話號碼',
     phoneExtension: '分機 {{ext}}',
     unnamed: '研究聯絡人',
-    emptyBody:
-      '呢個臨床試驗冇登記聯絡資料。Cancer Trials Canada 上面嘅試驗頁面可能有其他聯絡方法。',
+    emptyBody: '呢個臨床試驗暫時冇聯絡資料。試驗喺登記網站上面嘅頁面可能有其他聯絡方法。',
     loadError: '載入唔到聯絡資料，請再試一次。',
   },
   bookmarks: {
