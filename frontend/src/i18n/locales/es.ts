@@ -140,7 +140,7 @@ const es = {
     phoneExtension: 'ext. {{ext}}',
     unnamed: 'Contacto del estudio',
     emptyBody:
-      'Este ensayo no tiene datos de contacto registrados. La página del ensayo en Cancer Trials Canada puede indicar otra forma de comunicarse.',
+      'No hay datos de contacto disponibles para este ensayo. La página del ensayo en su registro puede indicar otra forma de comunicarse.',
     loadError: 'No se pudieron cargar los datos de contacto. Inténtelo de nuevo.',
   },
   bookmarks: {

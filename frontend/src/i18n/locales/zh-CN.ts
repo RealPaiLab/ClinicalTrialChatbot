@@ -130,7 +130,7 @@ const zhCn = {
     showPhone: '显示电话号码',
     phoneExtension: '分机 {{ext}}',
     unnamed: '研究联系人',
-    emptyBody: '该试验没有登记联系方式。Cancer Trials Canada 上的试验页面可能提供其他联系方式。',
+    emptyBody: '该试验暂无联系信息。试验在登记网站上的页面可能提供其他联系方式。',
     loadError: '无法加载联系方式，请重试。',
   },
   bookmarks: {
