@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.11.0...backend-v0.11.1) (2026-10-21)
+
+
+### Bug Fixes
+
+* hide coordinator contacts for Cancer Trials Canada sites ([#141](https://github.com/RealPaiLab/ClinicalTrialChatbot/issues/141)) ([#142](https://github.com/RealPaiLab/ClinicalTrialChatbot/issues/142)) ([349dea7](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/349dea726d9613c660e53b4d887d5a5601ec8c17))
+
 ## [0.11.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.10.0...backend-v0.11.0) (2026-10-08)
 
 
