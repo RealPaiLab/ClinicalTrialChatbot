@@ -2,7 +2,7 @@ import type en from './en';
 
 const hi = {
   app: {
-    tagline: 'कैंसर ट्रायल चैटबॉट',
+    tagline: 'कैंसर क्लिनिकल ट्रायल नेविगेटर और मानचित्र',
     preRelease: 'पूर्व-रिलीज़ संस्करण',
   },
   header: {

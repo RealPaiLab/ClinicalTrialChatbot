@@ -2,7 +2,7 @@ import type en from './en';
 
 const frCa = {
   app: {
-    tagline: 'L’agent conversationnel des essais sur le cancer',
+    tagline: 'Navigateur et carte des essais cliniques sur le cancer',
     preRelease: 'Version préliminaire',
   },
   header: {

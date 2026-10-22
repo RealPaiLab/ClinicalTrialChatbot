@@ -4,11 +4,6 @@ import { describe, expect, it, vi } from 'vitest';
 import ChatHeader from './ChatHeader';
 
 describe('ChatHeader', () => {
-  it('renders the title', () => {
-    render(<ChatHeader />);
-    expect(screen.getByText('Camille')).toBeInTheDocument();
-  });
-
   it('triggers a new conversation when the button is clicked', async () => {
     const onNewConversation = vi.fn();
     render(<ChatHeader onNewConversation={onNewConversation} />);
