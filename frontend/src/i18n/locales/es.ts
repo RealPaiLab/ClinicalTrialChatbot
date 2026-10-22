@@ -2,7 +2,7 @@ import type en from './en';
 
 const es = {
   app: {
-    tagline: 'El chatbot de ensayos sobre el cáncer',
+    tagline: 'Navegador y mapa de ensayos clínicos sobre el cáncer',
     preRelease: 'Versión preliminar',
   },
   header: {

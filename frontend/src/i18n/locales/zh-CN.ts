@@ -2,7 +2,7 @@ import type en from './en';
 
 const zhCn = {
   app: {
-    tagline: '癌症试验聊天助手',
+    tagline: '癌症临床试验导航与地图',
     preRelease: '预发布版本',
   },
   header: {

@@ -1,6 +1,6 @@
 const en = {
   app: {
-    tagline: 'The Cancer Trial Chatbot',
+    tagline: 'Cancer Clinical Trial Navigator and Map',
     preRelease: 'Pre-Release Version',
   },
   header: {
