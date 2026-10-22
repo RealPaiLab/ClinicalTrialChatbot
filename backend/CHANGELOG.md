@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.11.1...backend-v0.12.0) (2026-10-22)
+
+
+### Features
+
+* **frontend:** add the animated Camille icon and two-row title to the header ([#147](https://github.com/RealPaiLab/ClinicalTrialChatbot/issues/147)) ([b861766](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/b8617668ee5bb79386f11f1602b51d85d89fc559))
+
 ## [0.11.1](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/backend-v0.11.0...backend-v0.11.1) (2026-10-21)
 
 
