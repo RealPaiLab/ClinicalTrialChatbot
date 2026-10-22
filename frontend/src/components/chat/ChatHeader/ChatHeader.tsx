@@ -1,7 +1,6 @@
-import { SquarePen, Stethoscope } from 'lucide-react';
+import { SquarePen } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { AGENT_NAME } from '@/constants/chat';
 
 interface ChatHeaderProps {
   onNewConversation?: () => void;
@@ -11,13 +10,7 @@ function ChatHeader({ onNewConversation }: ChatHeaderProps) {
   const { t } = useTranslation();
 
   return (
-    <header className="border-border flex items-center justify-between gap-2.5 border-b px-4 py-2">
-      <div className="flex items-center gap-2.5">
-        <div className="bg-primary/10 text-primary flex size-7 shrink-0 items-center justify-center rounded-md">
-          <Stethoscope className="size-4" />
-        </div>
-        <span className="font-display text-sm leading-tight font-semibold">{AGENT_NAME}</span>
-      </div>
+    <header className="border-border flex items-center justify-end border-b px-2 py-1">
       <Button
         variant="ghost"
         size="icon"

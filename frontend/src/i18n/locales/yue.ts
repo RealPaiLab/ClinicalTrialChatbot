@@ -2,7 +2,7 @@ import type en from './en';
 
 const yue = {
   app: {
-    tagline: '癌症試驗聊天助手',
+    tagline: '癌症臨床試驗導航同地圖',
     preRelease: '預發佈版本',
   },
   header: {

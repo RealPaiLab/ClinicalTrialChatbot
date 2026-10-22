@@ -64,6 +64,26 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Camille icon hover: arcs dim in sequence, then the pin hops. */
+  --animate-camille-lit: camille-lit 0.5s ease both;
+  --animate-camille-hop: camille-hop 0.8s ease-out 0.5s both;
+  @keyframes camille-lit {
+    40% {
+      opacity: 0.2;
+    }
+  }
+  @keyframes camille-hop {
+    35% {
+      transform: translateY(-9px);
+    }
+    65% {
+      transform: translateY(0);
+    }
+    82% {
+      transform: translateY(-3px);
+    }
+  }
 }
 
 /* ===========================================================================

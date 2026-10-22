@@ -19,6 +19,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import CamilleIcon from '@/components/layout/CamilleIcon/CamilleIcon';
 import CornerMark from '@/components/layout/CornerMark/CornerMark';
 import { LanguageOptions } from '@/components/layout/LanguagePicker/LanguagePicker';
 import OicrLogo from '@/components/layout/OicrLogo/OicrLogo';
@@ -76,17 +77,35 @@ function SearchBar({
           <CornerMark className="top-0 right-0" />
           <CornerMark className="bottom-0 left-0 rotate-180" />
 
-          <SheetHeader className="relative flex-row items-center gap-3 px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-3">
-            <OicrLogo className="h-11" />
-            <span aria-hidden className="bg-border h-7 w-px shrink-0" />
-            <SheetTitle className="font-display line-clamp-2 min-w-0 flex-1 text-base leading-tight">
-              {AGENT_NAME}
-            </SheetTitle>
-            <SheetClose asChild>
-              <Button variant="ghost" size="icon" aria-label={t('summary.close')}>
-                <X />
-              </Button>
-            </SheetClose>
+          <SheetHeader className="group relative gap-3 px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-3">
+            <div className="flex items-center gap-3">
+              <OicrLogo className="h-10" />
+              <span aria-hidden className="bg-border h-7 w-px shrink-0" />
+              <CamilleIcon className="h-9" />
+              <SheetClose asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t('summary.close')}
+                  className="ml-auto"
+                >
+                  <X />
+                </Button>
+              </SheetClose>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+                <SheetTitle className="font-display text-lg leading-none font-extrabold tracking-[-0.03em]">
+                  {AGENT_NAME}
+                </SheetTitle>
+                <span className="text-eyebrow text-primary bg-primary/10 rounded-full px-1.5 py-px text-[0.5rem] font-bold whitespace-nowrap">
+                  {t('app.preRelease')}
+                </span>
+              </div>
+              <span className="text-muted-foreground text-xs leading-tight">
+                {t('app.tagline')}
+              </span>
+            </div>
           </SheetHeader>
 
           <nav className="flex flex-col gap-1 px-3">
