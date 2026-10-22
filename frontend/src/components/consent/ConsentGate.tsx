@@ -1,5 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { ArrowRight, Lock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import CamilleIcon from '@/components/layout/CamilleIcon/CamilleIcon';
 import CornerMark from '@/components/layout/CornerMark/CornerMark';
 import OicrLogo from '@/components/layout/OicrLogo/OicrLogo';
 import { Button } from '@/components/ui/button';
@@ -14,6 +16,7 @@ interface ConsentGateProps {
 }
 
 function ConsentGate({ children }: ConsentGateProps) {
+  const { t } = useTranslation();
   const [consented, setConsented] = useState(hasConsented);
   const [checked, setChecked] = useState(false);
 
@@ -37,16 +40,24 @@ function ConsentGate({ children }: ConsentGateProps) {
           <CornerMark className="top-0 right-0" />
           <CornerMark className="bottom-0 left-0 rotate-180" />
 
-          <header className="flex items-center gap-3 pb-3">
-            <OicrLogo className="h-11" />
+          <header className="flex items-center gap-2 pb-3 sm:gap-3">
+            <OicrLogo className="h-9 sm:h-11" />
             <span aria-hidden className="bg-border h-8 w-px shrink-0" />
-            <div className="flex min-w-0 flex-col gap-1">
-              <span className="font-display text-base leading-tight font-semibold">
-                {AGENT_NAME}
-              </span>
-              <span className="text-eyebrow text-muted-foreground text-[0.6rem] font-bold">
-                Pre-Release
-              </span>
+            <div className="group flex min-w-0 items-center gap-2">
+              <CamilleIcon className="h-8 sm:h-10" />
+              <div className="flex min-w-0 flex-col gap-1">
+                <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+                  <span className="font-display text-lg leading-none font-extrabold tracking-[-0.03em]">
+                    {AGENT_NAME}
+                  </span>
+                  <span className="text-eyebrow text-primary bg-primary/10 rounded-full px-1.5 py-px text-[0.5rem] font-bold whitespace-nowrap">
+                    Pre-Release
+                  </span>
+                </div>
+                <span className="text-muted-foreground text-xs leading-tight">
+                  {t('app.tagline')}
+                </span>
+              </div>
             </div>
           </header>
           <Separator />
