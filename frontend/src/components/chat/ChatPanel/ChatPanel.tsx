@@ -7,53 +7,31 @@ import FollowUpChips from '@/components/chat/FollowUpChips/FollowUpChips';
 import { useTurnstile } from '@/components/turnstile/TurnstileContext';
 import { ASK_AI_PROMPT_PREFIX, ASK_AI_PROMPT_SUFFIX, ChatRole } from '@/constants/chat';
 import { useChat } from '@/hooks/useChat';
-import { getTrial } from '@/services/trials';
+import { useContextTrials } from '@/hooks/useWorkspace';
 import { useAppStore } from '@/store/appStore';
-import type { StreamEvent, Trial, TrialSummary } from '@/types/trial';
 
 interface ChatPanelProps {
-  onTrialsChange?: (trials: Trial[]) => void;
-  onCitationClick?: (trialRef: string) => void;
-  onReset?: () => void;
-  contextTrials?: Trial[];
-  onRemoveContext?: (trialRef: string) => void;
-  createStream?: (text: string, signal?: AbortSignal) => AsyncGenerator<StreamEvent>;
-  fetchTrial?: (trialRef: string, signal?: AbortSignal) => Promise<TrialSummary>;
+  onCitationClick: (trialRef: string) => void;
 }
 
-function ChatPanel({
-  onTrialsChange,
-  onCitationClick,
-  onReset,
-  contextTrials = [],
-  onRemoveContext,
-  createStream,
-  fetchTrial = getTrial,
-}: ChatPanelProps) {
+function ChatPanel({ onCitationClick }: ChatPanelProps) {
   const turnstile = useTurnstile();
   const getTurnstileToken = useCallback(() => turnstile.token, [turnstile.token]);
-
   const { messages, status, sessionId, sendMessage, stop, reset } = useChat({
-    createStream,
-    onTrialsChange,
     getTurnstileToken,
     verificationId: turnstile.verificationId,
   });
 
-  const tourMessages = useAppStore((state) => state.tourMessages);
-  const displayMessages = tourMessages.length > 0 ? tourMessages : messages;
+  const tourMessages = useAppStore((state) => state.tour?.messages);
+  const removeFromContext = useAppStore((state) => state.removeFromContext);
+  const contextTrials = useContextTrials();
+  const displayMessages = tourMessages ?? messages;
 
-  // Added trials stay in the tray across turns until the user removes them.
   const handleSend = (text: string) => {
-    const contextTrialRefs = contextTrials
-      .map((trial) => trial.trialRef)
-      .filter((nct): nct is string => Boolean(nct));
-    void sendMessage(text, contextTrialRefs);
-  };
-
-  const handleNewConversation = () => {
-    reset();
-    onReset?.();
+    void sendMessage(
+      text,
+      contextTrials.map((trial) => trial.trialRef)
+    );
   };
 
   const handleAskAi = (text: string) => {
@@ -61,19 +39,18 @@ function ChatPanel({
   };
 
   const suggestions = useMemo(() => {
-    const lastAssistant = [...displayMessages]
-      .reverse()
-      .find((message) => message.role === ChatRole.Assistant);
+    const lastAssistant = displayMessages.findLast(
+      (message) => message.role === ChatRole.Assistant
+    );
     return lastAssistant?.followUpQuestions ?? [];
   }, [displayMessages]);
 
   return (
     <div className="bg-card flex h-full flex-col">
-      <ChatHeader onNewConversation={handleNewConversation} />
+      <ChatHeader onNewConversation={reset} />
       <ChatMessages
         messages={displayMessages}
         sessionId={sessionId}
-        fetchTrial={fetchTrial}
         onCitationClick={onCitationClick}
         onAskAi={handleAskAi}
       />
@@ -84,7 +61,7 @@ function ChatPanel({
           onStop={stop}
           status={status}
           contextTrials={contextTrials}
-          onRemoveContext={onRemoveContext}
+          onRemoveContext={removeFromContext}
         />
         <ChatDisclaimer />
       </div>

@@ -3,8 +3,6 @@ import type { ChatErrorKey, ChatRole } from '@/constants/chat';
 import type { LanguageCode, TranslationSource } from '@/constants/language';
 import type { TrialSourceCode } from '@/constants/trialSources';
 
-export type { ChatRole };
-
 export interface TrialSite {
   nameEn: string;
   address: string | null;
@@ -39,16 +37,6 @@ export interface Trial {
   sites: TrialSite[];
 }
 
-export type TrialSummary = Pick<
-  Trial,
-  | 'trialRef'
-  | 'nctNumber'
-  | 'acronymOrProtocolId'
-  | 'shortTitleEn'
-  | 'officialTitleEn'
-  | 'descriptionEn'
->;
-
 export interface TrialTranslation {
   trialRef: string;
   language: LanguageCode;
@@ -61,8 +49,6 @@ export interface TrialTranslation {
   cancerTypeNames: Record<string, string>;
   treatmentTypeNames: Record<string, string>;
 }
-
-export type TrialStatus = 'recruiting' | 'opening_soon';
 
 export interface ChatResult {
   message: string;

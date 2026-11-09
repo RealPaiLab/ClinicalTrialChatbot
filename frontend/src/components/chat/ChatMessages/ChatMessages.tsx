@@ -20,34 +20,25 @@ import {
   CONTACT_HREF_PREFIX,
   DEFINITION_HREF_PREFIX,
 } from '@/constants/chat';
-import { linkifyCitations, linkifyContacts, linkifyDefinitions } from '@/lib/citations';
-import type { ChatMessage, TrialSummary } from '@/types/trial';
-
-type FetchTrial = (trialRef: string, signal?: AbortSignal) => Promise<TrialSummary>;
+import { linkifyMessage } from '@/lib/citations';
+import type { ChatMessage } from '@/types/trial';
 
 interface ChatMessagesProps {
   messages: ChatMessage[];
   sessionId: string;
-  fetchTrial: FetchTrial;
-  onCitationClick?: (trialRef: string) => void;
-  onAskAi?: (text: string) => void;
+  onCitationClick: (trialRef: string) => void;
+  onAskAi: (text: string) => void;
 }
 
-function createMarkdownComponents(
-  fetchTrial: FetchTrial,
-  onCitationClick?: (trialRef: string) => void
-): Components {
+function createMarkdownComponents(onCitationClick: (trialRef: string) => void): Components {
   return {
     a: ({ href, children }) => {
       if (href?.startsWith(CITATION_HREF_PREFIX)) {
         const trialRef = href.slice(CITATION_HREF_PREFIX.length);
-        return (
-          <TrialCitation trialRef={trialRef} fetchTrial={fetchTrial} onSelect={onCitationClick} />
-        );
+        return <TrialCitation trialRef={trialRef} onSelect={onCitationClick} />;
       }
       if (href?.startsWith(CONTACT_HREF_PREFIX)) {
-        const trialRef = href.slice(CONTACT_HREF_PREFIX.length);
-        return <TrialContactLink trialRef={trialRef} fetchTrial={fetchTrial} />;
+        return <TrialContactLink trialRef={href.slice(CONTACT_HREF_PREFIX.length)} />;
       }
       if (href?.startsWith(DEFINITION_HREF_PREFIX)) {
         const definition = decodeURIComponent(href.slice(DEFINITION_HREF_PREFIX.length));
@@ -62,18 +53,12 @@ function createMarkdownComponents(
   };
 }
 
-function ChatMessages({
-  messages,
-  sessionId,
-  fetchTrial,
-  onCitationClick,
-  onAskAi,
-}: ChatMessagesProps) {
+function ChatMessages({ messages, sessionId, onCitationClick, onAskAi }: ChatMessagesProps) {
   const { t } = useTranslation();
   const rootRef = useRef<HTMLDivElement>(null);
   return (
     <div ref={rootRef} className="contents">
-      {onAskAi && <AskAiSelection rootRef={rootRef} onAsk={onAskAi} />}
+      <AskAiSelection rootRef={rootRef} onAsk={onAskAi} />
       <Conversation data-tour="chat-messages" className="min-h-0 flex-1">
         <ConversationContent>
           {messages.length === 0 ? (
@@ -93,17 +78,14 @@ function ChatMessages({
                   ) : message.content === '' ? (
                     <SearchingIndicator />
                   ) : (
-                    <MessageResponse
-                      components={createMarkdownComponents(fetchTrial, onCitationClick)}
-                    >
-                      {linkifyDefinitions(linkifyCitations(linkifyContacts(message.content)))}
+                    <MessageResponse components={createMarkdownComponents(onCitationClick)}>
+                      {linkifyMessage(message.content)}
                     </MessageResponse>
                   )}
                 </MessageContent>
                 {message.role === ChatRole.User && message.contextTrialRefs && (
                   <MessageContextTrials
                     trialRefs={message.contextTrialRefs}
-                    fetchTrial={fetchTrial}
                     onSelect={onCitationClick}
                   />
                 )}

@@ -30,9 +30,9 @@ const es = {
     askAiHintBody:
       '¿No entiende una palabra? <mark>Resáltela</mark> en la conversación y haga clic en el botón <ask>Preguntar a la IA</ask> que aparece; {{agent}} se la explicará.',
     askAi: 'Preguntar a la IA',
-    addedTrials: 'Sus ensayos añadidos',
     removeFromContext: 'Quitar {{trialRef}} del contexto',
-    stop: 'Detener',
+    showOnMap: 'Mostrar {{title}} en el mapa',
+    definition: 'Definición: {{definition}}',
     send: 'Enviar',
   },
   searching: {
@@ -41,10 +41,10 @@ const es = {
     sites: 'Revisando centros que reclutan cerca de usted…',
     phases: 'Revisando las fases y los tratamientos de los ensayos…',
     gathering: 'Reuniendo los ensayos más relevantes…',
-    reading: 'Leyendo la respuesta',
   },
   feedback: {
-    prompt: 'Cuéntenos qué tal estuvo',
+    removeNct: 'Quitar {{nct}}',
+    failed: 'No se pudo enviar su opinión. Inténtelo de nuevo.',
     helpful: 'Útil',
     notHelpful: 'No útil',
     commentPlaceholder: 'Comentario (opcional)',
@@ -89,7 +89,6 @@ const es = {
     trialCount_other: '{{count}} ensayos',
     coverageArea: 'Área de cobertura',
     coverageNotice: 'La cobertura incluye centros de ensayos clínicos en todo Canadá.',
-    seeTrials: 'Ver los ensayos en el mapa',
     emptyHint: 'Los ensayos aparecerán aquí a medida que converse.',
   },
   status: {
@@ -112,8 +111,6 @@ const es = {
     city: 'Ciudad',
     whoCanJoin: 'Quién puede participar',
     whoCannotJoin: 'Quién no puede participar',
-    translate: 'Traducir',
-    seeOriginal: 'Ver el original',
     machineNotice:
       'Traducción automática sin revisar. Consulte el original en inglés para todo lo relacionado con la elegibilidad.',
     unavailableNotice:
@@ -173,7 +170,6 @@ const es = {
     next: 'Siguiente',
     back: 'Atrás',
     done: 'Listo',
-    skip: 'Omitir',
     steps: {
       welcome: {
         title: 'Le damos la bienvenida a {{agent}}',

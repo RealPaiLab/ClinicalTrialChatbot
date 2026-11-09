@@ -14,38 +14,25 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import BookmarkRow from '@/components/bookmarks/BookmarkRow/BookmarkRow';
-import { useCachedTrialTranslations } from '@/hooks/useCachedTranslation';
-import { getTrial } from '@/services/trials';
+import { useCachedTrialTranslations } from '@/hooks/useTrialTranslation';
+import { useTrialPdfExport } from '@/hooks/useTrialPdfExport';
+import { trialQuery } from '@/services/trials';
+import { useAppStore } from '@/store/appStore';
 import type { Trial } from '@/types/trial';
 
 interface BookmarksSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  bookmarkedTrialRefs: string[];
-  onRemove: (trialRef: string) => void;
-  onSelect?: (trial: Trial) => void;
-  onExport: (trials: Trial[]) => void;
-  isExporting?: boolean;
-  fetchTrial?: (trialRef: string, signal?: AbortSignal) => Promise<Trial>;
 }
 
-function BookmarksSheet({
-  open,
-  onOpenChange,
-  bookmarkedTrialRefs,
-  onRemove,
-  onSelect,
-  onExport,
-  isExporting,
-  fetchTrial = getTrial,
-}: BookmarksSheetProps) {
+function BookmarksSheet({ open, onOpenChange }: BookmarksSheetProps) {
   const { t } = useTranslation();
+  const bookmarkedTrialRefs = useAppStore((state) => state.bookmarkedTrialRefs);
+  const removeBookmark = useAppStore((state) => state.removeBookmark);
+  const openTrial = useAppStore((state) => state.openTrial);
+  const { exportTrials, isExporting } = useTrialPdfExport();
   const results = useQueries({
-    queries: bookmarkedTrialRefs.map((trialRef) => ({
-      queryKey: ['trial', trialRef],
-      queryFn: ({ signal }: { signal: AbortSignal }) => fetchTrial(trialRef, signal),
-      enabled: open,
-    })),
+    queries: bookmarkedTrialRefs.map((trialRef) => ({ ...trialQuery(trialRef), enabled: open })),
   });
 
   const loadedTrials = results
@@ -53,13 +40,12 @@ function BookmarksSheet({
     .filter((trial): trial is Trial => Boolean(trial));
   const rowTrials = useCachedTrialTranslations(loadedTrials);
 
-  // Rows hand back the trial they render, which may be the translated copy;
-  // opening and exporting must both work from the stored English one.
+  // Rows hand back the possibly translated copy; opening and exporting need the stored English one.
   const english = (trial: Trial) =>
     loadedTrials.find((loaded) => loaded.trialRef === trial.trialRef) ?? trial;
 
   const handleSelect = (trial: Trial) => {
-    onSelect?.(english(trial));
+    openTrial(english(trial));
     onOpenChange(false);
   };
 
@@ -102,8 +88,8 @@ function BookmarksSheet({
                   isLoading={results[index]?.isPending}
                   isExporting={isExporting}
                   onSelect={handleSelect}
-                  onRemove={onRemove}
-                  onExport={(trial) => onExport([english(trial)])}
+                  onRemove={removeBookmark}
+                  onExport={(trial) => exportTrials([english(trial)])}
                 />
               ))}
             </ItemGroup>
@@ -114,7 +100,7 @@ function BookmarksSheet({
           <Button
             variant="secondary"
             disabled={loadedTrials.length === 0 || isExporting}
-            onClick={() => onExport(loadedTrials)}
+            onClick={() => exportTrials(loadedTrials)}
           >
             <FileDown />
             {t('bookmarks.exportAll')}

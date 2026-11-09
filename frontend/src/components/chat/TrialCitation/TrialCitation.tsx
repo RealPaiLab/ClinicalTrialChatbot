@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { HoverCardTrigger } from '@/components/ui/hover-card';
 import {
@@ -7,11 +8,11 @@ import {
   InlineCitationCardBody,
   InlineCitationSource,
 } from '@/components/ai-elements/inline-citation';
-import { useCachedTrialTranslation } from '@/hooks/useCachedTranslation';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { publicTrialId } from '@/lib/trial';
+import { useCachedTrialTranslations } from '@/hooks/useTrialTranslation';
+import { trialTitle } from '@/lib/trial';
 import { cn } from '@/lib/utils';
-import type { TrialSummary } from '@/types/trial';
+import { trialQuery } from '@/services/trials';
 
 const CITATION_TITLE_MAX_LENGTH = 50;
 const COMPACT_TITLE_MAX_LENGTH = 28;
@@ -23,30 +24,21 @@ function truncate(text: string, max: number): string {
 
 interface TrialCitationProps {
   trialRef: string;
-  fetchTrial: (trialRef: string, signal?: AbortSignal) => Promise<TrialSummary>;
-  onSelect?: (trialRef: string) => void;
+  onSelect: (trialRef: string) => void;
   compact?: boolean;
 }
 
-function TrialCitation({ trialRef, fetchTrial, onSelect, compact }: TrialCitationProps) {
+function TrialCitation({ trialRef, onSelect, compact }: TrialCitationProps) {
+  const { t } = useTranslation();
   const isMobile = useIsMobile();
-  const { data: trial } = useQuery({
-    queryKey: ['trial', trialRef],
-    queryFn: ({ signal }) => fetchTrial(trialRef, signal),
-    enabled: Boolean(trialRef),
-  });
+  const { data } = useQuery(trialQuery(trialRef));
+  const [trial] = useCachedTrialTranslations(data ? [data] : []);
 
-  // Shows a translation the app already has; a citation never orders one.
-  const translation = useCachedTrialTranslation(trialRef);
-  const fullTitle =
-    translation?.shortTitle ??
-    translation?.officialTitle ??
-    trial?.shortTitleEn ??
-    trial?.officialTitleEn ??
-    publicTrialId(trial) ??
-    'Trial';
-  const title = truncate(fullTitle, compact ? COMPACT_TITLE_MAX_LENGTH : CITATION_TITLE_MAX_LENGTH);
-  const summary = translation?.description ?? trial?.descriptionEn;
+  const title = truncate(
+    trialTitle(trial),
+    compact ? COMPACT_TITLE_MAX_LENGTH : CITATION_TITLE_MAX_LENGTH
+  );
+  const summary = trial?.descriptionEn;
   const description = summary ? truncate(summary, CITATION_DESCRIPTION_MAX_LENGTH) : undefined;
 
   return (
@@ -59,8 +51,8 @@ function TrialCitation({ trialRef, fetchTrial, onSelect, compact }: TrialCitatio
             variant={compact ? 'outline' : 'secondary'}
             size="sm"
             data-tour="citation"
-            aria-label={`Show ${title} on the map`}
-            onClick={() => onSelect?.(trialRef)}
+            aria-label={t('chat.showOnMap', { title })}
+            onClick={() => onSelect(trialRef)}
             className={cn(
               'mx-0.5 inline-flex h-5 max-w-full rounded-full px-2 align-baseline text-[0.7rem] font-medium',
               !compact && 'bg-highlight/15 text-foreground hover:bg-highlight/25'

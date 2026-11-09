@@ -28,9 +28,9 @@ const zhCn = {
     askAiHintBody:
       '有不明白的词？在对话中<mark>高亮</mark>它，然后点击出现的<ask>询问 AI</ask>按钮，{{agent}} 会为您解释。',
     askAi: '询问 AI',
-    addedTrials: '您添加的试验',
     removeFromContext: '将 {{trialRef}} 移出上下文',
-    stop: '停止',
+    showOnMap: '在地图上显示 {{title}}',
+    definition: '定义：{{definition}}',
     send: '发送',
   },
   searching: {
@@ -39,10 +39,10 @@ const zhCn = {
     sites: '正在查找您附近正在招募的中心……',
     phases: '正在查看试验的阶段与治疗方式……',
     gathering: '正在汇总最相关的试验……',
-    reading: '正在读取回答',
   },
   feedback: {
-    prompt: '告诉我们效果如何',
+    removeNct: '移除 {{nct}}',
+    failed: '您的反馈未能发送，请重试。',
     helpful: '有帮助',
     notHelpful: '没有帮助',
     commentPlaceholder: '备注（可选）',
@@ -83,7 +83,6 @@ const zhCn = {
     trialCount_other: '{{count}} 项试验',
     coverageArea: '覆盖范围',
     coverageNotice: '覆盖范围包括加拿大各地的试验中心。',
-    seeTrials: '在地图上查看试验',
     emptyHint: '试验将随着对话在此显示。',
   },
   status: {
@@ -105,8 +104,6 @@ const zhCn = {
     city: '城市',
     whoCanJoin: '谁可以参加',
     whoCannotJoin: '谁不能参加',
-    translate: '翻译',
-    seeOriginal: '查看原文',
     machineNotice: '本内容为自动翻译且未经审核。任何涉及参加资格的内容请以英文原文为准。',
     unavailableNotice: '翻译暂时不可用，正在显示英文原文。',
     askAbout: '向 {{agent}} 询问这项试验',
@@ -162,7 +159,6 @@ const zhCn = {
     next: '下一步',
     back: '上一步',
     done: '完成',
-    skip: '跳过',
     steps: {
       welcome: {
         title: '欢迎使用 {{agent}}',

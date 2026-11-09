@@ -1,14 +1,18 @@
 import { Badge } from '@/components/ui/badge';
-import SourceBadge from '@/components/summary/SourceBadge/SourceBadge';
-import { deriveTrialStatus, formatPhases, primarySite, uniqueCancerTypes } from '@/lib/trial';
-import { TRIAL_STATUS } from '@/lib/trialStatus';
-import { cn } from '@/lib/utils';
+import SourceBadge from '@/components/trial/SourceBadge/SourceBadge';
+import StatusLabel from '@/components/trial/StatusLabel/StatusLabel';
+import {
+  deriveTrialStatus,
+  formatPhases,
+  primarySite,
+  sitePlace,
+  uniqueCancerTypes,
+} from '@/lib/trial';
 import type { Trial } from '@/types/trial';
 
 function TrialBadges({ trial }: { trial: Trial }) {
   const status = deriveTrialStatus(trial);
-  const site = primarySite(trial);
-  const place = [site?.city, site?.province].filter(Boolean).join(', ');
+  const place = sitePlace(primarySite(trial));
   const cancerType = uniqueCancerTypes(trial)[0];
   const phases = formatPhases(trial.phases);
 
@@ -18,9 +22,8 @@ function TrialBadges({ trial }: { trial: Trial }) {
         <SourceBadge key={source} source={source} />
       ))}
       {status && (
-        <Badge variant="secondary" className="gap-1.5 font-normal">
-          <span className={cn('size-2 rounded-full', TRIAL_STATUS[status].badgeClass)} />
-          {TRIAL_STATUS[status].label}
+        <Badge variant="secondary" className="font-normal">
+          <StatusLabel status={status} />
         </Badge>
       )}
       {cancerType && (

@@ -28,9 +28,9 @@ const yue = {
     askAiHintBody:
       '有字唔明？喺對話入面<mark>螢光標示</mark>佢，然後撳出現嘅<ask>問下 AI</ask>掣，{{agent}} 就會解釋畀你聽。',
     askAi: '問下 AI',
-    addedTrials: '你加咗嘅試驗',
     removeFromContext: '將 {{trialRef}} 由上下文移走',
-    stop: '停',
+    showOnMap: '喺地圖顯示 {{title}}',
+    definition: '定義：{{definition}}',
     send: 'send出',
   },
   searching: {
@@ -39,10 +39,10 @@ const yue = {
     sites: '睇緊你附近仲招緊人嘅中心……',
     phases: '睇緊試驗嘅階段同治療方式……',
     gathering: '執緊最啱你嘅試驗……',
-    reading: '讀緊個答案',
   },
   feedback: {
-    prompt: '講下做得點',
+    removeNct: '移除 {{nct}}',
+    failed: '你嘅意見傳送唔到，請再試一次。',
     helpful: '有幫助',
     notHelpful: '冇幫助',
     commentPlaceholder: '意見（可以唔填）',
@@ -83,7 +83,6 @@ const yue = {
     trialCount_other: '{{count}} 個臨床試驗',
     coverageArea: '覆蓋範圍',
     coverageNotice: '覆蓋範圍包括加拿大各地嘅試驗中心。',
-    seeTrials: '喺地圖睇試驗',
     emptyHint: '傾落去，試驗就會喺呢度出現。',
   },
   status: {
@@ -105,8 +104,6 @@ const yue = {
     city: '城市',
     whoCanJoin: '邊個可以參加',
     whoCannotJoin: '邊個唔可以參加',
-    translate: '翻譯',
-    seeOriginal: '睇返原文',
     machineNotice: '呢啲內容係自動翻譯，未經審核。凡係影響參加資格嘅內容，請以英文原文為準。',
     unavailableNotice: '翻譯暫時用唔到，而家顯示緊英文原文。',
     askAbout: '問下 {{agent}} 關於呢個試驗',
@@ -162,7 +159,6 @@ const yue = {
     next: '下一步',
     back: '上一步',
     done: '搞掂',
-    skip: '跳過',
     steps: {
       welcome: {
         title: '歡迎使用 {{agent}}',

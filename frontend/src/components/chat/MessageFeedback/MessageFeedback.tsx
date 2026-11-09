@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ThumbsDown, ThumbsUp, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import { MessageAction, MessageActions } from '@/components/ai-elements/message';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,17 +17,11 @@ const SELECTED_THUMB = 'bg-primary/15 text-primary hover:bg-primary/15 disabled:
 interface MessageFeedbackProps {
   sessionId: string;
   observationId: string;
-  onSubmit?: typeof submitFeedback;
-  showDetails?: boolean;
 }
 
-function MessageFeedback({
-  sessionId,
-  observationId,
-  onSubmit = submitFeedback,
-  showDetails = !config.isProduction,
-}: MessageFeedbackProps) {
+function MessageFeedback({ sessionId, observationId }: MessageFeedbackProps) {
   const { t } = useTranslation();
+  const showDetails = !config.isProduction;
   const [score, setScore] = useState<0 | 1 | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [comment, setComment] = useState('');
@@ -38,20 +33,27 @@ function MessageFeedback({
   const send = async (
     value: 0 | 1,
     extra: { comment?: string; suggestedNctNumbers?: string[] }
-  ) => {
+  ): Promise<boolean> => {
     setSubmitting(true);
     try {
-      await onSubmit({ sessionId, observationId, score: value, ...extra });
+      await submitFeedback({ sessionId, observationId, score: value, ...extra });
+      return true;
+    } catch {
+      toast.error(t('feedback.failed'));
+      return false;
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleScore = (value: 0 | 1) => {
+  const handleScore = async (value: 0 | 1) => {
     setScore(value);
     setExpanded(showDetails);
     setSubmitted(!showDetails);
-    void send(value, {});
+    if (await send(value, {})) return;
+    setScore(null);
+    setExpanded(false);
+    setSubmitted(false);
   };
 
   const addNct = () => {
@@ -67,10 +69,11 @@ function MessageFeedback({
 
   const handleSubmitDetails = async () => {
     if (score === null) return;
-    await send(score, {
+    const sent = await send(score, {
       comment: comment.trim() || undefined,
       suggestedNctNumbers: nctNumbers,
     });
+    if (!sent) return;
     setSubmitted(true);
     setExpanded(false);
   };
@@ -82,7 +85,7 @@ function MessageFeedback({
           tooltip={t('feedback.helpful')}
           aria-pressed={score === 1}
           disabled={score !== null || submitting}
-          onClick={() => handleScore(1)}
+          onClick={() => void handleScore(1)}
           className={cn(score === 1 && SELECTED_THUMB)}
         >
           <ThumbsUp className="size-4" />
@@ -91,7 +94,7 @@ function MessageFeedback({
           tooltip={t('feedback.notHelpful')}
           aria-pressed={score === 0}
           disabled={score !== null || submitting}
-          onClick={() => handleScore(0)}
+          onClick={() => void handleScore(0)}
           className={cn(score === 0 && SELECTED_THUMB)}
         >
           <ThumbsDown className="size-4" />
@@ -139,7 +142,7 @@ function MessageFeedback({
                         type="button"
                         variant="ghost"
                         size="icon"
-                        aria-label={`Remove ${nct}`}
+                        aria-label={t('feedback.removeNct', { nct })}
                         onClick={() => removeNct(nct)}
                         className="size-4 rounded-full hover:bg-transparent"
                       >

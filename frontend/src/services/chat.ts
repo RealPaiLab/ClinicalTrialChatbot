@@ -1,31 +1,12 @@
-import camelcaseKeys from 'camelcase-keys';
-import { config } from '@/config';
 import { CHAT_ERROR_KEY, CHAT_ERROR_KEY_BY_CODE } from '@/constants/chat';
+import { ApiError, apiFetch, camelize } from '@/services/api';
 import type { ChatError, StreamEvent } from '@/types/trial';
 
-const API_BASE = config.apiBaseUrl;
+const CHAT_PATH = '/chat/stream';
 const SSE_DATA_PREFIX = 'data:';
 
-function parseRetryAfter(value: string | null): number | undefined {
-  if (value === null || value.trim() === '') return undefined;
-  const seconds = Number(value);
-  return Number.isFinite(seconds) && seconds >= 0 ? seconds : undefined;
-}
-
-export class ChatRequestError extends Error {
-  readonly status: number;
-  readonly retryAfter?: number;
-
-  constructor(status: number, retryAfter?: number) {
-    super(`Chat request failed with status ${status}`);
-    this.name = 'ChatRequestError';
-    this.status = status;
-    this.retryAfter = retryAfter;
-  }
-}
-
 export function chatError(error: unknown): ChatError {
-  if (error instanceof ChatRequestError) {
+  if (error instanceof ApiError) {
     if (error.status === 429) {
       return error.retryAfter !== undefined && error.retryAfter > 0
         ? { key: CHAT_ERROR_KEY.rateLimitedRetry, params: { seconds: error.retryAfter } }
@@ -53,11 +34,6 @@ export interface StreamChatParams {
   signal?: AbortSignal;
 }
 
-function parseEvent(json: string): StreamEvent {
-  const parsed = JSON.parse(json) as Record<string, unknown>;
-  return camelcaseKeys(parsed, { deep: true }) as unknown as StreamEvent;
-}
-
 function dataPayload(line: string): string | null {
   if (!line.startsWith(SSE_DATA_PREFIX)) return null;
   return line.slice(SSE_DATA_PREFIX.length).trim();
@@ -79,13 +55,13 @@ export async function* parseEventStream(
     while (newline !== -1) {
       const payload = dataPayload(buffer.slice(0, newline).trimEnd());
       buffer = buffer.slice(newline + 1);
-      if (payload) yield parseEvent(payload);
+      if (payload) yield camelize<StreamEvent>(JSON.parse(payload));
       newline = buffer.indexOf('\n');
     }
   }
 
   const payload = dataPayload(buffer.trim());
-  if (payload) yield parseEvent(payload);
+  if (payload) yield camelize<StreamEvent>(JSON.parse(payload));
 }
 
 export async function* streamChat({
@@ -95,7 +71,7 @@ export async function* streamChat({
   verificationId,
   signal,
 }: StreamChatParams): AsyncGenerator<StreamEvent> {
-  const response = await fetch(`${API_BASE}/chat/stream`, {
+  const response = await apiFetch(CHAT_PATH, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
     body: JSON.stringify({
@@ -107,10 +83,6 @@ export async function* streamChat({
     signal,
   });
 
-  if (!response.ok || !response.body) {
-    const retryAfter = parseRetryAfter(response.headers.get('Retry-After'));
-    throw new ChatRequestError(response.status, retryAfter);
-  }
-
+  if (!response.body) throw new ApiError(CHAT_PATH, response.status);
   yield* parseEventStream(response.body);
 }

@@ -9,12 +9,19 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { deriveTrialStatus, formatPhases, uniqueCancerTypes } from '@/lib/trial';
-import { TRIAL_STATUS, normalizeStatus } from '@/lib/trialStatus';
 import { MessageResponse } from '@/components/ai-elements/message';
 import TrialFacts from '@/components/summary/TrialFacts/TrialFacts';
 import TrialCriteria from '@/components/summary/TrialCriteria/TrialCriteria';
+import StatusLabel from '@/components/trial/StatusLabel/StatusLabel';
+import {
+  deriveTrialStatus,
+  formatPhases,
+  normalizeStatus,
+  sitePlace,
+  trialTitle,
+  uniqueCancerTypes,
+} from '@/lib/trial';
+import { cn } from '@/lib/utils';
 import type { Trial } from '@/types/trial';
 
 interface TrialTableProps {
@@ -23,15 +30,7 @@ interface TrialTableProps {
 
 function StatusCell({ trial }: { trial: Trial }) {
   const status = deriveTrialStatus(trial);
-  if (status) {
-    const config = TRIAL_STATUS[status];
-    return (
-      <span className="inline-flex items-center gap-1.5 text-xs">
-        <span className={cn('size-2 shrink-0 rounded-full', config.badgeClass)} />
-        {config.label}
-      </span>
-    );
-  }
+  if (status) return <StatusLabel status={status} className="text-xs" />;
   const raw = trial.sites[0]?.state;
   return <span className="text-muted-foreground text-xs">{raw ?? '—'}</span>;
 }
@@ -58,13 +57,14 @@ function StatusBadge({ state }: { state: string }) {
   const status = normalizeStatus(state);
   return (
     <Badge variant="secondary" className="gap-1.5">
-      <span
-        className={cn(
-          'size-2 rounded-full',
-          status ? TRIAL_STATUS[status].badgeClass : 'bg-muted-foreground'
-        )}
-      />
-      {status ? TRIAL_STATUS[status].label : state}
+      {status ? (
+        <StatusLabel status={status} />
+      ) : (
+        <>
+          <span className="bg-muted-foreground size-2 rounded-full" />
+          {state}
+        </>
+      )}
     </Badge>
   );
 }
@@ -75,7 +75,7 @@ function SitesList({ trial }: { trial: Trial }) {
       <p className="text-eyebrow text-muted-foreground">Sites ({trial.sites.length})</p>
       <ul className="flex flex-col gap-1.5">
         {trial.sites.map((site, index) => {
-          const place = [site.city, site.province].filter(Boolean).join(', ');
+          const place = sitePlace(site);
           return (
             <li
               key={`${site.nameEn}-${index}`}
@@ -110,11 +110,11 @@ function TrialDetail({ trial }: { trial: Trial }) {
 function TrialTable({ trials }: TrialTableProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-  const toggle = (nct: string) => {
+  const toggle = (trialRef: string) => {
     setExpanded((prev) => {
       const next = new Set(prev);
-      if (next.has(nct)) next.delete(nct);
-      else next.add(nct);
+      if (next.has(trialRef)) next.delete(trialRef);
+      else next.add(trialRef);
       return next;
     });
   };
@@ -133,14 +133,13 @@ function TrialTable({ trials }: TrialTableProps) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {trials.map((trial, index) => {
-          const nct = trial.trialRef ?? `row-${index}`;
-          const isOpen = expanded.has(nct);
+        {trials.map((trial) => {
+          const isOpen = expanded.has(trial.trialRef);
           return (
-            <Fragment key={nct}>
+            <Fragment key={trial.trialRef}>
               <TableRow
                 aria-expanded={isOpen}
-                onClick={() => toggle(nct)}
+                onClick={() => toggle(trial.trialRef)}
                 className="cursor-pointer"
               >
                 <TableCell>
@@ -151,9 +150,9 @@ function TrialTable({ trials }: TrialTableProps) {
                     )}
                   />
                 </TableCell>
-                <TableCell className="font-mono text-xs">{trial.trialRef ?? '—'}</TableCell>
+                <TableCell className="font-mono text-xs">{trial.trialRef}</TableCell>
                 <TableCell className="max-w-[22rem] whitespace-normal">
-                  {trial.shortTitleEn ?? trial.officialTitleEn ?? '—'}
+                  {trialTitle(trial)}
                 </TableCell>
                 <TableCell className="text-muted-foreground text-xs">
                   {trial.phases.length ? formatPhases(trial.phases) : '—'}

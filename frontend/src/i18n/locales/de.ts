@@ -30,9 +30,9 @@ const de = {
     askAiHintBody:
       'Ein Wort unklar? <mark>Markieren</mark> Sie es in der Unterhaltung und klicken Sie auf die Schaltfläche <ask>KI fragen</ask>, die erscheint. {{agent}} erklärt es Ihnen.',
     askAi: 'KI fragen',
-    addedTrials: 'Ihre hinzugefügten Studien',
     removeFromContext: '{{trialRef}} aus dem Kontext entfernen',
-    stop: 'Stoppen',
+    showOnMap: '{{title}} auf der Karte zeigen',
+    definition: 'Definition: {{definition}}',
     send: 'Senden',
   },
   searching: {
@@ -41,10 +41,10 @@ const de = {
     sites: 'Rekrutierende Zentren in Ihrer Nähe werden geprüft…',
     phases: 'Studienphasen und Behandlungen werden geprüft…',
     gathering: 'Die relevantesten Studien werden zusammengestellt…',
-    reading: 'Antwort wird gelesen',
   },
   feedback: {
-    prompt: 'Sagen Sie uns, wie es war',
+    removeNct: '{{nct}} entfernen',
+    failed: 'Ihr Feedback konnte nicht gesendet werden. Bitte versuchen Sie es erneut.',
     helpful: 'Hilfreich',
     notHelpful: 'Nicht hilfreich',
     commentPlaceholder: 'Kommentar (optional)',
@@ -93,7 +93,6 @@ const de = {
     trialCount_other: '{{count}} Studien',
     coverageArea: 'Abgedecktes Gebiet',
     coverageNotice: 'Die Abdeckung umfasst Studienzentren in ganz Kanada.',
-    seeTrials: 'Studien auf der Karte ansehen',
     emptyHint: 'Studien erscheinen hier im Verlauf des Gesprächs.',
   },
   status: {
@@ -116,8 +115,6 @@ const de = {
     city: 'Stadt',
     whoCanJoin: 'Wer teilnehmen kann',
     whoCannotJoin: 'Wer nicht teilnehmen kann',
-    translate: 'Übersetzen',
-    seeOriginal: 'Original anzeigen',
     machineNotice:
       'Automatisch übersetzt und nicht geprüft. Ziehen Sie für alles, was die Eignung betrifft, das englische Original heran.',
     unavailableNotice:
@@ -179,7 +176,6 @@ const de = {
     next: 'Weiter',
     back: 'Zurück',
     done: 'Fertig',
-    skip: 'Überspringen',
     steps: {
       welcome: {
         title: 'Willkommen bei {{agent}}',

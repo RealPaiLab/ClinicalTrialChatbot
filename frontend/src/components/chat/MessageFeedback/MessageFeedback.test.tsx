@@ -1,24 +1,37 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import MessageFeedback from './MessageFeedback';
+import { submitFeedback } from '@/services/feedback';
 import { renderWithClient } from '@/test/render';
+
+vi.mock('@/services/feedback', () => ({ submitFeedback: vi.fn() }));
+
+const config = vi.hoisted(() => ({ isProduction: false }));
+vi.mock('@/config', () => ({ config }));
 
 const base = { sessionId: 's1', observationId: 'obs-1' };
 
+beforeEach(() => {
+  config.isProduction = false;
+  vi.mocked(submitFeedback).mockReset().mockResolvedValue(undefined);
+});
+
 describe('MessageFeedback', () => {
   it('records the score immediately when a thumb is clicked', async () => {
-    const onSubmit = vi.fn().mockResolvedValue(undefined);
-    renderWithClient(<MessageFeedback {...base} onSubmit={onSubmit} />);
+    renderWithClient(<MessageFeedback {...base} />);
 
     await userEvent.click(screen.getByRole('button', { name: 'Helpful' }));
 
-    expect(onSubmit).toHaveBeenCalledWith({ sessionId: 's1', observationId: 'obs-1', score: 1 });
+    expect(submitFeedback).toHaveBeenCalledWith({
+      sessionId: 's1',
+      observationId: 'obs-1',
+      score: 1,
+    });
   });
 
   it('submits the comment and suggested NCT chips with the score', async () => {
-    const onSubmit = vi.fn().mockResolvedValue(undefined);
-    renderWithClient(<MessageFeedback {...base} onSubmit={onSubmit} />);
+    renderWithClient(<MessageFeedback {...base} />);
 
     await userEvent.click(screen.getByRole('button', { name: 'Not helpful' }));
     await userEvent.type(screen.getByPlaceholderText(/comment/i), 'missed one');
@@ -29,7 +42,7 @@ describe('MessageFeedback', () => {
 
     await userEvent.click(screen.getByRole('button', { name: /^submit$/i }));
 
-    expect(onSubmit).toHaveBeenLastCalledWith({
+    expect(submitFeedback).toHaveBeenLastCalledWith({
       sessionId: 's1',
       observationId: 'obs-1',
       score: 0,
@@ -38,21 +51,24 @@ describe('MessageFeedback', () => {
     });
   });
 
-  it('sends only the score, with no detail fields, when details are hidden', async () => {
-    const onSubmit = vi.fn().mockResolvedValue(undefined);
-    renderWithClient(<MessageFeedback {...base} onSubmit={onSubmit} showDetails={false} />);
+  it('sends only the score, with no detail fields, in production', async () => {
+    config.isProduction = true;
+    renderWithClient(<MessageFeedback {...base} />);
 
     await userEvent.click(screen.getByRole('button', { name: 'Not helpful' }));
 
-    expect(onSubmit).toHaveBeenCalledWith({ sessionId: 's1', observationId: 'obs-1', score: 0 });
+    expect(submitFeedback).toHaveBeenCalledWith({
+      sessionId: 's1',
+      observationId: 'obs-1',
+      score: 0,
+    });
     expect(screen.queryByPlaceholderText(/comment/i)).not.toBeInTheDocument();
     expect(screen.queryByPlaceholderText(/nct/i)).not.toBeInTheDocument();
     expect(screen.getByText(/thanks for the feedback/i)).toBeInTheDocument();
   });
 
   it('removes a suggested NCT chip', async () => {
-    const onSubmit = vi.fn().mockResolvedValue(undefined);
-    renderWithClient(<MessageFeedback {...base} onSubmit={onSubmit} />);
+    renderWithClient(<MessageFeedback {...base} />);
 
     await userEvent.click(screen.getByRole('button', { name: 'Not helpful' }));
     await userEvent.type(screen.getByPlaceholderText(/nct/i), 'NCT0001{Enter}');
@@ -60,5 +76,28 @@ describe('MessageFeedback', () => {
 
     await userEvent.click(screen.getByRole('button', { name: /remove nct0001/i }));
     expect(screen.queryByText('NCT0001')).not.toBeInTheDocument();
+  });
+
+  it('lets the user score again when sending the score fails', async () => {
+    vi.mocked(submitFeedback).mockRejectedValueOnce(new Error('offline'));
+    config.isProduction = true;
+    renderWithClient(<MessageFeedback {...base} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Helpful' }));
+
+    expect(screen.queryByText(/thanks for the feedback/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Helpful' })).toBeEnabled();
+  });
+
+  it('keeps the details open to retry when sending them fails', async () => {
+    renderWithClient(<MessageFeedback {...base} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Not helpful' }));
+    vi.mocked(submitFeedback).mockRejectedValueOnce(new Error('offline'));
+
+    await userEvent.type(screen.getByPlaceholderText(/comment/i), 'missed one');
+    await userEvent.click(screen.getByRole('button', { name: /^submit$/i }));
+
+    expect(screen.getByPlaceholderText(/comment/i)).toHaveValue('missed one');
+    expect(screen.queryByText(/thanks for the feedback/i)).not.toBeInTheDocument();
   });
 });

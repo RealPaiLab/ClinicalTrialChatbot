@@ -1,10 +1,3 @@
-export const PANEL_SPLIT = {
-  summaryIdle: '30%',
-  summaryFocused: '70%',
-  animatingClass: 'panel-split-animating',
-  animationMs: 520,
-} as const;
-
 export const MOBILE_LAYOUT = {
   // Short screens too, so a phone turned to landscape keeps the mobile layout.
   query: '(max-width: 767px), (max-height: 500px)',

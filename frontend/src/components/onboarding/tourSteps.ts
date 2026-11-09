@@ -2,10 +2,11 @@ import type { DriveStep, Driver, Popover } from 'driver.js';
 import i18n from '@/i18n';
 import type en from '@/i18n/locales/en';
 import type { SheetSnap } from '@/constants/layout';
+import { afterPaint, animationsSettled } from '@/lib/motion';
 import { useAppStore } from '@/store/appStore';
 import { DEMO_TRIALS } from './demoTrials';
 
-const DEMO_NCT = DEMO_TRIALS[0].trialRef as string;
+const DEMO_TRIAL_REF = DEMO_TRIALS[0].trialRef;
 
 const ASK_AI_WORD = 'chemotherapy';
 
@@ -114,7 +115,7 @@ export function buildTourSteps(getTour: () => Driver): DriveStep[] {
         align: 'center',
         onNextClick: () => {
           showAskAiSelection();
-          window.setTimeout(() => getTour().moveNext(), 80);
+          void afterPaint().then(() => getTour().moveNext());
         },
       },
     },
@@ -135,7 +136,7 @@ export function buildTourSteps(getTour: () => Driver): DriveStep[] {
         align: 'center',
         onPrevClick: () => {
           showAskAiSelection();
-          window.setTimeout(() => getTour().movePrevious(), 80);
+          void afterPaint().then(() => getTour().movePrevious());
         },
       },
     },
@@ -159,8 +160,7 @@ export function buildTourSteps(getTour: () => Driver): DriveStep[] {
         align: 'center',
       },
       onHighlightStarted: () => {
-        // Populate the summary panel only when we point at it.
-        useAppStore.getState().selectTrial(DEMO_NCT);
+        useAppStore.getState().selectTrial(DEMO_TRIAL_REF);
       },
     },
     {
@@ -187,9 +187,9 @@ export function buildTourSteps(getTour: () => Driver): DriveStep[] {
         align: 'center',
       },
       onHighlightStarted: () => {
-        useAppStore.getState().addToContext(DEMO_NCT);
-        // The chip grows the input; recalc the highlight once React re-renders.
-        window.setTimeout(() => getTour().refresh(), 60);
+        useAppStore.getState().addToContext(DEMO_TRIAL_REF);
+        // The chip grows the input, so the highlight is measured again once it renders.
+        void afterPaint().then(() => getTour().refresh());
       },
     },
     {
@@ -198,25 +198,23 @@ export function buildTourSteps(getTour: () => Driver): DriveStep[] {
   ];
 }
 
-// Waits out the chat sheet's height transition before the next step measures its target.
-const SHEET_SETTLE_MS = 340;
-const DRAWER_SETTLE_MS = 550;
 // driver.js places a card 'over' its element at runtime, but its Side type omits the value.
 const OVER_ELEMENT = 'over' as unknown as NonNullable<Popover['side']>;
 
 /** The same tour for the phone layout: the chat is a sheet the steps raise and lower. */
 export function buildMobileTourSteps(getTour: () => Driver): DriveStep[] {
-  // Moves the sheet first, so the next step is positioned against where things settle.
+  // The next step measures its target only after the sheet or drawer finishes moving.
+  const moveWhenSettled = (move: 'moveNext' | 'movePrevious') =>
+    void animationsSettled().then(() => getTour()[move]());
   const thenMove =
     (snap: SheetSnap, move: 'moveNext' | 'movePrevious', prepare?: () => void) => () => {
       prepare?.();
       useAppStore.getState().setSheetSnap(snap);
-      window.setTimeout(() => getTour()[move](), SHEET_SETTLE_MS);
+      moveWhenSettled(move);
     };
-  // Opens or closes the trial drawer, then moves once its slide has finished.
   const toggleDrawer = (open: boolean, move: 'moveNext' | 'movePrevious') => () => {
     useAppStore.getState().setTrialDrawerOpen(open);
-    window.setTimeout(() => getTour()[move](), DRAWER_SETTLE_MS);
+    moveWhenSettled(move);
   };
 
   return [
@@ -251,7 +249,7 @@ export function buildMobileTourSteps(getTour: () => Driver): DriveStep[] {
         // Sample cards appear only once the tour reaches them.
         onNextClick: thenMove('peek', 'moveNext', () => {
           useAppStore.getState().setTrials(DEMO_TRIALS);
-          useAppStore.getState().selectTrial(DEMO_NCT);
+          useAppStore.getState().selectTrial(DEMO_TRIAL_REF);
         }),
       },
     },

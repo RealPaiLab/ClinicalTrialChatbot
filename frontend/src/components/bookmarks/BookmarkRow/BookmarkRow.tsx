@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Item, ItemActions, ItemContent } from '@/components/ui/item';
 import BookmarkRowSkeleton from '@/components/bookmarks/BookmarkRowSkeleton/BookmarkRowSkeleton';
 import TrialBadges from '@/components/bookmarks/TrialBadges/TrialBadges';
-import { publicTrialId } from '@/lib/trial';
+import { publicTrialId, trialTitle } from '@/lib/trial';
 import type { Trial } from '@/types/trial';
 
 interface BookmarkRowProps {
@@ -27,7 +27,7 @@ function BookmarkRow({
   onExport,
 }: BookmarkRowProps) {
   const { t } = useTranslation();
-  const title = trial?.shortTitleEn ?? trial?.officialTitleEn ?? publicTrialId(trial) ?? 'Trial';
+  const title = trialTitle(trial);
   const isPending = Boolean(isLoading) && !trial;
 
   return (

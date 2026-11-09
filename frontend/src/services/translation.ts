@@ -1,31 +1,12 @@
-import camelcaseKeys from 'camelcase-keys';
-import { queryOptions } from '@tanstack/react-query';
-import { config } from '@/config';
+import { queryOptions, skipToken } from '@tanstack/react-query';
 import type { LanguageCode } from '@/constants/language';
+import { apiGet } from '@/services/api';
 import type { TrialTranslation } from '@/types/trial';
 
-const API_BASE = config.apiBaseUrl;
+// The vocabulary maps are keyed by English trial terms ("breast cancer"), not field names.
+const VOCABULARY_PATHS = ['cancer_type_names', 'treatment_type_names'];
 
-async function getTrialTranslation(
-  trialRef: string,
-  language: LanguageCode,
-  cachedOnly: boolean,
-  signal?: AbortSignal
-): Promise<TrialTranslation> {
-  const query = new URLSearchParams({ language });
-  if (cachedOnly) query.set('cached_only', 'true');
-  const response = await fetch(`${API_BASE}/trials/${trialRef}/translation?${query}`, {
-    signal,
-  });
-  if (!response.ok) {
-    throw new Error(`Translation request failed with status ${response.status}`);
-  }
-  const data = (await response.json()) as Record<string, unknown>;
-  // Shallow on purpose: the only nested objects are the vocabulary maps, whose
-  // keys are English trial terms ("breast cancer") and must not be camelized.
-  return camelcaseKeys(data) as unknown as TrialTranslation;
-}
-
+/** No trial, or a null language (shown as stored), fetches nothing. */
 export function trialTranslationQuery(
   trialRef: string | null,
   language: LanguageCode | null,
@@ -33,9 +14,16 @@ export function trialTranslationQuery(
 ) {
   return queryOptions({
     queryKey: ['trial-translation', trialRef, language, cachedOnly],
-    queryFn: ({ signal }) =>
-      getTrialTranslation(trialRef as string, language as LanguageCode, cachedOnly, signal),
-    enabled: Boolean(trialRef && language),
-    staleTime: Infinity,
+    queryFn:
+      trialRef && language
+        ? ({ signal }) => {
+            const query = new URLSearchParams({ language });
+            if (cachedOnly) query.set('cached_only', 'true');
+            return apiGet<TrialTranslation>(`/trials/${trialRef}/translation?${query}`, {
+              signal,
+              stopPaths: VOCABULARY_PATHS,
+            });
+          }
+        : skipToken,
   });
 }

@@ -11,8 +11,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-import { TRIAL_STATUS } from '@/lib/trialStatus';
+import { TRIAL_STATUS, TRIAL_STATUSES } from '@/constants/trialStatus';
 import { TRIAL_SOURCE_CODES, TRIAL_SOURCES } from '@/constants/trialSources';
 import { debugTrialsQuery, type DebugSearchParams } from '@/services/debug';
 import TrialTable from '@/components/debug/TrialTable/TrialTable';
@@ -21,11 +22,6 @@ const PAGE_SIZE = 10;
 
 const ANY_STATUS = 'any';
 const ANY_SOURCE = 'any';
-
-const STATUS_OPTIONS = Object.entries(TRIAL_STATUS).map(([value, config]) => ({
-  value,
-  label: config.label,
-}));
 
 const DEFAULT_PROVIDER = 'default';
 
@@ -64,6 +60,7 @@ function FilterField({ label, value, onChange, placeholder }: FilterFieldProps) 
 }
 
 function DebugPage() {
+  const { t } = useTranslation();
   const [cancerTypes, setCancerTypes] = useState('');
   const [locations, setLocations] = useState('');
   const [status, setStatus] = useState<string>(ANY_STATUS);
@@ -141,9 +138,9 @@ function DebugPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ANY_STATUS}>Any status</SelectItem>
-                {STATUS_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                {TRIAL_STATUSES.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {t(TRIAL_STATUS[option].labelKey)}
                   </SelectItem>
                 ))}
               </SelectContent>

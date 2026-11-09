@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { ArrowRight, Lock } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import BrandTitle from '@/components/layout/BrandTitle/BrandTitle';
 import CamilleIcon from '@/components/layout/CamilleIcon/CamilleIcon';
 import CornerMark from '@/components/layout/CornerMark/CornerMark';
 import OicrLogo from '@/components/layout/OicrLogo/OicrLogo';
@@ -16,7 +16,6 @@ interface ConsentGateProps {
 }
 
 function ConsentGate({ children }: ConsentGateProps) {
-  const { t } = useTranslation();
   const [consented, setConsented] = useState(hasConsented);
   const [checked, setChecked] = useState(false);
 
@@ -30,7 +29,6 @@ function ConsentGate({ children }: ConsentGateProps) {
   return (
     <div className="bg-background grain h-screen w-screen">
       <Dialog open>
-        {/* Mirrors the mobile menu: corner marks, logo header, separators. */}
         <DialogContent
           className="isolate flex max-h-[calc(100dvh-2rem)] flex-col gap-0 overflow-x-hidden overflow-y-auto rounded-xl p-5 shadow-xl sm:max-w-md sm:p-6"
           showCloseButton={false}
@@ -45,19 +43,7 @@ function ConsentGate({ children }: ConsentGateProps) {
             <span aria-hidden className="bg-border h-8 w-px shrink-0" />
             <div className="group flex min-w-0 items-center gap-2">
               <CamilleIcon className="h-8 sm:h-10" />
-              <div className="flex min-w-0 flex-col gap-1">
-                <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-                  <span className="font-display text-lg leading-none font-extrabold tracking-[-0.03em]">
-                    {AGENT_NAME}
-                  </span>
-                  <span className="text-eyebrow text-primary bg-primary/10 rounded-full px-1.5 py-px text-[0.5rem] font-bold whitespace-nowrap">
-                    Pre-Release
-                  </span>
-                </div>
-                <span className="text-muted-foreground text-xs leading-tight">
-                  {t('app.tagline')}
-                </span>
-              </div>
+              <BrandTitle />
             </div>
           </header>
           <Separator />

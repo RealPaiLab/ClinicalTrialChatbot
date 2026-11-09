@@ -8,11 +8,7 @@ interface UseAppLanguage {
   setLanguage: (language: LanguageCode) => void;
 }
 
-/**
- * The store is the single source of truth for the app language: i18next and the
- * document follow it, so a persisted choice survives a reload without i18next
- * needing its own detector or storage.
- */
+/** The store owns the app language; i18next and the document follow it, so i18next needs no detector or storage. */
 export function useAppLanguage(): UseAppLanguage {
   const language = useAppStore((state) => state.language);
   const setLanguage = useAppStore((state) => state.setLanguage);

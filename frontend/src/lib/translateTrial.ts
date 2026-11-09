@@ -2,7 +2,6 @@ import { TranslationSource } from '@/constants/language';
 import type { LanguageCode } from '@/constants/language';
 import type { Trial, TrialTranslation } from '@/types/trial';
 
-/** A translation is usable when it is the language asked for and has text. */
 export function usableTranslation(
   translation: TrialTranslation | undefined,
   language: LanguageCode | null
@@ -14,7 +13,6 @@ export function usableTranslation(
     : null;
 }
 
-/** The trial with its narrative and vocabulary swapped for the translated text. */
 export function applyTranslation(trial: Trial, translation: TrialTranslation): Trial {
   const term = (name: string) => translation.cancerTypeNames[name] ?? name;
   return {

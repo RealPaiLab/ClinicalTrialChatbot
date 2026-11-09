@@ -16,24 +16,18 @@ import type { Trial } from '@/types/trial';
 
 interface ChatInputProps {
   onSend: (text: string) => void;
-  onStop?: () => void;
-  status?: ChatStatus;
-  contextTrials?: Trial[];
-  onRemoveContext?: (trialRef: string) => void;
+  onStop: () => void;
+  status: ChatStatus;
+  contextTrials: Trial[];
+  onRemoveContext: (trialRef: string) => void;
 }
 
-function ChatInput({
-  onSend,
-  onStop,
-  status = 'ready',
-  contextTrials = [],
-  onRemoveContext,
-}: ChatInputProps) {
+function ChatInput({ onSend, onStop, status, contextTrials, onRemoveContext }: ChatInputProps) {
   const { t } = useTranslation();
 
   const handleSubmit = (message: PromptInputMessage) => {
     if (status === 'streaming') {
-      onStop?.();
+      onStop();
       return;
     }
     const text = message.text.trim();

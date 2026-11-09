@@ -10,16 +10,12 @@ import TrialFacts from '@/components/summary/TrialFacts/TrialFacts';
 import TrialCriteria from '@/components/summary/TrialCriteria/TrialCriteria';
 import { TranslationSource } from '@/constants/language';
 import { useTrialTranslation } from '@/hooks/useTrialTranslation';
-import type { Trial } from '@/types/trial';
+import { useSelectedTrial } from '@/hooks/useWorkspace';
 
 interface TrialSummaryPanelProps {
-  trial: Trial | null;
-  onClose?: () => void;
-  onAddToContext?: (trialRef: string) => void;
-  isInContext?: boolean;
-  onToggleBookmark?: (trialRef: string) => void;
-  isBookmarked?: boolean;
-  selectedSiteName?: string | null;
+  onClose: () => void;
+  /** Lets a layout react once the trial joins the chat context. */
+  onAddedToContext?: () => void;
   /** Puts the trial actions in a bar pinned under the scrolling details. */
   actionBar?: boolean;
 }
@@ -46,20 +42,12 @@ function TranslationSkeleton() {
   );
 }
 
-function TrialSummaryPanel({
-  trial,
-  onClose,
-  onAddToContext,
-  isInContext,
-  onToggleBookmark,
-  isBookmarked,
-  selectedSiteName,
-  actionBar,
-}: TrialSummaryPanelProps) {
+function TrialSummaryPanel({ onClose, onAddedToContext, actionBar }: TrialSummaryPanelProps) {
   const { t } = useTranslation();
-  const { trial: displayTrial, isPending, source } = useTrialTranslation(trial);
+  const { trial: selected, siteKey } = useSelectedTrial();
+  const { trial, isPending, source } = useTrialTranslation(selected);
 
-  if (!displayTrial) {
+  if (!trial) {
     return (
       <div className="bg-card text-muted-foreground flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
         <ClipboardList className="size-6" />
@@ -76,37 +64,33 @@ function TrialSummaryPanel({
         ? t('summary.unavailableNotice')
         : null;
 
-  const actions = {
-    trial: displayTrial,
-    onAddToContext,
-    isInContext,
-    onToggleBookmark,
-    isBookmarked,
-    selectedSiteName,
-  };
-
   return (
     <div className="bg-card flex h-full flex-col">
-      <TrialSummaryHeader {...actions} onClose={onClose} hideActions={actionBar} />
+      <TrialSummaryHeader
+        trial={trial}
+        onClose={onClose}
+        onAddedToContext={onAddedToContext}
+        hideActions={actionBar}
+      />
       <ScrollArea className="min-h-0 flex-1">
         {isPending ? (
           <TranslationSkeleton />
         ) : (
           <div className="flex flex-col gap-5 p-4">
-            <TrialFacts trial={displayTrial} selectedSiteName={selectedSiteName} />
-            {displayTrial.descriptionEn && (
+            <TrialFacts trial={trial} siteKey={siteKey} />
+            {trial.descriptionEn && (
               <MessageResponse className="text-muted-foreground text-sm leading-relaxed">
-                {displayTrial.descriptionEn}
+                {trial.descriptionEn}
               </MessageResponse>
             )}
-            <TrialCriteria trial={displayTrial} />
+            <TrialCriteria trial={trial} />
             {notice && <p className="text-caption text-muted-foreground border-t pt-3">{notice}</p>}
           </div>
         )}
       </ScrollArea>
       {actionBar && (
         <div className="border-border flex items-stretch gap-1 border-t px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-          <TrialSummaryActions {...actions} labelled />
+          <TrialSummaryActions trial={trial} onAddedToContext={onAddedToContext} labelled />
         </div>
       )}
     </div>

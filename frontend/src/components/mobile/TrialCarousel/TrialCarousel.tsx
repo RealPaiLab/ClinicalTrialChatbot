@@ -1,26 +1,32 @@
 import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   type CarouselApi,
 } from '@/components/ui/carousel';
+import StatusLabel from '@/components/trial/StatusLabel/StatusLabel';
 import { useVerticalSwipe } from '@/hooks/useVerticalSwipe';
-import { deriveTrialStatus, formatPhases, primarySite, publicTrialId } from '@/lib/trial';
-import { TRIAL_STATUS } from '@/lib/trialStatus';
+import { useMapTrials } from '@/hooks/useWorkspace';
+import {
+  deriveTrialStatus,
+  formatPhases,
+  primarySite,
+  publicTrialId,
+  sitePlace,
+  trialTitle,
+} from '@/lib/trial';
 import { cn } from '@/lib/utils';
-import type { Trial } from '@/types/trial';
+import { useAppStore } from '@/store/appStore';
 
 interface TrialCarouselProps {
-  trials: Trial[];
-  selectedTrialRef: string | null;
-  onSelect: (trialRef: string) => void;
   onOpen: () => void;
 }
 
-function TrialCarousel({ trials, selectedTrialRef, onSelect, onOpen }: TrialCarouselProps) {
-  const { t } = useTranslation();
+function TrialCarousel({ onOpen }: TrialCarouselProps) {
+  const trials = useMapTrials();
+  const selectedTrialRef = useAppStore((state) => state.selectedTrialRef);
+  const onSelect = useAppStore((state) => state.selectTrial);
   const [api, setApi] = useState<CarouselApi>();
   const swipe = useVerticalSwipe({ onSwipeUp: onOpen });
 
@@ -29,7 +35,7 @@ function TrialCarousel({ trials, selectedTrialRef, onSelect, onOpen }: TrialCaro
     // Our own scrollTo also fires `select`; re-selecting would drop the pin's site.
     const handleSelect = () => {
       const trialRef = trials[api.selectedScrollSnap()]?.trialRef;
-      if (trialRef && trialRef !== selectedTrialRef) onSelect(trialRef);
+      if (trialRef !== undefined && trialRef !== selectedTrialRef) onSelect(trialRef);
     };
     api.on('select', handleSelect);
     return () => {
@@ -50,8 +56,7 @@ function TrialCarousel({ trials, selectedTrialRef, onSelect, onOpen }: TrialCaro
       <CarouselContent className="-ml-2.5 px-4">
         {trials.map((trial) => {
           const status = deriveTrialStatus(trial);
-          const site = primarySite(trial);
-          const place = [site?.city, site?.province].filter(Boolean).join(', ');
+          const place = sitePlace(primarySite(trial));
           const selected = trial.trialRef === selectedTrialRef;
           return (
             <CarouselItem key={trial.trialRef} className="basis-[88%] pl-2.5">
@@ -66,14 +71,11 @@ function TrialCarousel({ trials, selectedTrialRef, onSelect, onOpen }: TrialCaro
                 )}
               >
                 <span className="text-muted-foreground flex items-center gap-2 text-[clamp(0.7rem,3vw,0.8rem)]">
-                  {status && (
-                    <span className={cn('size-2 rounded-full', TRIAL_STATUS[status].badgeClass)} />
-                  )}
-                  {status && t(TRIAL_STATUS[status].labelKey)}
+                  {status && <StatusLabel status={status} className="gap-2" />}
                   <span className="ml-auto truncate font-mono">{publicTrialId(trial)}</span>
                 </span>
                 <span className="font-display line-clamp-2 min-h-[2lh] text-[clamp(0.9rem,4vw,1.1rem)] leading-snug font-semibold">
-                  {trial.shortTitleEn ?? trial.officialTitleEn}
+                  {trialTitle(trial)}
                 </span>
                 <span className="text-muted-foreground truncate text-[clamp(0.7rem,3vw,0.8rem)]">
                   {[formatPhases(trial.phases), place].filter(Boolean).join(', ')}

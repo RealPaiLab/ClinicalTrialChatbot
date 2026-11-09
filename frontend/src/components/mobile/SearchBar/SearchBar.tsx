@@ -19,41 +19,34 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import LanguageOptions from '@/components/language/LanguageOptions/LanguageOptions';
+import BrandTitle from '@/components/layout/BrandTitle/BrandTitle';
 import CamilleIcon from '@/components/layout/CamilleIcon/CamilleIcon';
 import CornerMark from '@/components/layout/CornerMark/CornerMark';
-import { LanguageOptions } from '@/components/layout/LanguagePicker/LanguagePicker';
 import OicrLogo from '@/components/layout/OicrLogo/OicrLogo';
 import { AGENT_NAME } from '@/constants/chat';
 import { LANGUAGE_TARGETS } from '@/constants/language';
 import { useAppLanguage } from '@/hooks/useAppLanguage';
 import { cn } from '@/lib/utils';
+import { useAppStore } from '@/store/appStore';
 
 interface SearchBarProps {
-  /** The conversation title; null shows the placeholder prompt. */
-  title: string | null;
-  dark: boolean;
-  bookmarkCount: number;
   onOpenChat: () => void;
   onOpenBookmarks: () => void;
   onStartTour: () => void;
-  onToggleTheme: () => void;
 }
 
 const MENU_ROW = 'h-11 justify-start gap-3 px-3 text-sm';
 const HIGHLIGHT_EDGE =
   "after:bg-highlight relative overflow-hidden after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:content-['']";
 
-function SearchBar({
-  title,
-  dark,
-  bookmarkCount,
-  onOpenChat,
-  onOpenBookmarks,
-  onStartTour,
-  onToggleTheme,
-}: SearchBarProps) {
+function SearchBar({ onOpenChat, onOpenBookmarks, onStartTour }: SearchBarProps) {
   const { t } = useTranslation();
   const { language } = useAppLanguage();
+  const title = useAppStore((state) => state.conversationTitle);
+  const dark = useAppStore((state) => state.theme === 'dark');
+  const toggleTheme = useAppStore((state) => state.toggleTheme);
+  const bookmarkCount = useAppStore((state) => state.bookmarkedTrialRefs.length);
   const [languageOpen, setLanguageOpen] = useState(false);
   const current = LANGUAGE_TARGETS.find((option) => option.code === language);
 
@@ -93,19 +86,8 @@ function SearchBar({
                 </Button>
               </SheetClose>
             </div>
-            <div className="flex flex-col gap-1.5">
-              <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-                <SheetTitle className="font-display text-lg leading-none font-extrabold tracking-[-0.03em]">
-                  {AGENT_NAME}
-                </SheetTitle>
-                <span className="text-eyebrow text-primary bg-primary/10 rounded-full px-1.5 py-px text-[0.5rem] font-bold whitespace-nowrap">
-                  {t('app.preRelease')}
-                </span>
-              </div>
-              <span className="text-muted-foreground text-xs leading-tight">
-                {t('app.tagline')}
-              </span>
-            </div>
+            <SheetTitle className="sr-only">{AGENT_NAME}</SheetTitle>
+            <BrandTitle className="gap-1.5" />
           </SheetHeader>
 
           <nav className="flex flex-col gap-1 px-3">
@@ -138,7 +120,7 @@ function SearchBar({
               variant="ghost"
               className={MENU_ROW}
               aria-label={dark ? t('header.switchToLight') : t('header.switchToDark')}
-              onClick={onToggleTheme}
+              onClick={toggleTheme}
             >
               {dark ? <Moon data-icon="inline-start" /> : <Sun data-icon="inline-start" />}
               {t('mobile.theme')}
