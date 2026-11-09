@@ -1,7 +1,4 @@
-// One entry per ingestion source (mirrors backend schemas/source.py SourceCode).
-// `label` is the organisation behind the listing (the badge), `registry` the site
-// the outbound link opens; both are names, so they are not translated.
-// `href` builds the registry's public trial page from the key the backend stores.
+// Mirrors backend schemas/source.py SourceCode; `label` (the badge) and `registry` (the link target) are untranslated names.
 export const TRIAL_SOURCES = {
   ctc: {
     label: 'Q-CROC',

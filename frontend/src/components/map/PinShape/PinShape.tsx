@@ -1,7 +1,6 @@
 import { useId, type ReactNode } from 'react';
+import { TRIAL_STATUS, type TrialStatus } from '@/constants/trialStatus';
 import { cn } from '@/lib/utils';
-import { TRIAL_STATUS } from '@/lib/trialStatus';
-import type { TrialStatus } from '@/types/trial';
 
 const PIN_PATH =
   'M16 3C10.477 3 6 7.477 6 13c0 7.25 10 18 10 18s10-10.75 10-18c0-5.523-4.477-10-10-10z';

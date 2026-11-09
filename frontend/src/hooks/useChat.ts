@@ -9,33 +9,26 @@ import {
   StreamEventType,
 } from '@/constants/chat';
 import { chatError, chatErrorForCode, streamChat } from '@/services/chat';
+import { TRIAL_QUERY_ROOT, trialQuery } from '@/services/trials';
 import { useAppStore } from '@/store/appStore';
-import type { ChatMessage, StreamEvent, Trial } from '@/types/trial';
-
-type CreateStream = (text: string, signal?: AbortSignal) => AsyncGenerator<StreamEvent>;
+import type { ChatMessage } from '@/types/trial';
 
 interface UseChatOptions {
-  createStream?: CreateStream;
-  onTrialsChange?: (trials: Trial[]) => void;
-  getTurnstileToken?: () => string | null;
-  verificationId?: string;
+  getTurnstileToken: () => string | null;
+  verificationId: string;
 }
 
 interface UseChatResult {
   messages: ChatMessage[];
   status: ChatStatus;
   sessionId: string;
-  sendMessage: (text: string, contextNctNumbers?: string[]) => Promise<void>;
+  sendMessage: (text: string, contextTrialRefs?: string[]) => Promise<void>;
   stop: () => void;
   reset: () => void;
 }
 
-export function useChat({
-  createStream,
-  onTrialsChange,
-  getTurnstileToken,
-  verificationId,
-}: UseChatOptions = {}): UseChatResult {
+/** One conversation: streams replies and puts the trials each turn returns on the map. */
+export function useChat({ getTurnstileToken, verificationId }: UseChatOptions): UseChatResult {
   const queryClient = useQueryClient();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [status, setStatus] = useState<ChatStatus>('ready');
@@ -48,7 +41,7 @@ export function useChat({
     );
   };
 
-  const sendMessage = async (text: string, contextNctNumbers?: string[]) => {
+  const sendMessage = async (text: string, contextTrialRefs: string[] = []) => {
     if (status === 'streaming') return;
 
     if (text.length > MAX_MESSAGE_LENGTH) {
@@ -65,31 +58,21 @@ export function useChat({
       return;
     }
 
-    const stream =
-      createStream ??
-      ((message, signal) =>
-        streamChat({
-          sessionId,
-          message,
-          turnstileToken: getTurnstileToken?.(),
-          verificationId,
-          signal,
-        }));
-
-    const hasContext = Boolean(contextNctNumbers && contextNctNumbers.length > 0);
+    const hasContext = contextTrialRefs.length > 0;
     const payload = hasContext
-      ? `${text}\n\n${SELECTED_TRIALS_PROMPT}${contextNctNumbers?.join(', ')}`
+      ? `${text}\n\n${SELECTED_TRIALS_PROMPT}${contextTrialRefs.join(', ')}`
       : text;
+    const userMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: ChatRole.User,
+      content: text,
+      contextTrialRefs: hasContext ? contextTrialRefs : undefined,
+    };
 
     const assistantId = crypto.randomUUID();
     setMessages((prev) => [
       ...prev,
-      {
-        id: crypto.randomUUID(),
-        role: ChatRole.User,
-        content: text,
-        ...(hasContext && { contextNctNumbers }),
-      },
+      userMessage,
       { id: assistantId, role: ChatRole.Assistant, content: '' },
     ]);
     setStatus('streaming');
@@ -98,7 +81,14 @@ export function useChat({
     abortRef.current = controller;
 
     try {
-      for await (const event of stream(payload, controller.signal)) {
+      const stream = streamChat({
+        sessionId,
+        message: payload,
+        turnstileToken: getTurnstileToken(),
+        verificationId,
+        signal: controller.signal,
+      });
+      for await (const event of stream) {
         if (event.type === StreamEventType.AgentResponse) {
           patchMessage(assistantId, { content: event.data.message });
         } else if (event.type === StreamEventType.ChatResult) {
@@ -108,14 +98,15 @@ export function useChat({
             followUpQuestions: event.data.followUpQuestions,
             observationId: event.data.observationId,
           });
+          const store = useAppStore.getState();
           if (event.data.conversationTitle) {
-            useAppStore.getState().setConversationTitle(event.data.conversationTitle);
+            store.setConversationTitle(event.data.conversationTitle);
           }
           if (event.data.trials.length > 0) {
             for (const trial of event.data.trials) {
-              queryClient.setQueryData(['trial', trial.trialRef], trial);
+              queryClient.setQueryData(trialQuery(trial.trialRef).queryKey, trial);
             }
-            onTrialsChange?.(event.data.trials);
+            store.setTrials(event.data.trials);
           }
         } else {
           patchMessage(assistantId, { content: '', error: chatErrorForCode(event.data) });
@@ -141,10 +132,10 @@ export function useChat({
     abortRef.current?.abort();
     abortRef.current = null;
     setSessionId(crypto.randomUUID());
-    queryClient.removeQueries({ queryKey: ['trial'] });
+    queryClient.removeQueries({ queryKey: TRIAL_QUERY_ROOT });
     setMessages([]);
     setStatus('ready');
-    onTrialsChange?.([]);
+    useAppStore.getState().reset();
   };
 
   return { messages, status, sessionId, sendMessage, stop, reset };

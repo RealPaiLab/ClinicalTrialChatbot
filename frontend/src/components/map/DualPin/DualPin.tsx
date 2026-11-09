@@ -1,5 +1,5 @@
 import CountPin from '@/components/map/CountPin/CountPin';
-import type { TrialStatus } from '@/types/trial';
+import type { TrialStatus } from '@/constants/trialStatus';
 
 export interface StatusCount {
   status: TrialStatus;

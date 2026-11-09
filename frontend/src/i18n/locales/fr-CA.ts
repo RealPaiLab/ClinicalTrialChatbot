@@ -30,9 +30,9 @@ const frCa = {
     askAiHintBody:
       'Vous ne comprenez pas un mot? <mark>Surlignez</mark>-le dans la conversation et cliquez sur le bouton <ask>Demander à l’IA</ask> qui apparaît, et {{agent}} vous l’expliquera.',
     askAi: 'Demander à l’IA',
-    addedTrials: 'Vos essais ajoutés',
     removeFromContext: 'Retirer {{trialRef}} du contexte',
-    stop: 'Arrêter',
+    showOnMap: 'Afficher {{title}} sur la carte',
+    definition: 'Définition : {{definition}}',
     send: 'Envoyer',
   },
   searching: {
@@ -41,10 +41,10 @@ const frCa = {
     sites: 'Analyse des sites de recrutement près de chez vous…',
     phases: 'Examen des phases et des traitements des essais…',
     gathering: 'Regroupement des essais les plus pertinents…',
-    reading: 'Lecture de la réponse',
   },
   feedback: {
-    prompt: 'Dites-nous ce que vous en pensez',
+    removeNct: 'Retirer {{nct}}',
+    failed: 'Votre avis n’a pas pu être envoyé. Veuillez réessayer.',
     helpful: 'Utile',
     notHelpful: 'Pas utile',
     commentPlaceholder: 'Commentaire (facultatif)',
@@ -89,7 +89,6 @@ const frCa = {
     trialCount_other: '{{count}} essais',
     coverageArea: 'Zone couverte',
     coverageNotice: 'La couverture comprend des sites d’essais cliniques partout au Canada.',
-    seeTrials: 'Voir les essais sur la carte',
     emptyHint: 'Les essais apparaîtront ici au fil de la conversation.',
   },
   status: {
@@ -112,8 +111,6 @@ const frCa = {
     city: 'Ville',
     whoCanJoin: 'Qui peut participer',
     whoCannotJoin: 'Qui ne peut pas participer',
-    translate: 'Traduire',
-    seeOriginal: 'Voir l’original',
     machineNotice:
       'Traduction automatique non révisée. Consultez l’original anglais pour tout ce qui touche l’admissibilité.',
     unavailableNotice:
@@ -174,7 +171,6 @@ const frCa = {
     next: 'Suivant',
     back: 'Précédent',
     done: 'Terminé',
-    skip: 'Passer',
     steps: {
       welcome: {
         title: 'Bienvenue dans {{agent}}',

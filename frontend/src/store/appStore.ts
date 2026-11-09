@@ -6,22 +6,31 @@ import type { ChatMessage, Trial } from '@/types/trial';
 
 export type Theme = 'light' | 'dark';
 
-interface AppState {
+/** What the map, selection and chat context show: the part a tour swaps out and restores. */
+interface Workspace {
   trials: Trial[];
-  selectedTrialRef: string | null;
-  selectedSiteKey: string | null;
-  contextTrialRefs: string[];
-  bookmarkedTrialRefs: string[];
   /** Trials on the map that the latest chat turn did not return (opened from bookmarks or kept in context). */
   pinnedTrialRefs: string[];
+  contextTrialRefs: string[];
+  selectedTrialRef: string | null;
+  selectedSiteKey: string | null;
+  /** Mobile chat sheet height; kept here so the tour can move it. */
+  sheetSnap: SheetSnap;
+}
+
+interface Tour {
+  messages: ChatMessage[];
+  saved: Workspace;
+}
+
+interface AppState extends Workspace {
+  bookmarkedTrialRefs: string[];
   theme: Theme;
   language: LanguageCode;
   hasChosenLanguage: boolean;
   hasSeenTour: boolean;
-  tourMessages: ChatMessage[];
+  tour: Tour | null;
   conversationTitle: string | null;
-  /** Mobile chat sheet height; kept here so the tour can move it. */
-  sheetSnap: SheetSnap;
   /** Mobile trial details drawer; kept here so the tour can open it. */
   trialDrawerOpen: boolean;
 
@@ -32,37 +41,38 @@ interface AppState {
   selectTrial: (trialRef: string | null, siteKey?: string | null) => void;
   addToContext: (trialRef: string) => void;
   removeFromContext: (trialRef: string) => void;
-  clearContext: () => void;
+  openTrial: (trial: Trial) => void;
   toggleBookmark: (trialRef: string) => void;
   removeBookmark: (trialRef: string) => void;
-  pinTrial: (trial: Trial) => void;
-  unpinTrial: (trialRef: string) => void;
   reset: () => void;
   toggleTheme: () => void;
-  setTheme: (theme: Theme) => void;
   setLanguage: (language: LanguageCode) => void;
   markLanguageChosen: () => void;
-  markTourSeen: () => void;
-  setTourMessages: (messages: ChatMessage[]) => void;
+  startTour: (messages: ChatMessage[]) => void;
+  endTour: () => void;
 }
+
+const without = (refs: string[], trialRef: string) => refs.filter((ref) => ref !== trialRef);
+
+export const selectIsTourRunning = (state: AppState) => state.tour !== null;
 
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
       trials: [],
+      pinnedTrialRefs: [],
+      contextTrialRefs: [],
       selectedTrialRef: null,
       selectedSiteKey: null,
-      contextTrialRefs: [],
+      // A fresh phone visit opens on the map; the search bar or peek bar opens the chat.
+      sheetSnap: 'peek',
       bookmarkedTrialRefs: [],
-      pinnedTrialRefs: [],
       theme: 'light',
       language: LanguageCode.En,
       hasChosenLanguage: false,
       hasSeenTour: false,
-      tourMessages: [],
+      tour: null,
       conversationTitle: null,
-      // A fresh phone visit opens on the map; the search bar or peek bar opens the chat.
-      sheetSnap: 'peek',
       trialDrawerOpen: false,
 
       // A chat turn owns the map, except trials still in the chat context: they stay pinned until removed.
@@ -73,9 +83,13 @@ export const useAppStore = create<AppState>()(
             (trial) =>
               state.contextTrialRefs.includes(trial.trialRef) && !returned.has(trial.trialRef)
           );
+          const next = [...trials, ...kept];
+          const stillShown = next.some((trial) => trial.trialRef === state.selectedTrialRef);
           return {
-            trials: [...trials, ...kept],
+            trials: next,
             pinnedTrialRefs: kept.map((trial) => trial.trialRef),
+            selectedTrialRef: stillShown ? state.selectedTrialRef : null,
+            selectedSiteKey: stillShown ? state.selectedSiteKey : null,
           };
         }),
       setConversationTitle: (conversationTitle) => set({ conversationTitle }),
@@ -89,43 +103,46 @@ export const useAppStore = create<AppState>()(
             ? state
             : { contextTrialRefs: [...state.contextTrialRefs, trialRef] }
         ),
+      // A pinned trial leaves the map with its context chip: no chat turn keeps it there.
       removeFromContext: (trialRef) =>
-        set((state) => ({
-          contextTrialRefs: state.contextTrialRefs.filter((ref) => ref !== trialRef),
-        })),
-      clearContext: () => set({ contextTrialRefs: [] }),
-      toggleBookmark: (trialRef) =>
-        set((state) => ({
-          bookmarkedTrialRefs: state.bookmarkedTrialRefs.includes(trialRef)
-            ? state.bookmarkedTrialRefs.filter((ref) => ref !== trialRef)
-            : [...state.bookmarkedTrialRefs, trialRef],
-        })),
-      removeBookmark: (trialRef) =>
-        set((state) => ({
-          bookmarkedTrialRefs: state.bookmarkedTrialRefs.filter((ref) => ref !== trialRef),
-        })),
-      pinTrial: (trial) =>
         set((state) => {
-          const trialRef = trial.trialRef;
-          if (!trialRef) return state;
-          // Already on the map from a chat turn: leave its provenance alone.
-          if (state.trials.some((candidate) => candidate.trialRef === trialRef)) return state;
-          return {
-            trials: [...state.trials, trial],
-            pinnedTrialRefs: [...state.pinnedTrialRefs, trialRef],
-          };
-        }),
-      unpinTrial: (trialRef) =>
-        set((state) => {
-          if (!state.pinnedTrialRefs.includes(trialRef)) return state;
+          const contextTrialRefs = without(state.contextTrialRefs, trialRef);
+          if (!state.pinnedTrialRefs.includes(trialRef)) return { contextTrialRefs };
           const wasSelected = state.selectedTrialRef === trialRef;
           return {
+            contextTrialRefs,
             trials: state.trials.filter((trial) => trial.trialRef !== trialRef),
-            pinnedTrialRefs: state.pinnedTrialRefs.filter((ref) => ref !== trialRef),
+            pinnedTrialRefs: without(state.pinnedTrialRefs, trialRef),
             selectedTrialRef: wasSelected ? null : state.selectedTrialRef,
             selectedSiteKey: wasSelected ? null : state.selectedSiteKey,
           };
         }),
+      // A bookmark can outlive the conversation that surfaced it, so opening one puts it back on the map.
+      openTrial: (trial) =>
+        set((state) => {
+          const onMap = state.trials.some((candidate) => candidate.trialRef === trial.trialRef);
+          return {
+            ...(onMap
+              ? {}
+              : {
+                  trials: [...state.trials, trial],
+                  pinnedTrialRefs: [...state.pinnedTrialRefs, trial.trialRef],
+                }),
+            selectedTrialRef: trial.trialRef,
+            selectedSiteKey: null,
+            contextTrialRefs: state.contextTrialRefs.includes(trial.trialRef)
+              ? state.contextTrialRefs
+              : [...state.contextTrialRefs, trial.trialRef],
+          };
+        }),
+      toggleBookmark: (trialRef) =>
+        set((state) => ({
+          bookmarkedTrialRefs: state.bookmarkedTrialRefs.includes(trialRef)
+            ? without(state.bookmarkedTrialRefs, trialRef)
+            : [...state.bookmarkedTrialRefs, trialRef],
+        })),
+      removeBookmark: (trialRef) =>
+        set((state) => ({ bookmarkedTrialRefs: without(state.bookmarkedTrialRefs, trialRef) })),
       reset: () =>
         set({
           trials: [],
@@ -133,15 +150,33 @@ export const useAppStore = create<AppState>()(
           selectedSiteKey: null,
           contextTrialRefs: [],
           pinnedTrialRefs: [],
-          tourMessages: [],
           conversationTitle: null,
         }),
       toggleTheme: () => set((state) => ({ theme: state.theme === 'dark' ? 'light' : 'dark' })),
-      setTheme: (theme) => set({ theme }),
       setLanguage: (language) => set({ language }),
       markLanguageChosen: () => set({ hasChosenLanguage: true }),
-      markTourSeen: () => set({ hasSeenTour: true }),
-      setTourMessages: (tourMessages) => set({ tourMessages }),
+      // Context is cleared so kept trials do not ride along onto the demo map.
+      startTour: (messages) =>
+        set((state) => ({
+          tour: {
+            messages,
+            saved: {
+              trials: state.trials,
+              pinnedTrialRefs: state.pinnedTrialRefs,
+              contextTrialRefs: state.contextTrialRefs,
+              selectedTrialRef: state.selectedTrialRef,
+              selectedSiteKey: state.selectedSiteKey,
+              sheetSnap: state.sheetSnap,
+            },
+          },
+          contextTrialRefs: [],
+        })),
+      endTour: () =>
+        set((state) =>
+          state.tour
+            ? { ...state.tour.saved, tour: null, trialDrawerOpen: false, hasSeenTour: true }
+            : { hasSeenTour: true }
+        ),
     }),
     {
       name: 'ctc-app',

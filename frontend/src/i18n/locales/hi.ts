@@ -30,9 +30,9 @@ const hi = {
     askAiHintBody:
       'कोई शब्द समझ नहीं आया? बातचीत में उसे <mark>हाइलाइट</mark> करें और दिखने वाले <ask>AI से पूछें</ask> बटन पर क्लिक करें, {{agent}} उसे समझा देगी।',
     askAi: 'AI से पूछें',
-    addedTrials: 'आपके जोड़े गए परीक्षण',
     removeFromContext: '{{trialRef}} को संदर्भ से हटाएँ',
-    stop: 'रोकें',
+    showOnMap: '{{title}} को नक्शे पर दिखाएं',
+    definition: 'परिभाषा: {{definition}}',
     send: 'भेजें',
   },
   searching: {
@@ -41,10 +41,10 @@ const hi = {
     sites: 'आपके पास भर्ती कर रहे केंद्र देखे जा रहे हैं…',
     phases: 'परीक्षणों के चरण और उपचार देखे जा रहे हैं…',
     gathering: 'सबसे प्रासंगिक परीक्षण जुटाए जा रहे हैं…',
-    reading: 'उत्तर पढ़ा जा रहा है',
   },
   feedback: {
-    prompt: 'बताएं यह कैसा रहा',
+    removeNct: '{{nct}} हटाएं',
+    failed: 'आपकी प्रतिक्रिया नहीं भेजी जा सकी। कृपया फिर से कोशिश करें।',
     helpful: 'उपयोगी',
     notHelpful: 'उपयोगी नहीं',
     commentPlaceholder: 'टिप्पणी (वैकल्पिक)',
@@ -87,7 +87,6 @@ const hi = {
     trialCount_other: '{{count}} ट्रायल',
     coverageArea: 'कवरेज क्षेत्र',
     coverageNotice: 'कवरेज में पूरे कनाडा के परीक्षण केंद्र शामिल हैं।',
-    seeTrials: 'नक्शे पर परीक्षण देखें',
     emptyHint: 'बातचीत के साथ परीक्षण यहाँ दिखाई देंगे।',
   },
   status: {
@@ -110,8 +109,6 @@ const hi = {
     city: 'शहर',
     whoCanJoin: 'कौन भाग ले सकता है',
     whoCannotJoin: 'कौन भाग नहीं ले सकता',
-    translate: 'अनुवाद करें',
-    seeOriginal: 'मूल देखें',
     machineNotice:
       'यह स्वचालित अनुवाद है और इसकी समीक्षा नहीं की गई है। पात्रता से जुड़ी किसी भी बात के लिए अंग्रेज़ी मूल देखें।',
     unavailableNotice: 'अनुवाद अस्थायी रूप से उपलब्ध नहीं है। अंग्रेज़ी मूल दिखाया जा रहा है।',
@@ -170,7 +167,6 @@ const hi = {
     next: 'आगे',
     back: 'पीछे',
     done: 'हो गया',
-    skip: 'छोड़ें',
     steps: {
       welcome: {
         title: '{{agent}} में आपका स्वागत है',
