@@ -10,6 +10,7 @@ import { Message, MessageContent, MessageResponse } from '@/components/ai-elemen
 import AskAiSelection from '@/components/chat/AskAiSelection/AskAiSelection';
 import MessageContextTrials from '@/components/chat/MessageContextTrials/MessageContextTrials';
 import MessageFeedback from '@/components/chat/MessageFeedback/MessageFeedback';
+import MessageTrialActions from '@/components/chat/MessageTrialActions/MessageTrialActions';
 import SearchingIndicator from '@/components/chat/SearchingIndicator/SearchingIndicator';
 import TermDefinition from '@/components/chat/TermDefinition/TermDefinition';
 import TrialCitation from '@/components/chat/TrialCitation/TrialCitation';
@@ -28,6 +29,10 @@ interface ChatMessagesProps {
   sessionId: string;
   onCitationClick: (trialRef: string) => void;
   onAskAi: (text: string) => void;
+  onFindMore: (trialRefs: string[]) => void;
+  /** A reply is streaming, so nothing new can be sent yet. */
+  busy: boolean;
+  onShowTurn?: () => void;
 }
 
 function createMarkdownComponents(onCitationClick: (trialRef: string) => void): Components {
@@ -53,7 +58,15 @@ function createMarkdownComponents(onCitationClick: (trialRef: string) => void): 
   };
 }
 
-function ChatMessages({ messages, sessionId, onCitationClick, onAskAi }: ChatMessagesProps) {
+function ChatMessages({
+  messages,
+  sessionId,
+  onCitationClick,
+  onAskAi,
+  onFindMore,
+  busy,
+  onShowTurn,
+}: ChatMessagesProps) {
   const { t } = useTranslation();
   const rootRef = useRef<HTMLDivElement>(null);
   return (
@@ -66,7 +79,7 @@ function ChatMessages({ messages, sessionId, onCitationClick, onAskAi }: ChatMes
               <MessageContent>{t('chat.starter')}</MessageContent>
             </Message>
           ) : (
-            messages.map((message) => (
+            messages.map((message, index) => (
               <Message from={message.role} key={message.id}>
                 <MessageContent>
                   {message.role !== ChatRole.Assistant ? (
@@ -89,6 +102,18 @@ function ChatMessages({ messages, sessionId, onCitationClick, onAskAi }: ChatMes
                     onSelect={onCitationClick}
                   />
                 )}
+                {message.role === ChatRole.Assistant && message.trials?.length ? (
+                  <MessageTrialActions
+                    turn={{
+                      id: message.id,
+                      question: messages[index - 1]?.content ?? '',
+                      trials: message.trials,
+                    }}
+                    busy={busy}
+                    onShown={onShowTurn}
+                    onFindMore={onFindMore}
+                  />
+                ) : null}
                 {message.role === ChatRole.Assistant && message.observationId && (
                   <MessageFeedback sessionId={sessionId} observationId={message.observationId} />
                 )}

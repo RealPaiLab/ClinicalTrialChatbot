@@ -1,10 +1,10 @@
 import { useRef, useState } from 'react';
 import MapGL, { Layer, NavigationControl, Source, type MapRef } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { Info, MapPin } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import MapLegend from '@/components/map/MapLegend/MapLegend';
+import ResultHistory from '@/components/map/ResultHistory/ResultHistory';
 import TrialCluster from '@/components/map/TrialCluster/TrialCluster';
 import { CANADA_BOUNDARY } from '@/assets/canada.geojson';
 import { config } from '@/config';
@@ -23,7 +23,7 @@ const CANADA_GREEN = '#64bc46';
 const CONTROL_MARGIN_PX = 10;
 
 interface MapPanelProps {
-  /** Phone layout: no coverage note, shared sites open only on tap, and the legend sits beside the zoom buttons. */
+  /** Phone layout: no results history, shared sites open only on tap, and the legend sits beside the zoom buttons. */
   compact?: boolean;
   /** Pushes the top corner controls down, clear of anything layered over the map. */
   topInset?: number;
@@ -129,20 +129,7 @@ function MapPanel({ compact = false, topInset = 0 }: MapPanelProps) {
 
       {!compact && (
         <div className="absolute top-3 left-3 z-10">
-          <HoverCard openDelay={100} closeDelay={0}>
-            <HoverCardTrigger asChild>
-              <button
-                type="button"
-                aria-label={t('map.coverageArea')}
-                className="bg-canvas/90 text-muted-foreground hover:text-foreground flex size-7 shrink-0 items-center justify-center rounded-md border shadow-sm backdrop-blur transition-colors"
-              >
-                <Info className="size-3.5" />
-              </button>
-            </HoverCardTrigger>
-            <HoverCardContent align="start" className="w-64 text-sm leading-relaxed">
-              {t('map.coverageNotice')}
-            </HoverCardContent>
-          </HoverCard>
+          <ResultHistory />
         </div>
       )}
 

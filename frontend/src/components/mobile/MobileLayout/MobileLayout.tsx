@@ -83,7 +83,7 @@ function MobileLayout({ onOpenBookmarks, onStartTour, children }: MobileLayoutPr
         peekLabel={hasTrials ? t('mobile.chatPeek') : t('mobile.searchPrompt')}
         onSnapChange={setSnap}
       >
-        <ChatPanel onCitationClick={showTrial} />
+        <ChatPanel onCitationClick={showTrial} onShowTurn={() => setSnap('peek')} />
       </ChatSheet>
 
       <Drawer open={detailOpen && hasSelection} onOpenChange={setDetailOpen}>

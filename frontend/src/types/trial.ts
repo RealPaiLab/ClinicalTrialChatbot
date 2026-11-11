@@ -86,6 +86,15 @@ export interface ChatMessage {
   error?: ChatError;
 }
 
+/** The trials one answer put on the map, so the map can show them again. */
+export interface ResultTurn {
+  /** The assistant message's id. */
+  id: string;
+  /** The patient message the answer replied to. */
+  question: string;
+  trials: Trial[];
+}
+
 export interface SourceFreshness {
   source: TrialSourceCode;
   name: string;

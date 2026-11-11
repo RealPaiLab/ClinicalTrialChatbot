@@ -106,7 +106,7 @@ export function useChat({ getTurnstileToken, verificationId }: UseChatOptions): 
             for (const trial of event.data.trials) {
               queryClient.setQueryData(trialQuery(trial.trialRef).queryKey, trial);
             }
-            store.setTrials(event.data.trials);
+            store.showTurn({ id: assistantId, question: text, trials: event.data.trials });
           }
         } else {
           patchMessage(assistantId, { content: '', error: chatErrorForCode(event.data) });
