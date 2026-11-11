@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { MessageAction, MessageActions } from '@/components/ai-elements/message';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import ActionTooltip from '@/components/common/ActionTooltip/ActionTooltip';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -138,16 +139,18 @@ function MessageFeedback({ sessionId, observationId }: MessageFeedbackProps) {
                       className="gap-1 py-0.5 pr-1 pl-2 font-mono"
                     >
                       <span>{nct}</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        aria-label={t('feedback.removeNct', { nct })}
-                        onClick={() => removeNct(nct)}
-                        className="size-4 rounded-full hover:bg-transparent"
-                      >
-                        <X className="size-3" />
-                      </Button>
+                      <ActionTooltip label={t('feedback.removeNct', { nct })}>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label={t('feedback.removeNct', { nct })}
+                          onClick={() => removeNct(nct)}
+                          className="size-4 rounded-full hover:bg-transparent"
+                        >
+                          <X className="size-3" />
+                        </Button>
+                      </ActionTooltip>
                     </Badge>
                   ))}
                 </div>

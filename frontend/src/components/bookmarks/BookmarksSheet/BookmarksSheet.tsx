@@ -14,6 +14,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import BookmarkRow from '@/components/bookmarks/BookmarkRow/BookmarkRow';
+import ActionTooltip from '@/components/common/ActionTooltip/ActionTooltip';
 import { useCachedTrialTranslations } from '@/hooks/useTrialTranslation';
 import { useTrialPdfExport } from '@/hooks/useTrialPdfExport';
 import { trialQuery } from '@/services/trials';
@@ -52,12 +53,14 @@ function BookmarksSheet({ open, onOpenChange }: BookmarksSheetProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" showCloseButton={false} className="w-full gap-0 p-0 sm:max-w-md">
-        <SheetClose
-          aria-label={t('bookmarks.close')}
-          className="border-border bg-popover text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute top-1/2 -left-4 flex h-16 w-4 -translate-y-1/2 cursor-pointer items-center justify-center rounded-l-full border border-r-0 shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
-        >
-          <ChevronRight className="size-3" />
-        </SheetClose>
+        <ActionTooltip label={t('bookmarks.close')}>
+          <SheetClose
+            aria-label={t('bookmarks.close')}
+            className="border-border bg-popover text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute top-1/2 -left-4 flex h-16 w-4 -translate-y-1/2 cursor-pointer items-center justify-center rounded-l-full border border-r-0 shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
+          >
+            <ChevronRight className="size-3" />
+          </SheetClose>
+        </ActionTooltip>
 
         <SheetHeader className="border-border border-b">
           <SheetTitle>

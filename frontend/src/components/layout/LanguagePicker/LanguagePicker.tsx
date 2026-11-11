@@ -21,7 +21,7 @@ function LanguagePicker() {
           <TooltipTrigger asChild>
             <PopoverTrigger asChild>
               <Button
-                variant="ghost"
+                variant="action"
                 size="icon"
                 data-tour="language"
                 aria-label={t('header.language')}

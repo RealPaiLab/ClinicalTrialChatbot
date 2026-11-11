@@ -2,6 +2,7 @@ import { BookmarkX, FileDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Item, ItemActions, ItemContent } from '@/components/ui/item';
+import ActionTooltip from '@/components/common/ActionTooltip/ActionTooltip';
 import BookmarkRowSkeleton from '@/components/bookmarks/BookmarkRowSkeleton/BookmarkRowSkeleton';
 import TrialBadges from '@/components/bookmarks/TrialBadges/TrialBadges';
 import { publicTrialId, trialTitle } from '@/lib/trial';
@@ -58,27 +59,29 @@ function BookmarkRow({
 
       <ItemActions className="gap-0.5">
         {onExport && (
-          <Button
-            variant="ghost"
-            size="icon"
-            disabled={!trial || isExporting}
-            aria-label={`${t('bookmarks.exportOne')} (${title})`}
-            title={t('bookmarks.exportOne')}
-            onClick={() => trial && onExport(trial)}
-          >
-            <FileDown />
-          </Button>
+          <ActionTooltip label={t('bookmarks.exportOne')}>
+            <Button
+              variant="action"
+              size="icon"
+              disabled={!trial || isExporting}
+              aria-label={`${t('bookmarks.exportOne')} (${title})`}
+              onClick={() => trial && onExport(trial)}
+            >
+              <FileDown />
+            </Button>
+          </ActionTooltip>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          disabled={isPending}
-          aria-label={`${t('bookmarks.remove')} (${title})`}
-          title={t('bookmarks.remove')}
-          onClick={() => onRemove(trialRef)}
-        >
-          <BookmarkX />
-        </Button>
+        <ActionTooltip label={t('bookmarks.remove')}>
+          <Button
+            variant="action"
+            size="icon"
+            disabled={isPending}
+            aria-label={`${t('bookmarks.remove')} (${title})`}
+            onClick={() => onRemove(trialRef)}
+          >
+            <BookmarkX />
+          </Button>
+        </ActionTooltip>
       </ItemActions>
     </Item>
   );

@@ -1,8 +1,8 @@
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { Bookmark, BookmarkCheck, Check, ExternalLink, Mail, Sparkles, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import ActionTooltip from '@/components/common/ActionTooltip/ActionTooltip';
 import ContactDialog from '@/components/contact/ContactDialog/ContactDialog';
 import TrialTitle from '@/components/summary/TrialTitle/TrialTitle';
 import { TRIAL_SOURCE_CODES, TRIAL_SOURCES } from '@/constants/trialSources';
@@ -24,17 +24,6 @@ interface TrialSummaryHeaderProps extends Omit<TrialSummaryActionsProps, 'labell
   onClose: () => void;
   /** Leaves the actions out, for layouts that render them as a separate bar. */
   hideActions?: boolean;
-}
-
-function Action({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>{children}</TooltipTrigger>
-        <TooltipContent>{label}</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
 }
 
 export function TrialSummaryActions({
@@ -64,9 +53,9 @@ export function TrialSummaryActions({
 
   return (
     <>
-      <Action label={isInContext ? t('summary.addedToChatHint') : t('summary.askAbout')}>
+      <ActionTooltip label={isInContext ? t('summary.addedToChatHint') : t('summary.askAbout')}>
         <Button
-          variant="ghost"
+          variant="action"
           size="icon"
           data-tour="add-context"
           className={buttonClass}
@@ -77,10 +66,10 @@ export function TrialSummaryActions({
           {isInContext ? <Check className="text-recruiting" /> : <Sparkles />}
           {caption(t('mobile.ask'))}
         </Button>
-      </Action>
-      <Action label={isBookmarked ? t('bookmarks.added') : t('bookmarks.add')}>
+      </ActionTooltip>
+      <ActionTooltip label={isBookmarked ? t('bookmarks.added') : t('bookmarks.add')}>
         <Button
-          variant="ghost"
+          variant="action"
           size="icon"
           data-tour="bookmark"
           className={buttonClass}
@@ -90,10 +79,10 @@ export function TrialSummaryActions({
           {isBookmarked ? <BookmarkCheck className="text-primary" /> : <Bookmark />}
           {caption(isBookmarked ? t('bookmarks.added') : t('mobile.save'))}
         </Button>
-      </Action>
-      <Action label={t('contact.cta')}>
+      </ActionTooltip>
+      <ActionTooltip label={t('contact.cta')}>
         <Button
-          variant="ghost"
+          variant="action"
           size="icon"
           className={buttonClass}
           aria-label={t('contact.cta')}
@@ -102,14 +91,14 @@ export function TrialSummaryActions({
           <Mail />
           {caption(t('mobile.contact'))}
         </Button>
-      </Action>
+      </ActionTooltip>
       {registryLinks.map(({ source, href }, index) => {
         const label = t('summary.viewOn', { registry: TRIAL_SOURCES[source].registry });
         return (
-          <Action key={source} label={label}>
+          <ActionTooltip key={source} label={label}>
             <Button
               asChild
-              variant="ghost"
+              variant="action"
               size="icon"
               className={buttonClass}
               data-tour={index === 0 ? 'trial-link' : undefined}
@@ -122,7 +111,7 @@ export function TrialSummaryActions({
                 )}
               </a>
             </Button>
-          </Action>
+          </ActionTooltip>
         );
       })}
       <ContactDialog
@@ -151,9 +140,11 @@ function TrialSummaryHeader({ onClose, hideActions, ...actions }: TrialSummaryHe
       </div>
       <div className="flex shrink-0 items-center gap-1">
         {!hideActions && <TrialSummaryActions {...actions} />}
-        <Button variant="ghost" size="icon" aria-label={t('summary.close')} onClick={onClose}>
-          <X />
-        </Button>
+        <ActionTooltip label={t('summary.close')}>
+          <Button variant="action" size="icon" aria-label={t('summary.close')} onClick={onClose}>
+            <X />
+          </Button>
+        </ActionTooltip>
       </div>
     </div>
   );
