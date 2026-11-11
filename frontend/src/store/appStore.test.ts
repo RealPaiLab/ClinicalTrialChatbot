@@ -27,6 +27,25 @@ describe('appStore workspace', () => {
     expect(store().selectedSiteKey).toBeNull();
   });
 
+  it('records each answer once and puts an earlier one back, keeping context trials', () => {
+    store().reset();
+    const earlier = { id: 'a1', question: 'Breast cancer in Toronto?', trials: [first] };
+    const later = { id: 'a2', question: 'Anything in Ottawa?', trials: [second] };
+    store().showTurn(earlier);
+    store().showTurn(later);
+    store().addToContext(second.trialRef);
+
+    store().showTurn(earlier);
+
+    expect(store().resultTurns.map((turn) => turn.id)).toEqual(['a1', 'a2']);
+    expect(store().shownTurnId).toBe('a1');
+    expect(refs()).toEqual([first.trialRef, second.trialRef]);
+
+    store().reset();
+    expect(store().resultTurns).toEqual([]);
+    expect(store().shownTurnId).toBeNull();
+  });
+
   it('opens a bookmark onto the map, selected and in context, without duplicating it', () => {
     store().setTrials([first]);
 

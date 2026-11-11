@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { LanguageCode } from '@/constants/language';
 import type { SheetSnap } from '@/constants/layout';
-import type { ChatMessage, Trial } from '@/types/trial';
+import type { ChatMessage, ResultTurn, Trial } from '@/types/trial';
 
 export type Theme = 'light' | 'dark';
 
@@ -14,6 +14,10 @@ interface Workspace {
   contextTrialRefs: string[];
   selectedTrialRef: string | null;
   selectedSiteKey: string | null;
+  /** Every answer that returned trials, oldest first. */
+  resultTurns: ResultTurn[];
+  /** The answer whose trials the map shows; null once something else replaced them. */
+  shownTurnId: string | null;
   /** Mobile chat sheet height; kept here so the tour can move it. */
   sheetSnap: SheetSnap;
 }
@@ -35,6 +39,7 @@ interface AppState extends Workspace {
   trialDrawerOpen: boolean;
 
   setTrials: (trials: Trial[]) => void;
+  showTurn: (turn: ResultTurn) => void;
   setConversationTitle: (conversationTitle: string | null) => void;
   setSheetSnap: (sheetSnap: SheetSnap) => void;
   setTrialDrawerOpen: (trialDrawerOpen: boolean) => void;
@@ -54,6 +59,22 @@ interface AppState extends Workspace {
 
 const without = (refs: string[], trialRef: string) => refs.filter((ref) => ref !== trialRef);
 
+// A set of results owns the map, except trials still in the chat context: they stay pinned until removed.
+function placeTrials(state: AppState, trials: Trial[]): Partial<AppState> {
+  const returned = new Set(trials.map((trial) => trial.trialRef));
+  const kept = state.trials.filter(
+    (trial) => state.contextTrialRefs.includes(trial.trialRef) && !returned.has(trial.trialRef)
+  );
+  const next = [...trials, ...kept];
+  const stillShown = next.some((trial) => trial.trialRef === state.selectedTrialRef);
+  return {
+    trials: next,
+    pinnedTrialRefs: kept.map((trial) => trial.trialRef),
+    selectedTrialRef: stillShown ? state.selectedTrialRef : null,
+    selectedSiteKey: stillShown ? state.selectedSiteKey : null,
+  };
+}
+
 export const selectIsTourRunning = (state: AppState) => state.tour !== null;
 
 export const useAppStore = create<AppState>()(
@@ -64,6 +85,8 @@ export const useAppStore = create<AppState>()(
       contextTrialRefs: [],
       selectedTrialRef: null,
       selectedSiteKey: null,
+      resultTurns: [],
+      shownTurnId: null,
       // A fresh phone visit opens on the map; the search bar or peek bar opens the chat.
       sheetSnap: 'peek',
       bookmarkedTrialRefs: [],
@@ -75,23 +98,16 @@ export const useAppStore = create<AppState>()(
       conversationTitle: null,
       trialDrawerOpen: false,
 
-      // A chat turn owns the map, except trials still in the chat context: they stay pinned until removed.
-      setTrials: (trials) =>
-        set((state) => {
-          const returned = new Set(trials.map((trial) => trial.trialRef));
-          const kept = state.trials.filter(
-            (trial) =>
-              state.contextTrialRefs.includes(trial.trialRef) && !returned.has(trial.trialRef)
-          );
-          const next = [...trials, ...kept];
-          const stillShown = next.some((trial) => trial.trialRef === state.selectedTrialRef);
-          return {
-            trials: next,
-            pinnedTrialRefs: kept.map((trial) => trial.trialRef),
-            selectedTrialRef: stillShown ? state.selectedTrialRef : null,
-            selectedSiteKey: stillShown ? state.selectedSiteKey : null,
-          };
-        }),
+      setTrials: (trials) => set((state) => ({ ...placeTrials(state, trials), shownTurnId: null })),
+      // Records an answer the first time it is shown, so a new answer and a revisited one take the same path.
+      showTurn: (turn) =>
+        set((state) => ({
+          ...placeTrials(state, turn.trials),
+          shownTurnId: turn.id,
+          resultTurns: state.resultTurns.some((known) => known.id === turn.id)
+            ? state.resultTurns
+            : [...state.resultTurns, turn],
+        })),
       setConversationTitle: (conversationTitle) => set({ conversationTitle }),
       setSheetSnap: (sheetSnap) => set({ sheetSnap }),
       setTrialDrawerOpen: (trialDrawerOpen) => set({ trialDrawerOpen }),
@@ -150,12 +166,14 @@ export const useAppStore = create<AppState>()(
           selectedSiteKey: null,
           contextTrialRefs: [],
           pinnedTrialRefs: [],
+          resultTurns: [],
+          shownTurnId: null,
           conversationTitle: null,
         }),
       toggleTheme: () => set((state) => ({ theme: state.theme === 'dark' ? 'light' : 'dark' })),
       setLanguage: (language) => set({ language }),
       markLanguageChosen: () => set({ hasChosenLanguage: true }),
-      // Context is cleared so kept trials do not ride along onto the demo map.
+      // Context and history are cleared so the patient's own results stay off the demo map.
       startTour: (messages) =>
         set((state) => ({
           tour: {
@@ -166,10 +184,14 @@ export const useAppStore = create<AppState>()(
               contextTrialRefs: state.contextTrialRefs,
               selectedTrialRef: state.selectedTrialRef,
               selectedSiteKey: state.selectedSiteKey,
+              resultTurns: state.resultTurns,
+              shownTurnId: state.shownTurnId,
               sheetSnap: state.sheetSnap,
             },
           },
           contextTrialRefs: [],
+          resultTurns: [],
+          shownTurnId: null,
         })),
       endTour: () =>
         set((state) =>

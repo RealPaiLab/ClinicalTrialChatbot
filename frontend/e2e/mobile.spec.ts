@@ -131,5 +131,5 @@ test('the map controls and legend sit level with each other, clear of the search
 
   expect(zoom.y).toBeGreaterThan(searchBar.y + searchBar.height);
   expect(Math.abs(legend.y + legend.height / 2 - (zoom.y + zoom.height / 2))).toBeLessThan(4);
-  await expect(page.getByRole('button', { name: 'Coverage area' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Results history' })).toHaveCount(0);
 });
