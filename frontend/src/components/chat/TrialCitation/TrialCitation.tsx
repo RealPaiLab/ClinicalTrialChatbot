@@ -11,16 +11,12 @@ import {
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useCachedTrialTranslations } from '@/hooks/useTrialTranslation';
 import { trialTitle } from '@/lib/trial';
-import { cn } from '@/lib/utils';
+import { cn, truncate } from '@/lib/utils';
 import { trialQuery } from '@/services/trials';
 
 const CITATION_TITLE_MAX_LENGTH = 50;
 const COMPACT_TITLE_MAX_LENGTH = 28;
 const CITATION_DESCRIPTION_MAX_LENGTH = 200;
-
-function truncate(text: string, max: number): string {
-  return text.length > max ? `${text.slice(0, max).trimEnd()}…` : text;
-}
 
 interface TrialCitationProps {
   trialRef: string;

@@ -44,14 +44,14 @@ function AppHeader({ onOpenBookmarks, onStartTour }: AppHeaderProps) {
             <button
               type="button"
               aria-label={notice}
-              className="text-header-foreground/80 hover:text-header-foreground flex items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors"
+              className="group/updated text-header-foreground/80 hover:text-header-foreground flex items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors"
             >
               {lastUpdated && (
                 <span className="text-eyebrow text-[0.65rem] font-bold">{lastUpdated}</span>
               )}
               <span
                 aria-hidden
-                className="border-header-foreground/40 flex size-3 items-center justify-center rounded-full border text-[0.55rem] leading-none font-bold"
+                className="border-header-foreground/40 group-hover/updated:border-highlight group-hover/updated:text-highlight flex size-3 items-center justify-center rounded-full border text-[0.55rem] leading-none font-bold transition-colors"
               >
                 ?
               </span>
@@ -79,7 +79,7 @@ function AppHeader({ onOpenBookmarks, onStartTour }: AppHeaderProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
+                variant="action"
                 size="icon"
                 data-tour="bookmarks"
                 onClick={onOpenBookmarks}
@@ -100,7 +100,7 @@ function AppHeader({ onOpenBookmarks, onStartTour }: AppHeaderProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
+                variant="action"
                 size="icon"
                 onClick={onStartTour}
                 aria-label={t('header.takeTour')}
@@ -114,7 +114,7 @@ function AppHeader({ onOpenBookmarks, onStartTour }: AppHeaderProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
+                variant="action"
                 size="icon"
                 onClick={toggleTheme}
                 aria-label={dark ? t('header.switchToLight') : t('header.switchToDark')}
