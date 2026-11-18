@@ -5,22 +5,16 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import ContactDialog from '@/components/contact/ContactDialog/ContactDialog';
 import { publicTrialId } from '@/lib/trial';
-import type { TrialSummary } from '@/types/trial';
+import { trialQuery } from '@/services/trials';
 
 interface TrialContactLinkProps {
   trialRef: string;
-  fetchTrial: (trialRef: string, signal?: AbortSignal) => Promise<TrialSummary>;
 }
 
-function TrialContactLink({ trialRef, fetchTrial }: TrialContactLinkProps) {
+function TrialContactLink({ trialRef }: TrialContactLinkProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  // The same cache key the citation pill and useChat already populate.
-  const { data: trial } = useQuery({
-    queryKey: ['trial', trialRef],
-    queryFn: ({ signal }) => fetchTrial(trialRef, signal),
-    enabled: Boolean(trialRef),
-  });
+  const { data: trial } = useQuery(trialQuery(trialRef));
 
   return (
     <>

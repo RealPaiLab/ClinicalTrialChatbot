@@ -3,29 +3,24 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import LanguagePicker from '@/components/layout/LanguagePicker/LanguagePicker';
+import BrandTitle from '@/components/layout/BrandTitle/BrandTitle';
 import CamilleIcon from '@/components/layout/CamilleIcon/CamilleIcon';
+import LanguagePicker from '@/components/layout/LanguagePicker/LanguagePicker';
 import OicrLogo from '@/components/layout/OicrLogo/OicrLogo';
-import { useDataFreshness } from '@/hooks/useDataFreshness';
-import { AGENT_NAME } from '@/constants/chat';
 import { TRIAL_SOURCES } from '@/constants/trialSources';
+import { useDataFreshness } from '@/hooks/useDataFreshness';
+import { useAppStore } from '@/store/appStore';
 
 interface AppHeaderProps {
-  dark: boolean;
-  bookmarkCount: number;
   onOpenBookmarks: () => void;
   onStartTour: () => void;
-  onToggleTheme: () => void;
 }
 
-function AppHeader({
-  dark,
-  bookmarkCount,
-  onOpenBookmarks,
-  onStartTour,
-  onToggleTheme,
-}: AppHeaderProps) {
+function AppHeader({ onOpenBookmarks, onStartTour }: AppHeaderProps) {
   const { t } = useTranslation();
+  const dark = useAppStore((state) => state.theme === 'dark');
+  const toggleTheme = useAppStore((state) => state.toggleTheme);
+  const bookmarkCount = useAppStore((state) => state.bookmarkedTrialRefs.length);
   const { updatedOn, sources } = useDataFreshness();
   const lastUpdated = updatedOn ? t('data.lastUpdated', { date: updatedOn.toUpperCase() }) : null;
   const notice = updatedOn ? t('data.detailedNotice', { date: updatedOn }) : t('data.shortNotice');
@@ -37,19 +32,10 @@ function AppHeader({
         <span aria-hidden className="bg-border h-6 w-px" />
         <div className="group flex min-w-0 items-center gap-2">
           <CamilleIcon className="h-9" />
-          <div className="flex min-w-0 flex-col gap-0.5">
-            <div className="flex items-center gap-1.5">
-              <span className="font-display text-lg leading-none font-extrabold tracking-[-0.03em]">
-                {AGENT_NAME}
-              </span>
-              <span className="text-eyebrow text-primary bg-primary/10 rounded-full px-1.5 py-px text-[0.5rem] font-bold">
-                {t('app.preRelease')}
-              </span>
-            </div>
-            <span className="text-muted-foreground hidden truncate text-xs leading-none lg:block">
-              {t('app.tagline')}
-            </span>
-          </div>
+          <BrandTitle
+            className="gap-0.5"
+            taglineClassName="hidden truncate leading-none lg:block"
+          />
         </div>
       </div>
       <div className="flex items-center gap-1">
@@ -58,14 +44,14 @@ function AppHeader({
             <button
               type="button"
               aria-label={notice}
-              className="text-header-foreground/80 hover:text-header-foreground flex items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors"
+              className="group/updated text-header-foreground/80 hover:text-header-foreground flex items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors"
             >
               {lastUpdated && (
                 <span className="text-eyebrow text-[0.65rem] font-bold">{lastUpdated}</span>
               )}
               <span
                 aria-hidden
-                className="border-header-foreground/40 flex size-3 items-center justify-center rounded-full border text-[0.55rem] leading-none font-bold"
+                className="border-header-foreground/40 group-hover/updated:border-highlight group-hover/updated:text-highlight flex size-3 items-center justify-center rounded-full border text-[0.55rem] leading-none font-bold transition-colors"
               >
                 ?
               </span>
@@ -93,7 +79,7 @@ function AppHeader({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
+                variant="action"
                 size="icon"
                 data-tour="bookmarks"
                 onClick={onOpenBookmarks}
@@ -114,7 +100,7 @@ function AppHeader({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
+                variant="action"
                 size="icon"
                 onClick={onStartTour}
                 aria-label={t('header.takeTour')}
@@ -128,9 +114,9 @@ function AppHeader({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
+                variant="action"
                 size="icon"
-                onClick={onToggleTheme}
+                onClick={toggleTheme}
                 aria-label={dark ? t('header.switchToLight') : t('header.switchToDark')}
               >
                 {dark ? <Sun /> : <Moon />}

@@ -1,3 +1,5 @@
+import { animationsSettled } from '@/lib/motion';
+
 const STAGE_PADDING = 6;
 
 export interface TourBlur {
@@ -44,9 +46,8 @@ export function createTourBlur(): TourBlur {
   update(null);
 
   const destroy = () => {
-    // Fade the whole backdrop out before removing it.
     host.style.opacity = '0';
-    window.setTimeout(() => host.remove(), 300);
+    void animationsSettled(host).then(() => host.remove());
   };
 
   return { update, destroy };

@@ -4,22 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
 import CountPin from '@/components/map/CountPin/CountPin';
 import DualPin, { type StatusCount } from '@/components/map/DualPin/DualPin';
-import { TRIAL_STATUS } from '@/lib/trialStatus';
-import { cn } from '@/lib/utils';
-import type { TrialStatus } from '@/types/trial';
-
-export interface ClusterItem {
-  trialRef: string | null;
-  title: string;
-  status: TrialStatus;
-}
+import StatusDot from '@/components/trial/StatusDot/StatusDot';
+import { trialTitle } from '@/lib/trial';
+import type { PinUnit } from '@/types/map';
 
 interface TrialClusterProps {
-  longitude: number;
-  latitude: number;
-  locationName: string;
-  items: ClusterItem[];
-  selectedTrialRef?: string | null;
+  unit: PinUnit;
+  selectedTrialRef: string | null;
   open: boolean;
   onToggle: () => void;
   onClose: () => void;
@@ -27,10 +18,7 @@ interface TrialClusterProps {
 }
 
 function TrialCluster({
-  longitude,
-  latitude,
-  locationName,
-  items,
+  unit,
   selectedTrialRef,
   open,
   onToggle,
@@ -38,8 +26,9 @@ function TrialCluster({
   onSelectTrial,
 }: TrialClusterProps) {
   const { t } = useTranslation();
-  const selected = items.some((item) => item.trialRef === selectedTrialRef);
-  const selectedStatus = items.find((item) => item.trialRef === selectedTrialRef)?.status ?? null;
+  const { longitude, latitude, locationName, items } = unit;
+  const selectedStatus =
+    items.find((item) => item.trial.trialRef === selectedTrialRef)?.status ?? null;
   const groups = items.reduce<StatusCount[]>((acc, item) => {
     const group = acc.find((entry) => entry.status === item.status);
     return group
@@ -63,7 +52,11 @@ function TrialCluster({
           {groups.length > 1 ? (
             <DualPin groups={groups} selectedStatus={selectedStatus} />
           ) : (
-            <CountPin count={items.length} status={groups[0].status} selected={selected} />
+            <CountPin
+              count={items.length}
+              status={groups[0].status}
+              selected={selectedStatus !== null}
+            />
           )}
         </Button>
       </Marker>
@@ -90,27 +83,18 @@ function TrialCluster({
             <Command className="bg-transparent">
               <CommandList className="max-h-56">
                 <CommandGroup>
-                  {items.map((item, index) => (
+                  {items.map(({ trial, status }) => (
                     <CommandItem
-                      key={item.trialRef ?? `no-ref-${index}`}
-                      value={item.trialRef ?? `no-ref-${index}`}
-                      disabled={!item.trialRef}
-                      data-checked={item.trialRef === selectedTrialRef}
+                      key={trial.trialRef}
+                      value={trial.trialRef}
+                      data-checked={trial.trialRef === selectedTrialRef}
                       onSelect={() => {
-                        if (item.trialRef) {
-                          onSelectTrial(item.trialRef);
-                          onClose();
-                        }
+                        onSelectTrial(trial.trialRef);
+                        onClose();
                       }}
                     >
-                      <span
-                        aria-hidden
-                        className={cn(
-                          'size-2 shrink-0 rounded-full',
-                          TRIAL_STATUS[item.status].badgeClass
-                        )}
-                      />
-                      <span className="line-clamp-2">{item.title}</span>
+                      <StatusDot status={status} />
+                      <span className="line-clamp-2">{trialTitle(trial)}</span>
                     </CommandItem>
                   ))}
                 </CommandGroup>

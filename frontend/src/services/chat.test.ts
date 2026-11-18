@@ -1,14 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import {
-  ChatRequestError,
-  chatError,
-  chatErrorForCode,
-  parseEventStream,
-  streamChat,
-} from './chat';
+import { ApiError } from './api';
+import { chatError, chatErrorForCode, parseEventStream, streamChat } from './chat';
 import { CHAT_ERROR_KEY, StreamEventType } from '@/constants/chat';
 import type { StreamEvent } from '@/types/trial';
 import { createSseStream, mockWireStreamLines } from '@/test/fixtures/trials';
+
+const CHAT = '/chat/stream';
 
 async function collect(stream: AsyncGenerator<StreamEvent>): Promise<StreamEvent[]> {
   const events: StreamEvent[] = [];
@@ -71,7 +68,7 @@ describe('streamChat', () => {
     expect(events).toHaveLength(3);
   });
 
-  it('throws a ChatRequestError carrying the status and Retry-After', async () => {
+  it('throws an ApiError carrying the status and Retry-After', async () => {
     vi.stubGlobal(
       'fetch',
       vi
@@ -89,16 +86,16 @@ describe('streamChat', () => {
 
 describe('chatError', () => {
   it('returns a rate-limit key for 429, carrying the retry delay when present', () => {
-    expect(chatError(new ChatRequestError(429))).toEqual({ key: CHAT_ERROR_KEY.rateLimited });
-    expect(chatError(new ChatRequestError(429, 12))).toEqual({
+    expect(chatError(new ApiError(CHAT, 429))).toEqual({ key: CHAT_ERROR_KEY.rateLimited });
+    expect(chatError(new ApiError(CHAT, 429, 12))).toEqual({
       key: CHAT_ERROR_KEY.rateLimitedRetry,
       params: { seconds: 12 },
     });
   });
 
   it('distinguishes unavailable (5xx gateway) from generic server errors', () => {
-    expect(chatError(new ChatRequestError(503)).key).toBe(CHAT_ERROR_KEY.unavailable);
-    expect(chatError(new ChatRequestError(500)).key).toBe(CHAT_ERROR_KEY.serverError);
+    expect(chatError(new ApiError(CHAT, 503)).key).toBe(CHAT_ERROR_KEY.unavailable);
+    expect(chatError(new ApiError(CHAT, 500)).key).toBe(CHAT_ERROR_KEY.serverError);
   });
 
   it('treats a failed fetch (TypeError) as a network error', () => {
@@ -106,7 +103,7 @@ describe('chatError', () => {
   });
 
   it('falls back to a generic key for unknown errors and 4xx', () => {
-    expect(chatError(new ChatRequestError(400)).key).toBe(CHAT_ERROR_KEY.generic);
+    expect(chatError(new ApiError(CHAT, 400)).key).toBe(CHAT_ERROR_KEY.generic);
     expect(chatError(new Error('boom')).key).toBe(CHAT_ERROR_KEY.generic);
   });
 });

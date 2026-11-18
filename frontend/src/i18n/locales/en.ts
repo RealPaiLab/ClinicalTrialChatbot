@@ -28,9 +28,15 @@ const en = {
     askAiHintBody:
       "Don't understand a word? <mark>Highlight</mark> it in the conversation and click the <ask>Ask AI</ask> button that appears, and {{agent}} will explain it.",
     askAi: 'Ask AI',
-    addedTrials: 'Your added trials',
     removeFromContext: 'Remove {{trialRef}} from context',
-    stop: 'Stop',
+    showOnMap: 'Show {{title}} on the map',
+    showTrialsOnMap_one: 'Show {{count}} trial on the map',
+    showTrialsOnMap_other: 'Show {{count}} trials on the map',
+    trialsOnMap: 'On the map',
+    findMore: 'Find more like these',
+    findMorePrompt: 'Find more trials like these.',
+    contextTrials: '{{count}} trials',
+    definition: 'Definition: {{definition}}',
     send: 'Send',
   },
   searching: {
@@ -39,10 +45,10 @@ const en = {
     sites: 'Scanning recruiting sites near you…',
     phases: 'Reviewing trial phases and treatments…',
     gathering: 'Gathering the most relevant trials…',
-    reading: 'Reading the answer',
   },
   feedback: {
-    prompt: 'Tell us how it did',
+    removeNct: 'Remove {{nct}}',
+    failed: "Your feedback couldn't be sent. Please try again.",
     helpful: 'Helpful',
     notHelpful: 'Not helpful',
     commentPlaceholder: 'Comment (optional)',
@@ -83,9 +89,11 @@ const en = {
   map: {
     trialCount_one: '{{count}} trial',
     trialCount_other: '{{count}} trials',
-    coverageArea: 'Coverage area',
+    history: 'Results history',
+    historyEmpty:
+      'Each answer that finds trials is listed here, so you can put its trials back on the map.',
+    historyAnswer: 'Answer {{index}}',
     coverageNotice: 'Coverage includes cancer trial sites across Canada.',
-    seeTrials: 'See trials on the map',
     emptyHint: 'Trials will appear here as you chat.',
   },
   status: {
@@ -107,8 +115,6 @@ const en = {
     city: 'City',
     whoCanJoin: 'Who can join',
     whoCannotJoin: 'Who cannot join',
-    translate: 'Translate',
-    seeOriginal: 'See original',
     machineNotice:
       'Automatically translated and not reviewed. Check the English original for anything affecting eligibility.',
     unavailableNotice: 'Translation is temporarily unavailable. Showing the English original.',
@@ -167,7 +173,6 @@ const en = {
     next: 'Next',
     back: 'Back',
     done: 'Done',
-    skip: 'Skip',
     steps: {
       welcome: {
         title: 'Welcome to {{agent}}',

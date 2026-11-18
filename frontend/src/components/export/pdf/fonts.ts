@@ -11,8 +11,7 @@ export const PDF_FONT = {
   mono: 'JetBrainsMono',
 } as const;
 
-// react-pdf reads TTF only, so these are static instances of the same families
-// the app loads as variable woff2. Registered once, on first export.
+// react-pdf reads TTF only: static instances of the families the app loads as variable woff2.
 export function registerPdfFonts(): void {
   Font.register({
     family: PDF_FONT.sans,

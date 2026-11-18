@@ -1,12 +1,27 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ChatStatus } from 'ai';
 import { describe, expect, it, vi } from 'vitest';
 import ChatInput from './ChatInput';
 
+function renderInput(status: ChatStatus = 'ready') {
+  const onSend = vi.fn();
+  const onStop = vi.fn();
+  render(
+    <ChatInput
+      onSend={onSend}
+      onStop={onStop}
+      status={status}
+      contextTrials={[]}
+      onRemoveContext={vi.fn()}
+    />
+  );
+  return { onSend, onStop };
+}
+
 describe('ChatInput', () => {
   it('sends trimmed text on submit', async () => {
-    const onSend = vi.fn();
-    render(<ChatInput onSend={onSend} />);
+    const { onSend } = renderInput();
 
     await userEvent.type(screen.getByRole('textbox'), '  trials near me  ');
     await userEvent.click(screen.getByRole('button', { name: /submit/i }));
@@ -15,25 +30,21 @@ describe('ChatInput', () => {
   });
 
   it('sends on Enter', async () => {
-    const onSend = vi.fn();
-    render(<ChatInput onSend={onSend} />);
+    const { onSend } = renderInput();
 
     await userEvent.type(screen.getByRole('textbox'), 'hello{Enter}');
     expect(onSend).toHaveBeenCalledWith('hello');
   });
 
   it('does not send empty input', async () => {
-    const onSend = vi.fn();
-    render(<ChatInput onSend={onSend} />);
+    const { onSend } = renderInput();
 
     await userEvent.click(screen.getByRole('button', { name: /submit/i }));
     expect(onSend).not.toHaveBeenCalled();
   });
 
   it('calls onStop instead of onSend while streaming', async () => {
-    const onSend = vi.fn();
-    const onStop = vi.fn();
-    render(<ChatInput onSend={onSend} onStop={onStop} status="streaming" />);
+    const { onSend, onStop } = renderInput('streaming');
 
     await userEvent.click(screen.getByRole('button', { name: /submit/i }));
     expect(onStop).toHaveBeenCalledTimes(1);

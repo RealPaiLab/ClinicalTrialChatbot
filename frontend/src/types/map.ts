@@ -1,4 +1,5 @@
-import type { Trial, TrialSite, TrialStatus } from '@/types/trial';
+import type { TrialStatus } from '@/constants/trialStatus';
+import type { Trial, TrialSite } from '@/types/trial';
 
 export interface SiteMarker {
   trial: Trial;

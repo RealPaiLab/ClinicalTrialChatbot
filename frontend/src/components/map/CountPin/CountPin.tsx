@@ -1,5 +1,5 @@
 import PinShape from '@/components/map/PinShape/PinShape';
-import type { TrialStatus } from '@/types/trial';
+import type { TrialStatus } from '@/constants/trialStatus';
 
 interface CountPinProps {
   count: number;

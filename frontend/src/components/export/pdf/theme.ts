@@ -1,6 +1,6 @@
 import { StyleSheet } from '@react-pdf/renderer';
 import { PDF_FONT } from '@/components/export/pdf/fonts';
-import type { TrialStatus } from '@/types/trial';
+import type { TrialStatus } from '@/constants/trialStatus';
 
 /** The light-mode design tokens, as literals: the PDF never follows the theme. */
 export const PDF_COLOR = {
@@ -122,8 +122,7 @@ export const styles = StyleSheet.create({
   dot: { width: 4.5, height: 4.5, borderRadius: 3, marginRight: 4 },
 
   section: { marginBottom: 14 },
-  // The gap below the rule belongs to this wrapper, not to the title, so the
-  // highlight accent can sit exactly on the rule rather than floating under it.
+  // The gap below the rule lives here, not on the title, so the accent sits exactly on the rule.
   sectionHead: { position: 'relative', marginBottom: 7 },
   sectionTitle: {
     fontSize: 8.5,
@@ -142,9 +141,7 @@ export const styles = StyleSheet.create({
     height: 1.2,
     backgroundColor: PDF_COLOR.highlight,
   },
-  // lineHeight lives on the prose styles, never on the Page: an inherited
-  // unitless lineHeight makes the renderer drop dynamically rendered text
-  // (the page-number footer).
+  // lineHeight stays off the Page: inherited, it makes the renderer drop the page-number footer.
   paragraph: { marginBottom: 6, lineHeight: 1.5 },
   bulletRow: { flexDirection: 'row', marginBottom: 5, paddingRight: 4 },
   bulletMark: { width: 10, color: PDF_COLOR.ink },
@@ -172,9 +169,7 @@ export const styles = StyleSheet.create({
   },
   link: { color: PDF_COLOR.ink, fontWeight: 700, textDecoration: 'none' },
 
-  // The running footer is pinned Texts rather than one flex row: absolute
-  // children need a resolved width, and a bare fixed Text is the pattern the
-  // renderer supports for per-page content.
+  // Pinned Texts, not one flex row: the renderer only supports bare fixed Texts for per-page content.
   footerBrand: {
     position: 'absolute',
     left: 62,

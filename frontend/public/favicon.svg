@@ -1,1 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#64bc46"/><g transform="translate(4 4)" fill="none" stroke="#0a0b09" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2v2"/><path d="M5 2v2"/><path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="6.5 11 110 110">
+  <style>
+    .ink { stroke: #141414; }
+    @media (prefers-color-scheme: dark) { .ink { stroke: #f2f2f0; } }
+  </style>
+  <g transform="translate(60.5 72)" fill="none" stroke-width="14">
+    <path d="M30.64 25.71 A40 40 0 0 1 -11.70 38.25" stroke="#64bc46" />
+    <path class="ink" d="M-15.63 36.82 A40 40 0 0 1 -39.95 2.09" />
+    <path d="M-39.95 -2.09 A40 40 0 0 1 -15.63 -36.82" stroke="#64bc46" />
+    <path class="ink" d="M-11.70 -38.25 A40 40 0 0 1 30.64 -25.71" />
+    <path fill="#64bc46" stroke="none" fill-rule="evenodd" d="M38 -32 C33 -38 27 -42 27 -48 A11 11 0 1 1 49 -48 C49 -42 43 -38 38 -32 Z M42 -48 A4 4 0 1 0 34 -48 A4 4 0 1 0 42 -48 Z" />
+  </g>
+</svg>

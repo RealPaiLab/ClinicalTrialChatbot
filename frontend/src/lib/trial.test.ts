@@ -2,11 +2,24 @@ import { describe, expect, it } from 'vitest';
 import {
   deriveTrialStatus,
   formatPhases,
+  normalizeStatus,
   primarySite,
   trialStatuses,
   uniqueCancerTypes,
 } from './trial';
 import { mockTrials } from '@/test/fixtures/trials';
+
+describe('normalizeStatus', () => {
+  it('maps registry states onto the shown statuses', () => {
+    expect(normalizeStatus('Recruiting')).toBe('recruiting');
+    expect(normalizeStatus('Not yet recruiting')).toBe('opening_soon');
+  });
+
+  it('returns null for unsupported or empty states', () => {
+    expect(normalizeStatus('Completed')).toBeNull();
+    expect(normalizeStatus(null)).toBeNull();
+  });
+});
 
 describe('trial helpers', () => {
   it('derives the highest-priority site status', () => {
@@ -19,7 +32,9 @@ describe('trial helpers', () => {
   });
 
   it('prefers a recruiting site as the primary site', () => {
-    expect(primarySite(mockTrials[0])?.city).toBe('Toronto');
+    const openingFirst = { ...mockTrials[0], sites: [...mockTrials[0].sites].reverse() };
+    expect(openingFirst.sites[0].city).toBe('Montreal');
+    expect(primarySite(openingFirst)?.city).toBe('Toronto');
   });
 
   it('collects unique cancer types across sites', () => {

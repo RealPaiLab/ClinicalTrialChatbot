@@ -1,3 +1,4 @@
+import { useLayoutEffect } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Route, Routes } from 'react-router';
 import { Toaster } from '@/components/ui/sonner';
@@ -21,6 +22,10 @@ const debugEnabled = !config.isProduction;
 function App() {
   const theme = useAppStore((state) => state.theme);
   useAppLanguage();
+
+  useLayoutEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -1,5 +1,5 @@
-import { ChatRole, StreamEventType } from '@/constants/chat';
-import type { ChatMessage, Trial } from '@/types/trial';
+import { StreamEventType } from '@/constants/chat';
+import type { Trial } from '@/types/trial';
 
 export const mockTrials: Trial[] = [
   {
@@ -105,26 +105,6 @@ export const mockTrials: Trial[] = [
         state: 'Not yet recruiting',
         cancerTypeNames: ['colorectal cancer'],
       },
-    ],
-  },
-];
-
-export const mockConversation: ChatMessage[] = [
-  {
-    id: 'm1',
-    role: ChatRole.User,
-    content: 'I have advanced triple-negative breast cancer and live in Toronto. Any trials?',
-  },
-  {
-    id: 'm2',
-    role: ChatRole.Assistant,
-    content:
-      'I found a trial that may fit. **[CTC-4267848A]** is testing immunotherapy added to chemotherapy for advanced triple-negative breast cancer, and it is currently **recruiting** at Princess Margaret Cancer Centre in Toronto.',
-    trials: [mockTrials[0]],
-    followUpQuestions: [
-      'What are the eligibility requirements?',
-      'Are there trials in Montreal too?',
-      'What does immunotherapy involve?',
     ],
   },
 ];

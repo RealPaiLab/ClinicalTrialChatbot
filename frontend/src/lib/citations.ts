@@ -5,19 +5,15 @@ import {
 } from '@/constants/chat';
 
 // One prefix per source (mirrors backend schemas/trial_ref.py REF_PREFIXES).
-const TRIAL_REF_PATTERN = /(?:CTC|ULC)-[0-9A-HJ-NP-TV-Z]{8}/g;
-const TRIAL_REF_BRACKET = /\[((?:CTC|ULC)-[0-9A-HJ-NP-TV-Z]{8})\]/g;
+const TRIAL_REF = '(?:CTC|ULC)-[0-9A-HJ-NP-TV-Z]{8}';
+const TRIAL_REF_PATTERN = new RegExp(TRIAL_REF, 'g');
+const TRIAL_REF_BRACKET = new RegExp(`\\[(${TRIAL_REF})\\]`, 'g');
 // A sentence (no terminator or newline inside) that cites at least one trial.
-const CITING_SENTENCE = /[^.!?\n]*\[(?:CTC|ULC)-[0-9A-HJ-NP-TV-Z]{8}\][^.!?\n]*[.!?]/g;
-// [contact:CTC-…] — the agent asking for the contact pill on its own, with no
-// trial citation attached. Distinct from [CTC-…], so it never renders a title.
-const CONTACT_TOKEN = /\[contact:((?:CTC|ULC)-[0-9A-HJ-NP-TV-Z]{8})\]/g;
-// [[term||short definition]] — term holds no `||` or brackets; definition runs to `]]`.
+const CITING_SENTENCE = new RegExp(`[^.!?\\n]*\\[${TRIAL_REF}\\][^.!?\\n]*[.!?]`, 'g');
+// [contact:CTC-…]: the agent asking for the contact pill alone, so it never renders a title.
+const CONTACT_TOKEN = new RegExp(`\\[contact:(${TRIAL_REF})\\]`, 'g');
+// [[term||short definition]]: term holds no `||` or brackets; definition runs to `]]`.
 const DEFINITION_PATTERN = /\[\[([^[\]|]+?)\|\|([\s\S]+?)\]\]/g;
-
-export function extractTrialRefs(text: string): string[] {
-  return [...new Set(text.match(TRIAL_REF_PATTERN) ?? [])];
-}
 
 export function linkifyCitations(text: string): string {
   return text.replace(TRIAL_REF_BRACKET, `[$1](${CITATION_HREF_PREFIX}$1)`);
@@ -38,11 +34,16 @@ export function linkifyContacts(text: string): string {
   });
 }
 
-// Rewrite inline term definitions into Markdown links carrying the definition in
+/** Rewrites [[term||definition]] into a Markdown link whose href carries the definition. */
 export function linkifyDefinitions(text: string): string {
   return text.replace(DEFINITION_PATTERN, (_match, term: string, definition: string) => {
     const label = term.trim();
     const href = `${DEFINITION_HREF_PREFIX}${encodeURIComponent(definition.trim())}`;
     return `[${label}](${href})`;
   });
+}
+
+/** Turns an agent reply's tokens into links; contacts go first, before citations consume the brackets they key on. */
+export function linkifyMessage(text: string): string {
+  return linkifyDefinitions(linkifyCitations(linkifyContacts(text)));
 }

@@ -1,6 +1,4 @@
-import { config } from '@/config';
-
-const API_BASE = config.apiBaseUrl;
+import { apiPost } from '@/services/api';
 
 export interface SubmitFeedbackParams {
   sessionId: string;
@@ -10,24 +8,18 @@ export interface SubmitFeedbackParams {
   suggestedNctNumbers?: string[];
 }
 
-export async function submitFeedback(
-  { sessionId, observationId, score, comment, suggestedNctNumbers }: SubmitFeedbackParams,
-  signal?: AbortSignal
-): Promise<void> {
-  const response = await fetch(`${API_BASE}/feedback`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      session_id: sessionId,
-      observation_id: observationId,
-      score,
-      comment: comment || null,
-      suggested_nct_numbers: suggestedNctNumbers ?? [],
-    }),
-    signal,
+export async function submitFeedback({
+  sessionId,
+  observationId,
+  score,
+  comment,
+  suggestedNctNumbers,
+}: SubmitFeedbackParams): Promise<void> {
+  await apiPost('/feedback', {
+    session_id: sessionId,
+    observation_id: observationId,
+    score,
+    comment: comment || null,
+    suggested_nct_numbers: suggestedNctNumbers ?? [],
   });
-
-  if (!response.ok) {
-    throw new Error(`Feedback submission failed with status ${response.status}`);
-  }
 }

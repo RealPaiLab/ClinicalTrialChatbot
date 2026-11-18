@@ -16,11 +16,7 @@ interface LanguageOption {
   endonym: string;
 }
 
-/**
- * The picker's tiles, in grid order. English leads because it is the language
- * the trial text is stored in, so choosing it needs no translation call. Each
- * tile pairs a flag with the endonym, since flags name countries not languages.
- */
+/** Every UI language; each pairs a flag with its endonym, since flags name countries, not languages. */
 export const LANGUAGES = [
   { code: LanguageCode.En, flag: '🇨🇦', endonym: 'English' },
   { code: LanguageCode.FrCa, flag: '🇫🇷', endonym: 'Français' },

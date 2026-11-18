@@ -28,24 +28,16 @@ function TurnstileGate({ children }: TurnstileGateProps) {
 
   const handleFailed = useCallback(() => setFailed(true), []);
 
-  const reset = useCallback(() => {
-    if (!enabled) return;
-    setToken(null);
-    setVerified(false);
-    setFailed(false);
-    setAttempt((n) => n + 1);
-  }, [enabled]);
-
-  const retry = useCallback(() => {
+  const retry = () => {
     setFailed(false);
     setToken(null);
     setVerified(false);
     setAttempt((n) => n + 1);
-  }, []);
+  };
 
   const value = useMemo<TurnstileContextValue>(
-    () => ({ enabled, ready: verified, token, verificationId, reset }),
-    [enabled, verified, token, verificationId, reset]
+    () => ({ token, verificationId }),
+    [token, verificationId]
   );
 
   return (

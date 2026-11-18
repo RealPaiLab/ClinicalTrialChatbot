@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Mail, Phone } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { CONTACT_EMAIL } from '@/constants/contact';
 import type { SiteContact } from '@/types/contact';
+
+const EMAIL_SUBJECT = 'Question about clinical trial';
 
 interface ContactRowProps {
   contact: SiteContact;
@@ -23,9 +24,7 @@ function ContactRow({ contact, publicTrialId }: ContactRowProps) {
   const { t } = useTranslation();
   const [phoneShown, setPhoneShown] = useState(false);
   const name = contact.fullName ?? t('contact.unnamed');
-  const subject = publicTrialId
-    ? `${CONTACT_EMAIL.subject} ${publicTrialId}`
-    : CONTACT_EMAIL.subject;
+  const subject = publicTrialId ? `${EMAIL_SUBJECT} ${publicTrialId}` : EMAIL_SUBJECT;
 
   return (
     <div className="border-border flex flex-col gap-2 rounded-lg border p-3">

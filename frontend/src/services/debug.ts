@@ -1,9 +1,6 @@
-import camelcaseKeys from 'camelcase-keys';
 import { keepPreviousData, queryOptions } from '@tanstack/react-query';
-import { config } from '@/config';
+import { apiGet } from '@/services/api';
 import type { Trial } from '@/types/trial';
-
-const API_BASE = config.apiBaseUrl;
 
 export interface DebugSearchParams {
   cancerTypes?: string[];
@@ -44,19 +41,10 @@ function buildQuery(params: DebugSearchParams): string {
   return search.toString();
 }
 
-async function searchTrials(params: DebugSearchParams, signal?: AbortSignal): Promise<Trial[]> {
-  const response = await fetch(`${API_BASE}/debug/trials?${buildQuery(params)}`, { signal });
-  if (!response.ok) {
-    throw new Error(`Debug trial search failed with status ${response.status}`);
-  }
-  const data = (await response.json()) as Record<string, unknown>[];
-  return camelcaseKeys(data, { deep: true }) as unknown as Trial[];
-}
-
 export function debugTrialsQuery(params: DebugSearchParams) {
   return queryOptions({
     queryKey: ['debug-trials', params],
-    queryFn: ({ signal }) => searchTrials(params, signal),
+    queryFn: ({ signal }) => apiGet<Trial[]>(`/debug/trials?${buildQuery(params)}`, { signal }),
     placeholderData: keepPreviousData,
   });
 }

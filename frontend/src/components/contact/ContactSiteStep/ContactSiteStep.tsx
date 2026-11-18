@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { normalizeStatus, TRIAL_STATUS } from '@/lib/trialStatus';
+import StatusDot from '@/components/trial/StatusDot/StatusDot';
+import { normalizeStatus, sitePlace } from '@/lib/trial';
 import { cn } from '@/lib/utils';
 import type { SiteContacts } from '@/types/contact';
 
@@ -19,7 +20,7 @@ function ContactSiteStep({ sites, onSelect }: ContactSiteStepProps) {
     <div className="flex flex-col gap-1.5">
       {sites.map(({ site, contacts }) => {
         const status = normalizeStatus(site.state);
-        const place = [site.city, site.province].filter(Boolean).join(', ');
+        const place = sitePlace(site);
         const reachable = contacts.length > 0;
         return (
           <button
@@ -33,12 +34,7 @@ function ContactSiteStep({ sites, onSelect }: ContactSiteStepProps) {
             )}
           >
             <span className="flex items-center gap-1.5 text-sm font-medium">
-              {status && (
-                <span
-                  aria-hidden
-                  className={cn('size-1.5 shrink-0 rounded-full', TRIAL_STATUS[status].badgeClass)}
-                />
-              )}
+              {status && <StatusDot status={status} className="size-1.5" />}
               {site.nameEn}
             </span>
             <span className="text-caption text-muted-foreground">

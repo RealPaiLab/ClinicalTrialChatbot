@@ -30,9 +30,15 @@ const de = {
     askAiHintBody:
       'Ein Wort unklar? <mark>Markieren</mark> Sie es in der Unterhaltung und klicken Sie auf die Schaltfläche <ask>KI fragen</ask>, die erscheint. {{agent}} erklärt es Ihnen.',
     askAi: 'KI fragen',
-    addedTrials: 'Ihre hinzugefügten Studien',
     removeFromContext: '{{trialRef}} aus dem Kontext entfernen',
-    stop: 'Stoppen',
+    showOnMap: '{{title}} auf der Karte zeigen',
+    showTrialsOnMap_one: '{{count}} Studie auf der Karte zeigen',
+    showTrialsOnMap_other: '{{count}} Studien auf der Karte zeigen',
+    trialsOnMap: 'Auf der Karte',
+    findMore: 'Ähnliche finden',
+    findMorePrompt: 'Weitere Studien wie diese finden.',
+    contextTrials: '{{count}} Studien',
+    definition: 'Definition: {{definition}}',
     send: 'Senden',
   },
   searching: {
@@ -41,10 +47,10 @@ const de = {
     sites: 'Rekrutierende Zentren in Ihrer Nähe werden geprüft…',
     phases: 'Studienphasen und Behandlungen werden geprüft…',
     gathering: 'Die relevantesten Studien werden zusammengestellt…',
-    reading: 'Antwort wird gelesen',
   },
   feedback: {
-    prompt: 'Sagen Sie uns, wie es war',
+    removeNct: '{{nct}} entfernen',
+    failed: 'Ihr Feedback konnte nicht gesendet werden. Bitte versuchen Sie es erneut.',
     helpful: 'Hilfreich',
     notHelpful: 'Nicht hilfreich',
     commentPlaceholder: 'Kommentar (optional)',
@@ -91,9 +97,11 @@ const de = {
   map: {
     trialCount_one: '{{count}} Studie',
     trialCount_other: '{{count}} Studien',
-    coverageArea: 'Abgedecktes Gebiet',
+    history: 'Ergebnisverlauf',
+    historyEmpty:
+      'Jede Antwort, die Studien findet, steht hier, damit ihre Studien wieder auf die Karte kommen.',
+    historyAnswer: 'Antwort {{index}}',
     coverageNotice: 'Die Abdeckung umfasst Studienzentren in ganz Kanada.',
-    seeTrials: 'Studien auf der Karte ansehen',
     emptyHint: 'Studien erscheinen hier im Verlauf des Gesprächs.',
   },
   status: {
@@ -116,8 +124,6 @@ const de = {
     city: 'Stadt',
     whoCanJoin: 'Wer teilnehmen kann',
     whoCannotJoin: 'Wer nicht teilnehmen kann',
-    translate: 'Übersetzen',
-    seeOriginal: 'Original anzeigen',
     machineNotice:
       'Automatisch übersetzt und nicht geprüft. Ziehen Sie für alles, was die Eignung betrifft, das englische Original heran.',
     unavailableNotice:
@@ -179,7 +185,6 @@ const de = {
     next: 'Weiter',
     back: 'Zurück',
     done: 'Fertig',
-    skip: 'Überspringen',
     steps: {
       welcome: {
         title: 'Willkommen bei {{agent}}',

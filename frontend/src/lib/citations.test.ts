@@ -1,44 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import {
-  extractTrialRefs,
-  linkifyCitations,
-  linkifyContacts,
-  linkifyDefinitions,
-} from './citations';
+import { linkifyCitations, linkifyContacts, linkifyDefinitions } from './citations';
 import {
   CITATION_HREF_PREFIX,
   CONTACT_HREF_PREFIX,
   DEFINITION_HREF_PREFIX,
 } from '@/constants/chat';
 
-describe('extractTrialRefs', () => {
-  it('extracts bracketed and bare NCT numbers', () => {
-    const text = 'See [CTC-4267848A] and also CTC-3520491B for details.';
-    expect(extractTrialRefs(text)).toEqual(['CTC-4267848A', 'CTC-3520491B']);
-  });
-
-  it('deduplicates repeated references and preserves first-seen order', () => {
-    const text = '[CTC-4267848A] then [CTC-3520491B], and [CTC-4267848A] again.';
-    expect(extractTrialRefs(text)).toEqual(['CTC-4267848A', 'CTC-3520491B']);
-  });
-
-  it('returns an empty array when there are no references', () => {
-    expect(extractTrialRefs('No trials mentioned here.')).toEqual([]);
-  });
-
-  it('reads a pediatric-registry ref alongside an adult one', () => {
-    const text = 'Adults: [CTC-4267848A]. Children: [ULC-3520491B].';
-    expect(extractTrialRefs(text)).toEqual(['CTC-4267848A', 'ULC-3520491B']);
-    expect(linkifyCitations('[ULC-3520491B]')).toBe(
-      `[ULC-3520491B](${CITATION_HREF_PREFIX}ULC-3520491B)`
-    );
-  });
-});
-
 describe('linkifyCitations', () => {
-  it('turns bracketed NCT references into citation links', () => {
+  it('turns bracketed trial refs into citation links', () => {
     expect(linkifyCitations('Try [CTC-4267848A] today.')).toBe(
       `Try [CTC-4267848A](${CITATION_HREF_PREFIX}CTC-4267848A) today.`
+    );
+  });
+
+  it('links a pediatric-registry ref too', () => {
+    expect(linkifyCitations('[ULC-3520491B]')).toBe(
+      `[ULC-3520491B](${CITATION_HREF_PREFIX}ULC-3520491B)`
     );
   });
 });

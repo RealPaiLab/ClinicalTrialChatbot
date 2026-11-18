@@ -2,12 +2,16 @@ import { MapPin, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { publicTrialId } from '@/lib/trial';
+import ActionTooltip from '@/components/common/ActionTooltip/ActionTooltip';
+import { trialTitle } from '@/lib/trial';
+import { truncate } from '@/lib/utils';
 import type { Trial } from '@/types/trial';
+
+const TOOLTIP_TITLE_MAX_LENGTH = 40;
 
 interface SelectedTrialsProps {
   trials: Trial[];
-  onRemove?: (trialRef: string) => void;
+  onRemove: (trialRef: string) => void;
 }
 
 function SelectedTrials({ trials, onRemove }: SelectedTrialsProps) {
@@ -20,23 +24,27 @@ function SelectedTrials({ trials, onRemove }: SelectedTrialsProps) {
   return (
     <div className="flex flex-wrap gap-2">
       {trials.map((trial) => {
-        const trialRef = trial.trialRef ?? '';
-        const label =
-          trial.shortTitleEn ?? trial.officialTitleEn ?? publicTrialId(trial) ?? 'Trial';
+        const label = trialTitle(trial);
         return (
-          <Badge key={trialRef} variant="secondary" className="gap-1.5 py-1 pr-1 pl-2">
+          <Badge key={trial.trialRef} variant="secondary" className="gap-1.5 py-1 pr-1 pl-2">
             <MapPin className="size-3 shrink-0" />
             <span className="max-w-[12rem] truncate">{label}</span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label={t('chat.removeFromContext', { trialRef: label })}
-              onClick={() => onRemove?.(trialRef)}
-              className="size-4 rounded-full hover:bg-transparent"
+            <ActionTooltip
+              label={t('chat.removeFromContext', {
+                trialRef: truncate(label, TOOLTIP_TITLE_MAX_LENGTH),
+              })}
             >
-              <X className="size-3" />
-            </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label={t('chat.removeFromContext', { trialRef: label })}
+                onClick={() => onRemove(trial.trialRef)}
+                className="size-4 rounded-full hover:bg-transparent"
+              >
+                <X className="size-3" />
+              </Button>
+            </ActionTooltip>
           </Badge>
         );
       })}

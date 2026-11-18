@@ -8,7 +8,6 @@ export interface SiteContact {
 }
 
 export interface SiteContacts {
-  /** The same TrialSite shape the map and summary already render. */
   site: TrialSite;
   contacts: SiteContact[];
 }

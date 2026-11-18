@@ -1,26 +1,20 @@
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
-const DOTS13_FRAMES = ['⣼', '⣹', '⢻', '⠿', '⡟', '⣏', '⣧', '⣶'];
-const DOTS13_INTERVAL = 80;
+const FRAMES = ['⣼', '⣹', '⢻', '⠿', '⡟', '⣏', '⣧', '⣶'];
+const FRAME_MS = 80;
 
-interface SpinnerProps {
-  frames?: string[];
-  interval?: number;
-  className?: string;
-}
-
-function Spinner({ frames = DOTS13_FRAMES, interval = DOTS13_INTERVAL, className }: SpinnerProps) {
+function Spinner({ className }: { className?: string }) {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
-    const id = setInterval(() => setIndex((current) => (current + 1) % frames.length), interval);
+    const id = setInterval(() => setIndex((current) => (current + 1) % FRAMES.length), FRAME_MS);
     return () => clearInterval(id);
-  }, [frames.length, interval]);
+  }, []);
 
   return (
     <span aria-hidden className={cn('font-mono leading-none', className)}>
-      {frames[index]}
+      {FRAMES[index]}
     </span>
   );
 }

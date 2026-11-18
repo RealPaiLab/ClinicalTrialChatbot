@@ -1,20 +1,30 @@
-import { useTranslation } from 'react-i18next';
+import type { CSSProperties } from 'react';
+import StatusLabel from '@/components/trial/StatusLabel/StatusLabel';
+import { TRIAL_STATUSES } from '@/constants/trialStatus';
 import { cn } from '@/lib/utils';
-import { TRIAL_STATUS } from '@/lib/trialStatus';
 
-function MapLegend() {
-  const { t } = useTranslation();
+interface MapLegendProps {
+  className?: string;
+  style?: CSSProperties;
+}
 
+function MapLegend({ className, style }: MapLegendProps) {
   return (
     <div
-      data-slot="map-legend"
-      className="bg-card/90 absolute bottom-4 left-4 z-10 rounded-lg border p-2.5 shadow-sm backdrop-blur"
+      style={style}
+      className={cn(
+        'bg-card/90 absolute z-10 rounded-lg border p-2.5 shadow-sm backdrop-blur',
+        className
+      )}
     >
       <ul className="flex flex-col gap-1.5">
-        {Object.values(TRIAL_STATUS).map((status) => (
-          <li key={status.labelKey} className="flex items-center gap-2">
-            <span className={cn('size-2.5 rounded-full', status.badgeClass)} />
-            <span className="text-muted-foreground text-xs">{t(status.labelKey)}</span>
+        {TRIAL_STATUSES.map((status) => (
+          <li key={status}>
+            <StatusLabel
+              status={status}
+              className="text-muted-foreground gap-2 text-xs"
+              dotClassName="size-2.5"
+            />
           </li>
         ))}
       </ul>

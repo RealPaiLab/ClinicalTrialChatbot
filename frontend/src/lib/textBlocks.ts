@@ -7,10 +7,7 @@ function clean(line: string): string {
   return line.replace(/\\([[\]])/g, '$1').trim();
 }
 
-/**
- * Trial criteria arrive as light markdown: `*` bullets separated by blank
- * lines. The PDF renderer has no markdown support, so flatten to blocks.
- */
+/** Trial criteria arrive as light markdown the PDF renderer cannot read, so they flatten to blocks. */
 export function parseTextBlocks(text: string | null): TextBlock[] {
   if (!text) return [];
 

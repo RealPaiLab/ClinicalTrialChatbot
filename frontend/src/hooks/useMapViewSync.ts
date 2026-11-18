@@ -1,8 +1,10 @@
 import { useEffect, useRef, type RefObject } from 'react';
 import type { MapRef } from 'react-map-gl/mapbox';
+import { CANADA_CENTER } from '@/assets/canada.geojson';
 import { findSelectedUnit } from '@/lib/mapSelection';
 import type { PinUnit, SiteMarker } from '@/types/map';
 
+export const INITIAL_VIEW = { longitude: CANADA_CENTER[0], latitude: CANADA_CENTER[1], zoom: 2.5 };
 const SELECTED_ZOOM = 11;
 const SELECTED_FLY_MS = 1800;
 const SELECTED_FLY_CURVE = 1.2;
@@ -11,21 +13,14 @@ const RECENTER_MS = 420;
 const CENTER_EPSILON = 1e-4;
 const ZOOM_EPSILON = 0.01;
 
-interface MapView {
-  longitude: number;
-  latitude: number;
-  zoom: number;
-}
-
 interface MapViewSyncOptions {
   mapRef: RefObject<MapRef | null>;
   containerRef: RefObject<HTMLDivElement | null>;
   loaded: boolean;
   markers: SiteMarker[];
   units: PinUnit[];
-  selectedTrialRef?: string | null;
-  selectedSiteKey?: string | null;
-  initialView: MapView;
+  selectedTrialRef: string | null;
+  selectedSiteKey: string | null;
 }
 
 export function useMapViewSync({
@@ -36,16 +31,13 @@ export function useMapViewSync({
   units,
   selectedTrialRef,
   selectedSiteKey,
-  initialView,
 }: MapViewSyncOptions) {
   const selectedCenterRef = useRef<[number, number] | null>(null);
   const emptyRef = useRef(markers.length === 0);
-  const initialViewRef = useRef(initialView);
 
   useEffect(() => {
     emptyRef.current = markers.length === 0;
-    initialViewRef.current = initialView;
-  }, [markers, initialView]);
+  }, [markers]);
 
   useEffect(() => {
     if (!loaded) return;
@@ -79,7 +71,7 @@ export function useMapViewSync({
       map.triggerRepaint();
       if (!selectedCenterRef.current) {
         if (emptyRef.current) {
-          const { longitude, latitude, zoom } = initialViewRef.current;
+          const { longitude, latitude, zoom } = INITIAL_VIEW;
           map.easeTo({
             center: [longitude, latitude],
             zoom,
@@ -115,12 +107,12 @@ export function useMapViewSync({
   useEffect(() => {
     if (!loaded || markers.length > 0) return;
     mapRef.current?.flyTo({
-      center: [initialView.longitude, initialView.latitude],
-      zoom: initialView.zoom,
+      center: [INITIAL_VIEW.longitude, INITIAL_VIEW.latitude],
+      zoom: INITIAL_VIEW.zoom,
       duration: 900,
       essential: true,
     });
-  }, [loaded, markers, initialView, mapRef]);
+  }, [loaded, markers, mapRef]);
 
   useEffect(() => {
     if (!loaded || markers.length === 0) return;
@@ -131,15 +123,13 @@ export function useMapViewSync({
         [Math.min(...lons), Math.min(...lats)],
         [Math.max(...lons), Math.max(...lats)],
       ],
-      { padding: 72, duration: 900, maxZoom: 11 }
+      { padding: 72, duration: 900, maxZoom: SELECTED_ZOOM }
     );
   }, [loaded, markers, mapRef]);
 
   useEffect(() => {
     if (!loaded) return;
-    const unit = selectedTrialRef
-      ? findSelectedUnit(units, selectedTrialRef, selectedSiteKey)
-      : null;
+    const unit = findSelectedUnit(units, selectedTrialRef, selectedSiteKey);
     if (!unit) {
       selectedCenterRef.current = null;
       return;
