@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.12.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.11.0...frontend-v0.12.0) (2026-11-18)
+
+
+### Features
+
+* **frontend:** bring earlier answers' trials back to the map ([#156](https://github.com/RealPaiLab/ClinicalTrialChatbot/issues/156)) ([8602481](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/8602481a943017accf86c6cba4dc0b2b3693b179)), closes [#145](https://github.com/RealPaiLab/ClinicalTrialChatbot/issues/145)
+* **frontend:** green icon hover on action buttons and tooltips on icon-only buttons ([#155](https://github.com/RealPaiLab/ClinicalTrialChatbot/issues/155)) ([4130bf2](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/4130bf227e2e69b8ff0d440464e4fa7b0f4f5afd))
+
+
+### Bug Fixes
+
+* **frontend:** patch dompurify, undici, body-parser and systeminformation CVEs ([#154](https://github.com/RealPaiLab/ClinicalTrialChatbot/issues/154)) ([b46a547](https://github.com/RealPaiLab/ClinicalTrialChatbot/commit/b46a547126683295b24a4bea1ae02bf34181bf73))
+
 ## [0.11.0](https://github.com/RealPaiLab/ClinicalTrialChatbot/compare/frontend-v0.10.1...frontend-v0.11.0) (2026-10-22)
 
 
