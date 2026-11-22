@@ -2,8 +2,9 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import ChatMessages from './ChatMessages';
+import * as conversationModule from '@/components/ai-elements/conversation';
 import { renderWithClient } from '@/test/render';
-import { AGENT_NAME, ChatRole } from '@/constants/chat';
+import { AGENT_NAME, CHAT_ERROR_KEY, ChatRole } from '@/constants/chat';
 import type { ChatMessage } from '@/types/trial';
 import { mockTrials } from '@/test/fixtures/trials';
 import { useAppStore } from '@/store/appStore';
@@ -96,5 +97,122 @@ describe('ChatMessages', () => {
       /Immunotherapy for Advanced/i
     );
     expect(screen.getByRole('button', { name: /contact/i })).toBeInTheDocument();
+  });
+
+  it('autoscrolls to the bottom when the LLM outputs or updates a response', () => {
+    const scrollToBottom = vi.fn();
+    vi.spyOn(conversationModule, 'useStickToBottomContext').mockReturnValue({
+      scrollToBottom,
+      isAtBottom: false,
+    } as unknown as ReturnType<typeof conversationModule.useStickToBottomContext>);
+
+    const { rerender } = renderWithClient(
+      <ChatMessages
+        messages={[]}
+        sessionId="s1"
+        onCitationClick={vi.fn()}
+        onAskAi={vi.fn()}
+        onFindMore={vi.fn()}
+        busy={false}
+      />
+    );
+    expect(scrollToBottom).not.toHaveBeenCalled();
+
+    // User sends a request, assistant turn begins
+    rerender(
+      <ChatMessages
+        messages={[
+          { id: 'u1', role: ChatRole.User, content: 'Find trials' },
+          { id: 'a1', role: ChatRole.Assistant, content: '' },
+        ]}
+        sessionId="s1"
+        onCitationClick={vi.fn()}
+        onAskAi={vi.fn()}
+        onFindMore={vi.fn()}
+        busy={true}
+      />
+    );
+    expect(scrollToBottom).toHaveBeenCalledTimes(1);
+
+    // LLM streams output chunk
+    rerender(
+      <ChatMessages
+        messages={[
+          { id: 'u1', role: ChatRole.User, content: 'Find trials' },
+          { id: 'a1', role: ChatRole.Assistant, content: 'Here are the trials' },
+        ]}
+        sessionId="s1"
+        onCitationClick={vi.fn()}
+        onAskAi={vi.fn()}
+        onFindMore={vi.fn()}
+        busy={true}
+      />
+    );
+    expect(scrollToBottom).toHaveBeenCalledTimes(2);
+
+    // LLM outputs trials
+    rerender(
+      <ChatMessages
+        messages={[
+          { id: 'u1', role: ChatRole.User, content: 'Find trials' },
+          {
+            id: 'a1',
+            role: ChatRole.Assistant,
+            content: 'Here are the trials',
+            trials: [mockTrials[0]],
+          },
+        ]}
+        sessionId="s1"
+        onCitationClick={vi.fn()}
+        onAskAi={vi.fn()}
+        onFindMore={vi.fn()}
+        busy={false}
+      />
+    );
+    expect(scrollToBottom).toHaveBeenCalledTimes(3);
+
+    // Unrelated re-render without new output does not call scrollToBottom again
+    rerender(
+      <ChatMessages
+        messages={[
+          { id: 'u1', role: ChatRole.User, content: 'Find trials' },
+          {
+            id: 'a1',
+            role: ChatRole.Assistant,
+            content: 'Here are the trials',
+            trials: [mockTrials[0]],
+          },
+        ]}
+        sessionId="s1"
+        onCitationClick={vi.fn()}
+        onAskAi={vi.fn()}
+        onFindMore={vi.fn()}
+        busy={false}
+      />
+    );
+    expect(scrollToBottom).toHaveBeenCalledTimes(3);
+  });
+
+  it('autoscrolls to the bottom when the LLM outputs an error', () => {
+    const scrollToBottom = vi.fn();
+    vi.spyOn(conversationModule, 'useStickToBottomContext').mockReturnValue({
+      scrollToBottom,
+      isAtBottom: false,
+    } as unknown as ReturnType<typeof conversationModule.useStickToBottomContext>);
+
+    renderWithClient(
+      <ChatMessages
+        messages={[
+          { id: 'u1', role: ChatRole.User, content: 'Find trials' },
+          { id: 'a1', role: ChatRole.Assistant, content: '', error: { key: CHAT_ERROR_KEY.generic } },
+        ]}
+        sessionId="s1"
+        onCitationClick={vi.fn()}
+        onAskAi={vi.fn()}
+        onFindMore={vi.fn()}
+        busy={false}
+      />
+    );
+    expect(scrollToBottom).toHaveBeenCalled();
   });
 });

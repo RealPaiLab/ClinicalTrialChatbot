@@ -1,10 +1,11 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Components } from 'streamdown';
 import {
   Conversation,
   ConversationContent,
   ConversationScrollButton,
+  useStickToBottomContext,
 } from '@/components/ai-elements/conversation';
 import { Message, MessageContent, MessageResponse } from '@/components/ai-elements/message';
 import AskAiSelection from '@/components/chat/AskAiSelection/AskAiSelection';
@@ -56,6 +57,28 @@ function createMarkdownComponents(onCitationClick: (trialRef: string) => void): 
       );
     },
   };
+}
+
+interface ChatAutoScrollProps {
+  messages: ChatMessage[];
+}
+
+export function ChatAutoScroll({ messages }: ChatAutoScrollProps) {
+  const { scrollToBottom } = useStickToBottomContext();
+  const lastAssistant = messages.findLast((message) => message.role === ChatRole.Assistant);
+
+  const id = lastAssistant?.id;
+  const content = lastAssistant?.content;
+  const trialsCount = lastAssistant?.trials?.length ?? 0;
+  const followUpCount = lastAssistant?.followUpQuestions?.length ?? 0;
+  const errorKey = lastAssistant?.error?.key;
+
+  useEffect(() => {
+    if (!id) return;
+    scrollToBottom();
+  }, [id, content, trialsCount, followUpCount, errorKey, scrollToBottom]);
+
+  return null;
 }
 
 function ChatMessages({
@@ -122,6 +145,7 @@ function ChatMessages({
           )}
         </ConversationContent>
         <ConversationScrollButton />
+        <ChatAutoScroll messages={messages} />
       </Conversation>
     </div>
   );
